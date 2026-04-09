@@ -29,3 +29,65 @@ export function createNavigationState() {
     }
   };
 }
+
+import gsap from 'gsap';
+
+export function createNavigationSystem(camera, state, ui) {
+  // Proxy object for GSAP to tween plain numbers instead of Vector3
+  const proxy = {
+    px: camera.position.x,
+    py: camera.position.y,
+    pz: camera.position.z,
+    tx: 0, ty: 1, tz: 0
+  };
+
+  function applyProxy() {
+    camera.position.set(proxy.px, proxy.py, proxy.pz);
+    camera.lookAt(proxy.tx, proxy.ty, proxy.tz);
+  }
+
+  function goTo(id) {
+    if (!state.startTransition(id)) return;
+    const h = HOTSPOTS[id];
+    gsap.to(proxy, {
+      px: h.position.x, py: h.position.y, pz: h.position.z,
+      tx: h.target.x,   ty: h.target.y,   tz: h.target.z,
+      duration: 0.8,
+      ease: 'power2.inOut',
+      onUpdate: applyProxy,
+      onComplete: () => {
+        state.endTransition();
+        ui.updateHUD(id);
+      }
+    });
+    ui.updateHUD(id);
+  }
+
+  return { goTo };
+}
+
+export function setupClickHandler(renderer, camera, clickableObjects, nav, ui) {
+  const raycaster = new THREE.Raycaster();
+  const mouse     = new THREE.Vector2();
+
+  renderer.domElement.addEventListener('click', (event) => {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
+    mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(clickableObjects, true);
+    if (!hits.length) return;
+
+    // Walk up parent chain to find userData.clickable
+    let obj = hits[0].object;
+    while (obj && !obj.userData.clickable) obj = obj.parent;
+    if (!obj) return;
+
+    const { hotspot, action, panelId, panelTitle } = obj.userData;
+
+    if (hotspot)                     nav.goTo(hotspot);
+    if (action === 'openGatekeeper') ui.openGatekeeperChat();
+    if (action === 'openPanel')      ui.openPanelDrawer(panelId, panelTitle);
+  });
+}

@@ -3,6 +3,8 @@ import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createGatekeeper } from './scene/gatekeeper.js';
 import { createPanels } from './scene/panels.js';
+import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
+import { createUI } from './ui.js';
 
 const canvas = document.getElementById('gallery-canvas');
 
@@ -56,4 +58,22 @@ const { arcadeLeft, arcadeRight } = createObjects(scene);
 const gatekeeper = createGatekeeper(scene);
 addUpdateCallback(gatekeeper.update);
 const panels = createPanels(scene);
+
+const clickableObjects = [
+  ...arcadeLeft.children, ...arcadeRight.children,
+  gatekeeper.group, ...gatekeeper.group.children,
+  ...panels
+];
+
+const ui       = createUI(camera, renderer);
+const navState = createNavigationState();
+const nav      = createNavigationSystem(camera, navState, ui);
+
+setupClickHandler(renderer, camera, clickableObjects, nav, ui);
+
+document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
+document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
+
+addUpdateCallback(() => ui.updateHints());
+
 animate();
