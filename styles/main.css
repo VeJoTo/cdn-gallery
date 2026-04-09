@@ -1,1 +1,203 @@
-/* CDN Gallery Styles */
+/* styles/main.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0a0f;
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #f0ece0;
+}
+
+#gallery-canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  cursor: default;
+}
+
+/* ── HUD ────────────────────────────────────────── */
+#breadcrumb {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(240,236,224,0.7);
+  pointer-events: none;
+}
+
+#back-btn {
+  position: fixed;
+  top: 38px;
+  left: 16px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #f0ece0;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+#back-btn:hover { background: rgba(255,255,255,0.2); }
+
+#inventory-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #f0ece0;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transition: background 0.2s;
+}
+#inventory-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Hotspot hints ──────────────────────────────── */
+#hotspot-hints { position: fixed; top: 0; left: 0; pointer-events: none; }
+
+.hotspot-hint {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  border: 2px solid rgba(255,255,255,0.8);
+  transform: translate(-50%, -50%);
+  animation: pulse 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+  50%       { transform: translate(-50%, -50%) scale(1.4); opacity: 0.3; }
+}
+
+/* ── Panel drawer ───────────────────────────────── */
+#panel-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 360px;
+  height: 100vh;
+  background: #1a1a2e;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  padding: 24px;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+#panel-drawer.open { transform: translateX(0); }
+
+#drawer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #f0ece0;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+#drawer-content h2 { font-size: 18px; margin-bottom: 12px; margin-top: 8px; }
+#drawer-content p  { font-size: 14px; line-height: 1.6; color: rgba(240,236,224,0.75); margin-bottom: 12px; }
+
+/* ── Gatekeeper chat ────────────────────────────── */
+#gatekeeper-chat {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  background: #1a1a2e;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+}
+#gatekeeper-chat.open {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+#chat-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #f0ece0;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#chat-messages { min-height: 80px; margin-bottom: 12px; }
+
+.chat-msg {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+}
+.chat-msg.gatekeeper { background: rgba(255,255,255,0.08); }
+.chat-msg.user       { background: rgba(100,180,255,0.15); margin-left: auto; text-align: right; }
+
+#chat-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chat-chip {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #f0ece0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.chat-chip:hover { background: rgba(255,255,255,0.18); }
+
+/* ── Inventory overlay ──────────────────────────── */
+#inventory-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,15,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#inventory-overlay.hidden { display: none; }
+
+#inventory-content {
+  background: #1a1a2e;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 32px;
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  position: relative;
+}
+
+#inventory-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: #f0ece0;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* ── Utility ────────────────────────────────────── */
+.hidden { display: none !important; }
