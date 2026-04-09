@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createRoom } from './scene/room.js';
 
 const canvas = document.getElementById('gallery-canvas');
 
@@ -48,3 +49,4 @@ function animate() {
 }
 
 animate();
+createRoom(scene);
