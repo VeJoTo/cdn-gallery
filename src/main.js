@@ -49,6 +49,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-animate();
 createRoom(scene);
 const { arcadeLeft, arcadeRight } = createObjects(scene);
+animate();

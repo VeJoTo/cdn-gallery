@@ -128,6 +128,7 @@ function buildBeanBag(x, z) {
   );
   cushion.scale.y = 0.45;
   cushion.position.y = 0.46;
+  cushion.castShadow = true;
   group.add(cushion);
 
   return group;
