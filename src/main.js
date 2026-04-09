@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
+import { createGatekeeper } from './scene/gatekeeper.js';
+import { createPanels } from './scene/panels.js';
 
 const canvas = document.getElementById('gallery-canvas');
 
@@ -51,4 +53,7 @@ function animate() {
 
 createRoom(scene);
 const { arcadeLeft, arcadeRight } = createObjects(scene);
+const gatekeeper = createGatekeeper(scene);
+addUpdateCallback(gatekeeper.update);
+const panels = createPanels(scene);
 animate();
