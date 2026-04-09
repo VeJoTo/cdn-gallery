@@ -17,23 +17,27 @@ export function createRoom(scene) {
   const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
   leftWall.rotation.y = Math.PI / 2;
   leftWall.position.set(-3.5, 1.75, 0);
+  leftWall.receiveShadow = true;
   scene.add(leftWall);
 
   // Right wall (at x = +3.5, facing -x)
   const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
   rightWall.rotation.y = -Math.PI / 2;
   rightWall.position.set(3.5, 1.75, 0);
+  rightWall.receiveShadow = true;
   scene.add(rightWall);
 
   // Back wall (at z = -3, facing +z)
   const backWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), wallMat);
   backWall.position.set(0, 1.75, -3);
+  backWall.receiveShadow = true;
   scene.add(backWall);
 
   // Ceiling
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), ceilMat);
   ceil.rotation.x = Math.PI / 2;
   ceil.position.set(0, 3.5, 0);
+  ceil.receiveShadow = true;
   scene.add(ceil);
 
   // ── Lighting ────────────────────────────────────
