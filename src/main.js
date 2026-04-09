@@ -26,6 +26,7 @@ camera.lookAt(0, 1, 0);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
