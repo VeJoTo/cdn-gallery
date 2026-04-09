@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CDN 3D Gallery</title>
+  <link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+  <canvas id="gallery-canvas"></canvas>
+
+  <div id="breadcrumb"></div>
+  <button id="back-btn" class="hidden">← Back</button>
+  <button id="inventory-btn">Inventory</button>
+  <div id="hotspot-hints"></div>
+
+  <div id="panel-drawer" class="hidden">
+    <button id="drawer-close">×</button>
+    <div id="drawer-content"></div>
+  </div>
+
+  <div id="gatekeeper-chat" class="hidden">
+    <button id="chat-close">×</button>
+    <div id="chat-messages"></div>
+    <div id="chat-chips"></div>
+  </div>
+
+  <div id="inventory-overlay" class="hidden">
+    <button id="inventory-close">×</button>
+    <div id="inventory-content"></div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
