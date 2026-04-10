@@ -12,14 +12,14 @@ function makeCanvas() {
 }
 
 function drawTextPanel(ctx, title) {
-  ctx.fillStyle = '#f5f0e8';
+  ctx.fillStyle = '#0a1a28';
   ctx.fillRect(0, 0, PANEL_W, PANEL_H);
 
-  ctx.fillStyle = '#1a1a2e';
+  ctx.fillStyle = '#ffd166';
   ctx.font = 'bold 32px sans-serif';
   ctx.fillText(title, 30, 52);
 
-  ctx.strokeStyle = '#ccaa55';
+  ctx.strokeStyle = '#00e5ff';
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(30, 64);
@@ -34,24 +34,24 @@ function drawTextPanel(ctx, title) {
     'Nostrud exercitation ullamco laboris.'
   ];
   ctx.font = '22px sans-serif';
-  ctx.fillStyle = '#3a3a50';
+  ctx.fillStyle = '#90e0ef';
   lines.forEach((line, i) => ctx.fillText(line, 30, 104 + i * 34));
 }
 
 function drawChartPanel(ctx, title) {
-  ctx.fillStyle = '#1a1a2e';
+  ctx.fillStyle = '#0a1a28';
   ctx.fillRect(0, 0, PANEL_W, PANEL_H);
 
-  ctx.fillStyle = '#f5f0e8';
+  ctx.fillStyle = '#ffd166';
   ctx.font = 'bold 28px sans-serif';
   ctx.fillText(title, 30, 44);
 
   const bars = [
-    { label: '2020', value: 0.55, color: '#4488ff' },
-    { label: '2021', value: 0.70, color: '#44ccaa' },
-    { label: '2022', value: 0.85, color: '#ffaa33' },
-    { label: '2023', value: 0.65, color: '#ff6688' },
-    { label: '2024', value: 0.95, color: '#aa88ff' }
+    { label: '2020', value: 0.55, color: '#00e5ff' },
+    { label: '2021', value: 0.70, color: '#ff006e' },
+    { label: '2022', value: 0.85, color: '#9b00ff' },
+    { label: '2023', value: 0.65, color: '#00e5ff' },
+    { label: '2024', value: 0.95, color: '#ff006e' }
   ];
 
   const barW = 68;
@@ -66,7 +66,7 @@ function drawChartPanel(ctx, title) {
     ctx.fillStyle = color;
     ctx.fillRect(x, baseY - h, barW, h);
 
-    ctx.fillStyle = '#f5f0e8';
+    ctx.fillStyle = '#90e0ef';
     ctx.font = '18px sans-serif';
     ctx.fillText(label, x + 10, baseY + 22);
 
@@ -74,7 +74,7 @@ function drawChartPanel(ctx, title) {
     ctx.fillText(Math.round(value * 100) + '%', x + 8, baseY - h - 8);
   });
 
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.strokeStyle = 'rgba(144,224,239,0.3)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(30, baseY);
@@ -83,10 +83,10 @@ function drawChartPanel(ctx, title) {
 }
 
 function drawTimelinePanel(ctx, title) {
-  ctx.fillStyle = '#f0ece0';
+  ctx.fillStyle = '#0a1a28';
   ctx.fillRect(0, 0, PANEL_W, PANEL_H);
 
-  ctx.fillStyle = '#1a1a2e';
+  ctx.fillStyle = '#ffd166';
   ctx.font = 'bold 28px sans-serif';
   ctx.fillText(title, 30, 44);
 
@@ -97,7 +97,7 @@ function drawTimelinePanel(ctx, title) {
     { year: '2024', label: 'Interactive gallery launch' }
   ];
 
-  ctx.strokeStyle = '#1a1a2e';
+  ctx.strokeStyle = '#00e5ff';
   ctx.lineWidth = 2;
   const lineY = 200;
   ctx.beginPath();
@@ -110,18 +110,18 @@ function drawTimelinePanel(ctx, title) {
   milestones.forEach(({ year, label }, i) => {
     const x = 40 + i * spacing;
 
-    ctx.fillStyle = '#ccaa55';
+    ctx.fillStyle = '#ffd166';
     ctx.beginPath();
     ctx.arc(x, lineY, 8, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = '#90e0ef';
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(year, x, lineY - 22);
 
     ctx.font = '16px sans-serif';
-    ctx.fillStyle = '#3a3a50';
+    ctx.fillStyle = '#90e0ef';
     const descY = i % 2 === 0 ? lineY + 36 : lineY + 72;
     ctx.fillText(label, x, descY);
   });
