@@ -72,6 +72,15 @@ const ui       = createUI(camera, renderer);
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui);
 
+// Hide arcades when zoomed into a wall (they'd otherwise block the view)
+const baseGoTo = nav.goTo;
+nav.goTo = (id) => {
+  baseGoTo(id);
+  const hideArcades = id === 'wall-left' || id === 'wall-right';
+  arcadeLeft.visible  = !hideArcades;
+  arcadeRight.visible = !hideArcades;
+};
+
 setupClickHandler(renderer, camera, clickableObjects, nav, ui);
 
 // Pointer cursor on hover over clickable objects
