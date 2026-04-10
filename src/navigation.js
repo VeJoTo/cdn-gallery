@@ -1,5 +1,6 @@
 // src/navigation.js
 import * as THREE from 'three';
+import gsap from 'gsap';
 
 export const HOTSPOTS = {
   overview:       { position: { x: 0,    y: 6,   z: 10 }, target: { x: 0,    y: 1,   z: 0 }, label: 'Overview' },
@@ -29,8 +30,6 @@ export function createNavigationState() {
     }
   };
 }
-
-import gsap from 'gsap';
 
 export function createNavigationSystem(camera, state, ui) {
   // Proxy object for GSAP to tween plain numbers instead of Vector3
