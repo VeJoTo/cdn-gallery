@@ -527,6 +527,95 @@ function buildPoster(x, y, z, frameColor, accentColor, title, idx) {
   return plane;
 }
 
+// Stick-letter segments. Each value is a list of [x, y, w, h] rects (normalized 0-1)
+// drawn into a 0.16-wide × 0.22-tall letter cell.
+const LETTER_SEGMENTS = {
+  G: [[0,0.5,1,0.1],[0,0,0.1,1],[0,0.9,1,0.1],[0.6,0.5,0.4,0.1],[0.9,0.5,0.1,0.5]],
+  A: [[0,0,0.1,1],[0.9,0,0.1,1],[0,0.9,1,0.1],[0,0.45,1,0.1]],
+  M: [[0,0,0.1,1],[0.9,0,0.1,1],[0.4,0.3,0.2,0.1],[0.3,0.15,0.1,0.2],[0.6,0.15,0.1,0.2]],
+  E: [[0,0,0.1,1],[0,0,1,0.1],[0,0.45,0.7,0.1],[0,0.9,1,0.1]],
+  R: [[0,0,0.1,1],[0,0,1,0.1],[0.9,0,0.1,0.5],[0,0.45,1,0.1],[0.5,0.5,0.5,0.5]],
+  O: [[0,0,0.1,1],[0.9,0,0.1,1],[0,0,1,0.1],[0,0.9,1,0.1]]
+};
+
+function buildLetter(char, x, y, color) {
+  const group = new THREE.Group();
+  const segs = LETTER_SEGMENTS[char] || [];
+  const cellW = 0.16;
+  const cellH = 0.22;
+  const mat = new THREE.MeshStandardMaterial({
+    color, emissive: color, emissiveIntensity: 1.4
+  });
+  for (const [sx, sy, sw, sh] of segs) {
+    const seg = new THREE.Mesh(
+      new THREE.BoxGeometry(Math.max(sw * cellW, 0.015), Math.max(sh * cellH, 0.015), 0.025),
+      mat
+    );
+    seg.position.set(
+      x + sx * cellW + (sw * cellW) / 2,
+      y + (1 - sy - sh) * cellH + (sh * cellH) / 2,
+      0
+    );
+    group.add(seg);
+  }
+  return group;
+}
+
+function buildNeonSign() {
+  const group = new THREE.Group();
+  group.position.set(1.8, 2.85, -2.97);
+
+  const word1 = 'GAME';
+  const word2 = 'ROOM';
+  const letterSpacing = 0.20;
+  const word1Width = word1.length * letterSpacing;
+  const word2Width = word2.length * letterSpacing;
+
+  // GAME (top row)
+  for (let i = 0; i < word1.length; i++) {
+    const letter = buildLetter(word1[i], -word1Width / 2 + i * letterSpacing, 0.12, 0xff006e);
+    group.add(letter);
+  }
+  // ROOM (bottom row)
+  for (let i = 0; i < word2.length; i++) {
+    const letter = buildLetter(word2[i], -word2Width / 2 + i * letterSpacing, -0.18, 0xff006e);
+    group.add(letter);
+  }
+
+  return group;
+}
+
+function buildRug() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#1b3a4b';
+  ctx.fillRect(0, 0, 256, 256);
+
+  const rings = [
+    { r: 110, color: '#ff006e' },
+    { r: 85,  color: '#00e5ff' },
+    { r: 60,  color: '#9b00ff' },
+    { r: 35,  color: '#ffd166' }
+  ];
+  for (const { r, color } of rings) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(128, 128, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 });
+  const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.5), mat);
+  rug.rotation.x = -Math.PI / 2;
+  rug.position.set(0, 0.005, 0.5);
+  rug.receiveShadow = true;
+  return rug;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
   const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
@@ -538,6 +627,8 @@ export function createObjects(scene) {
   const bookshelf   = buildBookshelf();
   const fridge      = buildMiniFridge();
   const floorLamp   = buildFloorLamp();
+  const neonSign    = buildNeonSign();
+  const rug         = buildRug();
 
   const posters = [
     buildPoster(-2.5, 2.0, -2.99, 0xff006e, 0x9b00ff, 'NEON RUNNER',  0),
@@ -551,7 +642,7 @@ export function createObjects(scene) {
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
-    ...posters
+    neonSign, rug, ...posters
   );
 
   return { arcadeLeft, arcadeRight, desk, posters };
