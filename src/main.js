@@ -22,12 +22,12 @@ scene.fog = new THREE.Fog(0x050d14, 15, 30);
 
 // ── Camera ────────────────────────────────────────
 export const camera = new THREE.PerspectiveCamera(
-  60,
+  72,
   window.innerWidth / window.innerHeight,
   0.1,
   100
 );
-camera.position.set(0, 6, 10);
+camera.position.set(0, 4.5, 7);
 camera.lookAt(0, 1, 0);
 
 // ── Resize ────────────────────────────────────────

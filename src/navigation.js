@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 
 export const HOTSPOTS = {
-  overview:       { position: { x: 0,    y: 6,   z: 10 }, target: { x: 0,    y: 1,   z: 0 }, label: 'Overview' },
+  overview:       { position: { x: 0,    y: 4.5, z: 7  }, target: { x: 0,    y: 1,   z: 0 }, label: 'Overview' },
   'arcade-left':  { position: { x: -2.5, y: 2.5, z: 4  }, target: { x: -2.5, y: 1.5, z: 0 }, label: 'Left Arcade' },
   'arcade-right': { position: { x: 2.5,  y: 2.5, z: 4  }, target: { x: 2.5,  y: 1.5, z: 0 }, label: 'Right Arcade' },
   'wall-left':    { position: { x: -1,   y: 2,   z: 0  }, target: { x: -3.5, y: 1.5, z: 0 }, label: 'Left Wall' },
