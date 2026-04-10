@@ -160,36 +160,50 @@ function buildDesk() {
     }
   }
 
-  // Monitor stands
-  const standMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
-  for (const sx of [-0.55, 0.55]) {
-    const stand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.08), standMat);
-    stand.position.set(sx, 0.97, -0.2);
-    group.add(stand);
-  }
+  // CRT monitors — chunky beige boxes
+  const beigeMat = new THREE.MeshLambertMaterial({ color: 0xd4c8a8 });
+  const innerBezelMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
 
-  // Bezels and screens (left = purple, right = teal)
   const monitorDefs = [
     { x: -0.55, rotY:  0.15, color: 0x9b00ff },
     { x:  0.55, rotY: -0.15, color: 0x00e5ff }
   ];
   const leftMonitorRefs = [];
   for (const { x, rotY, color } of monitorDefs) {
-    const bezel = new THREE.Mesh(
-      new THREE.BoxGeometry(0.7, 0.45, 0.04),
-      new THREE.MeshLambertMaterial({ color: 0x030810 })
+    // Beige outer body — chunky CRT cube
+    const body = new THREE.Mesh(
+      new THREE.BoxGeometry(0.62, 0.5, 0.5),
+      beigeMat
     );
-    bezel.position.set(x, 1.25, -0.2);
+    body.position.set(x, 1.18, -0.4);
+    body.rotation.y = rotY;
+    group.add(body);
+
+    // Inner black bezel
+    const bezel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.42, 0.04),
+      innerBezelMat
+    );
+    bezel.position.set(
+      x + Math.sin(rotY) * 0.23,
+      1.18,
+      -0.4 + Math.cos(rotY) * 0.23
+    );
     bezel.rotation.y = rotY;
     group.add(bezel);
 
+    // Glowing CRT screen
     const screen = new THREE.Mesh(
-      new THREE.BoxGeometry(0.66, 0.41, 0.02),
+      new THREE.BoxGeometry(0.5, 0.38, 0.02),
       new THREE.MeshStandardMaterial({
         color, emissive: color, emissiveIntensity: 1.0
       })
     );
-    screen.position.set(x + Math.sin(rotY) * 0.025, 1.25, -0.2 + Math.cos(rotY) * 0.025);
+    screen.position.set(
+      x + Math.sin(rotY) * 0.245,
+      1.18,
+      -0.4 + Math.cos(rotY) * 0.245
+    );
     screen.rotation.y = rotY;
     group.add(screen);
 
@@ -204,31 +218,65 @@ function buildDesk() {
     panelTitle: 'Digital Storytelling Research'
   };
 
-  // Keyboard
+  // Beige keyboard
   const keyboard = new THREE.Mesh(
-    new THREE.BoxGeometry(0.55, 0.02, 0.18),
-    new THREE.MeshLambertMaterial({ color: 0x0a0a0a })
+    new THREE.BoxGeometry(0.55, 0.025, 0.18),
+    new THREE.MeshLambertMaterial({ color: 0xe8dcc4 })
   );
-  keyboard.position.set(0, 0.89, 0.05);
+  keyboard.position.set(0, 0.895, 0.05);
   group.add(keyboard);
 
-  // Keyboard neon strip
-  const kbStrip = new THREE.Mesh(
-    new THREE.BoxGeometry(0.55, 0.005, 0.005),
+  // Tiny neon power LED on the keyboard (cyan)
+  const kbLed = new THREE.Mesh(
+    new THREE.BoxGeometry(0.015, 0.005, 0.015),
     new THREE.MeshStandardMaterial({
-      color: 0xff006e, emissive: 0xff006e, emissiveIntensity: 0.8
+      color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.0
     })
   );
-  kbStrip.position.set(0, 0.901, 0.14);
-  group.add(kbStrip);
+  kbLed.position.set(0.25, 0.91, 0.02);
+  group.add(kbLed);
 
-  // Mouse
+  // Beige mouse with cord
   const mouse = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.02, 0.1),
-    new THREE.MeshLambertMaterial({ color: 0x0a0a0a })
+    new THREE.BoxGeometry(0.06, 0.025, 0.09),
+    new THREE.MeshLambertMaterial({ color: 0xe8dcc4 })
   );
-  mouse.position.set(0.4, 0.89, 0.05);
+  mouse.position.set(0.4, 0.895, 0.05);
   group.add(mouse);
+
+  // Mouse cord stub
+  const cord = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.005, 0.005, 0.18, 6),
+    new THREE.MeshLambertMaterial({ color: 0x1a1a1a })
+  );
+  cord.position.set(0.4, 0.9, -0.04);
+  cord.rotation.x = Math.PI / 2;
+  group.add(cord);
+
+  // Stack of two VHS tapes on the right edge of the desk
+  const vhsMat1 = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+  const vhsMat2 = new THREE.MeshLambertMaterial({ color: 0x6b4423 });
+  const vhs1 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.13), vhsMat1);
+  vhs1.position.set(0.95, 0.905, -0.1);
+  group.add(vhs1);
+  const vhs2 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.13), vhsMat2);
+  vhs2.position.set(0.95, 0.945, -0.1);
+  group.add(vhs2);
+
+  // A floppy disk leaning against the keyboard
+  const floppy = new THREE.Mesh(
+    new THREE.BoxGeometry(0.13, 0.005, 0.13),
+    new THREE.MeshLambertMaterial({ color: 0x222222 })
+  );
+  floppy.position.set(-0.4, 0.895, 0.18);
+  group.add(floppy);
+
+  const floppyLabel = new THREE.Mesh(
+    new THREE.BoxGeometry(0.09, 0.006, 0.05),
+    new THREE.MeshLambertMaterial({ color: 0xe8dcc4 })
+  );
+  floppyLabel.position.set(-0.4, 0.898, 0.155);
+  group.add(floppyLabel);
 
   // ── Globe on the left side of the desk ──
   const globeGroup = new THREE.Group();
@@ -696,23 +744,33 @@ function buildTV() {
   group.position.set(3.49, 2.85, 0);
   group.rotation.y = -Math.PI / 2; // facing into the room (toward -x)
 
-  // Bezel
+  // CRT body — much deeper than a flat panel, with chunky beige plastic
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(2.4, 1.55, 0.55),
+    new THREE.MeshLambertMaterial({ color: 0xd4c8a8 })
+  );
+  body.position.z = -0.25;
+  body.castShadow = true;
+  group.add(body);
+
+  // Wood-grain trim along the bottom
+  const trim = new THREE.Mesh(
+    new THREE.BoxGeometry(2.4, 0.12, 0.56),
+    new THREE.MeshLambertMaterial({ color: 0x6b4423 })
+  );
+  trim.position.set(0, -0.65, -0.25);
+  group.add(trim);
+
+  // Inner black bezel surrounding the screen
   const bezel = new THREE.Mesh(
-    new THREE.BoxGeometry(2.2, 1.3, 0.08),
+    new THREE.BoxGeometry(2.1, 1.25, 0.06),
     new THREE.MeshLambertMaterial({ color: 0x0a0a0a })
   );
+  bezel.position.z = 0.04;
   group.add(bezel);
 
-  // Inner frame
-  const inner = new THREE.Mesh(
-    new THREE.BoxGeometry(2.0, 1.15, 0.04),
-    new THREE.MeshLambertMaterial({ color: 0x000000 })
-  );
-  inner.position.z = 0.05;
-  group.add(inner);
-
   // Plain dark screen — the YouTube iframe is overlaid in screen space by ui.js.
-  // This mesh is the geometry whose corners define where the iframe sits.
+  // Keep this mesh's local geometry (1.92, 1.08) and position so iframe corners still match.
   const screen = new THREE.Mesh(
     new THREE.PlaneGeometry(1.92, 1.08),
     new THREE.MeshBasicMaterial({ color: 0x050d14 })
@@ -720,7 +778,7 @@ function buildTV() {
   screen.position.z = 0.071;
   group.add(screen);
 
-  // Neon emissive border strips
+  // Neon emissive border strips (kept for the arcade vibe)
   const glowMat = new THREE.MeshStandardMaterial({
     color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.0
   });
@@ -736,6 +794,18 @@ function buildTV() {
   const stripR = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.15, 0.01), glowMat);
   stripR.position.set(0.99, 0, 0.072);
   group.add(stripR);
+
+  // Two chunky control knobs on the right side
+  const knobMat = new THREE.MeshLambertMaterial({ color: 0x9a9a92 });
+  for (const ky of [-0.2, -0.45]) {
+    const knob = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.04, 0.04, 12),
+      knobMat
+    );
+    knob.position.set(1.04, ky, 0.05);
+    knob.rotation.x = Math.PI / 2;
+    group.add(knob);
+  }
 
   // Click action: opens a panel describing the video
   group.userData = {
