@@ -284,6 +284,74 @@ function buildDesk() {
   return group;
 }
 
+function buildGamingChair() {
+  const group = new THREE.Group();
+  group.position.set(1.8, 0, -1.7);
+  group.rotation.y = Math.PI;
+
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x1b3a4b });
+  const blackMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
+
+  // Seat
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.5), frameMat);
+  seat.position.y = 0.45;
+  seat.castShadow = true;
+  group.add(seat);
+
+  // Backrest
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.85, 0.08), frameMat);
+  back.position.set(0, 0.92, -0.21);
+  back.castShadow = true;
+  group.add(back);
+
+  // Headrest neon stripe (pink)
+  const headrest = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.12, 0.085),
+    new THREE.MeshStandardMaterial({
+      color: 0xff006e, emissive: 0xff006e, emissiveIntensity: 0.7
+    })
+  );
+  headrest.position.set(0, 1.28, -0.205);
+  group.add(headrest);
+
+  // Vertical teal accent strip down the centre of the back
+  const accent = new THREE.Mesh(
+    new THREE.BoxGeometry(0.06, 0.85, 0.085),
+    new THREE.MeshStandardMaterial({
+      color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.7
+    })
+  );
+  accent.position.set(0, 0.92, -0.205);
+  group.add(accent);
+
+  // Armrests
+  for (const ax of [-0.29, 0.29]) {
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.4), blackMat);
+    arm.position.set(ax, 0.6, 0);
+    group.add(arm);
+  }
+
+  // Centre pole
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.04, 0.4, 6),
+    blackMat
+  );
+  pole.position.y = 0.2;
+  group.add(pole);
+
+  // 5-arm wheel star
+  for (let i = 0; i < 5; i++) {
+    const armStar = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.04, 0.04), blackMat);
+    armStar.position.y = 0.02;
+    armStar.rotation.y = (i / 5) * Math.PI * 2;
+    armStar.position.x = Math.cos((i / 5) * Math.PI * 2) * 0.1;
+    armStar.position.z = Math.sin((i / 5) * Math.PI * 2) * 0.1;
+    group.add(armStar);
+  }
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
   const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
@@ -291,11 +359,12 @@ export function createObjects(scene) {
   const beanBag1    = buildBeanBag(-0.8, 2.2);
   const beanBag2    = buildBeanBag(0.8, 2.2);
   const desk        = buildDesk();
+  const chair       = buildGamingChair();
 
   arcadeLeft.userData  = { clickable: true, hotspot: 'arcade-left' };
   arcadeRight.userData = { clickable: true, hotspot: 'arcade-right' };
 
-  scene.add(arcadeLeft, arcadeRight, table, beanBag1, beanBag2, desk);
+  scene.add(arcadeLeft, arcadeRight, table, beanBag1, beanBag2, desk, chair);
 
   return { arcadeLeft, arcadeRight, desk };
 }
