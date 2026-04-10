@@ -2,6 +2,10 @@
 import * as THREE from 'three';
 import { HOTSPOTS } from './navigation.js';
 
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 export function createUI(camera, renderer) {
   const breadcrumb       = document.getElementById('breadcrumb');
   const backBtn          = document.getElementById('back-btn');
@@ -32,9 +36,11 @@ export function createUI(camera, renderer) {
 
   // ── Panel drawer ─────────────────────────────────
   function openPanelDrawer(panelId, title) {
+    // panelId reserved for real content lookup when placeholder is replaced
+    const safeTitle = escapeHtml(title);
     drawerContent.innerHTML = `
-      <h2>${title}</h2>
-      <p>This panel presents CDN research on <strong>${title}</strong>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      <h2>${safeTitle}</h2>
+      <p>This panel presents CDN research on <strong>${safeTitle}</strong>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
       <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.</p>
       <p>Explore the interactive elements in this room to learn more about this area of CDN research.</p>
     `;
