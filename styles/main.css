@@ -342,3 +342,16 @@ body {
   cursor: pointer;
 }
 #chat-send:hover { background: #90e0ef; }
+
+/* ── 3D TV: YouTube iframe overlay ──────────────── */
+#tv-iframe {
+  position: fixed;
+  border: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 5;
+}
+#tv-iframe.visible {
+  opacity: 1;
+}

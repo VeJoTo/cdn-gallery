@@ -711,31 +711,19 @@ function buildTV() {
   inner.position.z = 0.05;
   group.add(inner);
 
-  // ── Video element + texture ──
-  const video = document.createElement('video');
-  video.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-  video.crossOrigin = 'anonymous';
-  video.loop = true;
-  video.muted = true;
-  video.playsInline = true;
-  video.autoplay = true;
-  video.play().catch(() => { /* autoplay blocked — user click will start it */ });
-
-  const videoTex = new THREE.VideoTexture(video);
-  videoTex.colorSpace = THREE.SRGBColorSpace;
-
+  // Plain dark screen — the YouTube iframe is overlaid in screen space by ui.js.
+  // This mesh is the geometry whose corners define where the iframe sits.
   const screen = new THREE.Mesh(
     new THREE.PlaneGeometry(1.92, 1.08),
-    new THREE.MeshBasicMaterial({ map: videoTex })
+    new THREE.MeshBasicMaterial({ color: 0x050d14 })
   );
   screen.position.z = 0.071;
   group.add(screen);
 
-  // A subtle emissive frame strip just inside the bezel for neon glow
+  // Neon emissive border strips
   const glowMat = new THREE.MeshStandardMaterial({
     color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.0
   });
-  // Top + bottom + left + right strips
   const stripT = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
   stripT.position.set(0,  0.585, 0.072);
   group.add(stripT);
@@ -755,7 +743,7 @@ function buildTV() {
     action: 'openPanel',
     panelId: 'tv',
     panelTitle: 'CDN Video Archive',
-    video
+    screenMesh: screen
   };
 
   return group;
@@ -817,6 +805,7 @@ export function createObjects(scene) {
 
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
+    tv,
     extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv]
   };
 }

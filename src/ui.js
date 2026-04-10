@@ -318,6 +318,56 @@ export function createUI(camera, renderer) {
     gatekeeperChat.style.transform = 'none';
   }
 
+  // Anchor YouTube iframe over TV screen mesh
+  const tvIframe = document.getElementById('tv-iframe');
+  const _tvCorners = [
+    new THREE.Vector3(-0.96, -0.54, 0),
+    new THREE.Vector3( 0.96, -0.54, 0),
+    new THREE.Vector3(-0.96,  0.54, 0),
+    new THREE.Vector3( 0.96,  0.54, 0)
+  ];
+  const _tvProj = new THREE.Vector3();
+
+  function updateTVAnchor(tvGroup) {
+    if (!tvGroup || !tvIframe) return;
+    const screenMesh = tvGroup.userData.screenMesh;
+    if (!screenMesh) return;
+    screenMesh.updateMatrixWorld();
+
+    const w = renderer.domElement.clientWidth;
+    const h = renderer.domElement.clientHeight;
+
+    let minX =  Infinity, minY =  Infinity;
+    let maxX = -Infinity, maxY = -Infinity;
+    let anyBehind = false;
+
+    for (const corner of _tvCorners) {
+      _tvProj.copy(corner).applyMatrix4(screenMesh.matrixWorld).project(camera);
+      if (_tvProj.z >= 1) { anyBehind = true; break; }
+      const sx = ( _tvProj.x + 1) / 2 * w;
+      const sy = (-_tvProj.y + 1) / 2 * h;
+      if (sx < minX) minX = sx;
+      if (sx > maxX) maxX = sx;
+      if (sy < minY) minY = sy;
+      if (sy > maxY) maxY = sy;
+    }
+
+    const fullyOffscreen =
+      maxX < 0 || minX > w ||
+      maxY < 0 || minY > h;
+
+    if (anyBehind || fullyOffscreen) {
+      tvIframe.classList.remove('visible');
+      return;
+    }
+
+    tvIframe.style.left   = `${minX}px`;
+    tvIframe.style.top    = `${minY}px`;
+    tvIframe.style.width  = `${maxX - minX}px`;
+    tvIframe.style.height = `${maxY - minY}px`;
+    tvIframe.classList.add('visible');
+  }
+
   return {
     updateHUD,
     openPanelDrawer,
@@ -325,6 +375,7 @@ export function createUI(camera, renderer) {
     openInventory,
     openBook,
     updateHints,
-    updateChatAnchor
+    updateChatAnchor,
+    updateTVAnchor
   };
 }

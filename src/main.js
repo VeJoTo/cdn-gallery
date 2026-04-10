@@ -54,7 +54,7 @@ function animate() {
 }
 
 createRoom(scene);
-const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras } = createObjects(scene);
+const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv } = createObjects(scene);
 addUpdateCallback(sceneUpdate);
 const gatekeeper = createGatekeeper(scene);
 addUpdateCallback(gatekeeper.update);
@@ -101,6 +101,10 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
-addUpdateCallback(() => { ui.updateHints(); ui.updateChatAnchor(); });
+addUpdateCallback(() => {
+  ui.updateHints();
+  ui.updateChatAnchor();
+  ui.updateTVAnchor(tv);
+});
 
 animate();
