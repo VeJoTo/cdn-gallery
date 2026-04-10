@@ -616,6 +616,80 @@ function buildRug() {
   return rug;
 }
 
+function buildPedestal() {
+  const group = new THREE.Group();
+  group.position.set(-2.8, 0, 2.6);
+
+  // Column
+  const column = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.18, 0.22, 1.0, 12),
+    new THREE.MeshLambertMaterial({ color: 0x1b3a4b })
+  );
+  column.position.y = 0.5;
+  column.castShadow = true;
+  group.add(column);
+
+  // Top plate
+  const topPlate = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 0.04, 12),
+    new THREE.MeshLambertMaterial({ color: 0x0a1a28 })
+  );
+  topPlate.position.y = 1.02;
+  group.add(topPlate);
+
+  // Glow ring
+  const glowRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.22, 0.012, 8, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0x9b00ff, emissive: 0x9b00ff, emissiveIntensity: 1.4
+    })
+  );
+  glowRing.position.y = 1.04;
+  glowRing.rotation.x = -Math.PI / 2;
+  group.add(glowRing);
+
+  // Pedestal point light
+  const halo = new THREE.PointLight(0x9b00ff, 0.6, 2.5);
+  halo.position.y = 1.2;
+  group.add(halo);
+
+  // Book group (will bob — referenced via userData for the update loop)
+  const bookGroup = new THREE.Group();
+  bookGroup.position.y = 1.18;
+
+  const pageMat = new THREE.MeshStandardMaterial({
+    color: 0xf5d0a9, emissive: 0xffd166, emissiveIntensity: 0.4
+  });
+
+  const leftPage = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.01, 0.22), pageMat);
+  leftPage.position.set(-0.095, 0.04, 0);
+  leftPage.rotation.z = -0.08;
+  bookGroup.add(leftPage);
+
+  const rightPage = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.01, 0.22), pageMat);
+  rightPage.position.set(0.095, 0.04, 0);
+  rightPage.rotation.z = 0.08;
+  bookGroup.add(rightPage);
+
+  const spine = new THREE.Mesh(
+    new THREE.BoxGeometry(0.01, 0.012, 0.22),
+    new THREE.MeshLambertMaterial({ color: 0x1b3a4b })
+  );
+  spine.position.set(0, 0.035, 0);
+  bookGroup.add(spine);
+
+  group.add(bookGroup);
+
+  group.userData = {
+    clickable: true,
+    hotspot: 'pedestal',
+    action: 'openBook',
+    bookGroup
+  };
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
   const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
@@ -629,6 +703,7 @@ export function createObjects(scene) {
   const floorLamp   = buildFloorLamp();
   const neonSign    = buildNeonSign();
   const rug         = buildRug();
+  const pedestal    = buildPedestal();
 
   const posters = [
     buildPoster(-2.5, 2.0, -2.99, 0xff006e, 0x9b00ff, 'NEON RUNNER',  0),
@@ -642,8 +717,8 @@ export function createObjects(scene) {
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
-    neonSign, rug, ...posters
+    neonSign, rug, pedestal, ...posters
   );
 
-  return { arcadeLeft, arcadeRight, desk, posters };
+  return { arcadeLeft, arcadeRight, desk, posters, pedestal };
 }
