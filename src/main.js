@@ -71,6 +71,20 @@ const nav      = createNavigationSystem(camera, navState, ui);
 
 setupClickHandler(renderer, camera, clickableObjects, nav, ui);
 
+// Pointer cursor on hover over clickable objects
+const hoverRaycaster = new THREE.Raycaster();
+const hoverMouse     = new THREE.Vector2();
+
+renderer.domElement.addEventListener('mousemove', (event) => {
+  const rect = renderer.domElement.getBoundingClientRect();
+  hoverMouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
+  hoverMouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+
+  hoverRaycaster.setFromCamera(hoverMouse, camera);
+  const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
+  renderer.domElement.style.cursor = hits.length ? 'pointer' : 'default';
+});
+
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
