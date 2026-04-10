@@ -17,8 +17,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0a0f);
-scene.fog = new THREE.Fog(0x0a0a0f, 15, 30);
+scene.background = new THREE.Color(0x050d14);
+scene.fog = new THREE.Fog(0x050d14, 15, 30);
 
 // ── Camera ────────────────────────────────────────
 export const camera = new THREE.PerspectiveCamera(
