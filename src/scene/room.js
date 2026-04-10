@@ -2,9 +2,26 @@
 import * as THREE from 'three';
 
 export function createRoom(scene) {
-  const floorMat = new THREE.MeshLambertMaterial({ color: 0x0d1b2a, side: THREE.FrontSide });
-  const wallMat  = new THREE.MeshLambertMaterial({ color: 0x0a1a28, side: THREE.FrontSide });
-  const ceilMat  = new THREE.MeshLambertMaterial({ color: 0x050d14, side: THREE.FrontSide });
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: 0x2a1a4a,
+    emissive: 0x3a1a5e,
+    emissiveIntensity: 0.35,
+    roughness: 0.7,
+    side: THREE.FrontSide
+  });
+  const wallMat  = new THREE.MeshStandardMaterial({
+    color: 0x2a1a3e,
+    emissive: 0x3a1a5e,
+    emissiveIntensity: 0.45,
+    roughness: 0.85,
+    side: THREE.FrontSide
+  });
+  const ceilMat  = new THREE.MeshStandardMaterial({
+    color: 0x1a0a2e,
+    emissive: 0x2a1a4a,
+    emissiveIntensity: 0.25,
+    side: THREE.FrontSide
+  });
 
   // Floor 7×6
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), floorMat);
@@ -40,8 +57,13 @@ export function createRoom(scene) {
   scene.add(ceil);
 
   // ── Lighting ────────────────────────────────────
-  const ambient = new THREE.AmbientLight(0x7a3acc, 1.1);
+  const ambient = new THREE.AmbientLight(0x7a3acc, 0.8);
   scene.add(ambient);
+
+  // Hemisphere light: pink from above, deep purple from below
+  const hemi = new THREE.HemisphereLight(0xff66cc, 0x4a2a8c, 1.0);
+  hemi.position.set(0, 4, 0);
+  scene.add(hemi);
 
   const dirLight = new THREE.DirectionalLight(0xffd166, 0.6);
   dirLight.position.set(2, 8, 6);
@@ -118,15 +140,20 @@ export function createRoom(scene) {
   scene.add(backCeilStrip);
 
   // ── Coloured fill lights near each ceiling strip ──
-  const cyanFill = new THREE.PointLight(0x00e5ff, 1.2, 10);
+  const cyanFill = new THREE.PointLight(0x00e5ff, 2.5, 14);
   cyanFill.position.set(-3.0, 3.2, 0);
   scene.add(cyanFill);
 
-  const purpleFill = new THREE.PointLight(0x9b00ff, 1.2, 10);
+  const purpleFill = new THREE.PointLight(0x9b00ff, 2.5, 14);
   purpleFill.position.set(3.0, 3.2, 0);
   scene.add(purpleFill);
 
-  const pinkFill = new THREE.PointLight(0xff006e, 1.2, 10);
+  const pinkFill = new THREE.PointLight(0xff006e, 2.5, 14);
   pinkFill.position.set(0, 3.2, -2.5);
   scene.add(pinkFill);
+
+  // Extra centre fill — soft white-purple to brighten everything
+  const centerFill = new THREE.PointLight(0xc080ff, 1.8, 16);
+  centerFill.position.set(0, 2.8, 1.0);
+  scene.add(centerFill);
 }
