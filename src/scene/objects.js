@@ -134,62 +134,17 @@ function buildBeanBag(x, z) {
   return group;
 }
 
-function buildLockedDoor(wall) {
-  const group = new THREE.Group();
-  const isLeft = wall === 'left';
-  group.position.set(isLeft ? -3.49 : 3.49, 0, -1);
-  if (isLeft)  group.rotation.y = Math.PI / 2;
-  if (!isLeft) group.rotation.y = -Math.PI / 2;
-
-  // Door frame
-  const frame = new THREE.Mesh(
-    new THREE.BoxGeometry(1.0, 2.2, 0.08),
-    new THREE.MeshLambertMaterial({ color: 0x3a3a50 })
-  );
-  frame.position.y = 1.1;
-  group.add(frame);
-
-  // Door surface
-  const door = new THREE.Mesh(
-    new THREE.BoxGeometry(0.88, 2.04, 0.04),
-    new THREE.MeshLambertMaterial({ color: 0x2a2a40 })
-  );
-  door.position.y = 1.1;
-  group.add(door);
-
-  // Padlock body
-  const lockBody = new THREE.Mesh(
-    new THREE.BoxGeometry(0.14, 0.12, 0.06),
-    new THREE.MeshLambertMaterial({ color: 0xccaa00 })
-  );
-  lockBody.position.set(0, 1.1, 0.06);
-  group.add(lockBody);
-
-  // Padlock shackle
-  const lockShackle = new THREE.Mesh(
-    new THREE.TorusGeometry(0.055, 0.02, 6, 8, Math.PI),
-    new THREE.MeshLambertMaterial({ color: 0xccaa00 })
-  );
-  lockShackle.rotation.z = Math.PI;
-  lockShackle.position.set(0, 1.22, 0.06);
-  group.add(lockShackle);
-
-  return group;
-}
-
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5);
   const arcadeRight = buildArcadeCabinet(2.5);
   const table       = buildTable();
   const beanBag1    = buildBeanBag(-0.8, 2.2);
   const beanBag2    = buildBeanBag(0.8, 2.2);
-  const doorLeft    = buildLockedDoor('left');
-  const doorRight   = buildLockedDoor('right');
 
   arcadeLeft.userData  = { clickable: true, hotspot: 'arcade-left' };
   arcadeRight.userData = { clickable: true, hotspot: 'arcade-right' };
 
-  scene.add(arcadeLeft, arcadeRight, table, beanBag1, beanBag2, doorLeft, doorRight);
+  scene.add(arcadeLeft, arcadeRight, table, beanBag1, beanBag2);
 
   return { arcadeLeft, arcadeRight };
 }
