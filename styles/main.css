@@ -240,7 +240,6 @@ body {
   border-radius: 12px;
   padding: 16px;
   opacity: 0;
-  transform: translate(20px, -100%);
   transition: opacity 0.25s;
   z-index: 50;
 }
