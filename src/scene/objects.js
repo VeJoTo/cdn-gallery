@@ -720,5 +720,18 @@ export function createObjects(scene) {
     neonSign, rug, pedestal, ...posters
   );
 
-  return { arcadeLeft, arcadeRight, desk, posters, pedestal };
+  // ── Animation: spin globe + bob book ──
+  const globeMesh = desk.userData.globeMesh;
+  const bookGroup = pedestal.userData.bookGroup;
+  let elapsed = 0;
+  function sceneUpdate(delta) {
+    elapsed += delta;
+    if (globeMesh) globeMesh.rotation.y += delta * 0.3;
+    if (bookGroup) {
+      bookGroup.position.y = 1.18 + Math.sin(elapsed * 1.5) * 0.04;
+      bookGroup.rotation.y += delta * 0.2;
+    }
+  }
+
+  return { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate };
 }

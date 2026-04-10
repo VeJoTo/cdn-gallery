@@ -54,7 +54,8 @@ function animate() {
 }
 
 createRoom(scene);
-const { arcadeLeft, arcadeRight } = createObjects(scene);
+const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate } = createObjects(scene);
+addUpdateCallback(sceneUpdate);
 const gatekeeper = createGatekeeper(scene);
 addUpdateCallback(gatekeeper.update);
 const panels = createPanels(scene);
@@ -62,7 +63,9 @@ const panels = createPanels(scene);
 const clickableObjects = [
   ...arcadeLeft.children, ...arcadeRight.children,
   gatekeeper.group, ...gatekeeper.group.children,
-  ...panels
+  ...panels,
+  desk, ...posters,
+  pedestal
 ];
 
 const ui       = createUI(camera, renderer);

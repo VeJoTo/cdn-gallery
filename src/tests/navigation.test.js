@@ -1,6 +1,6 @@
 // src/tests/navigation.test.js
 import { describe, it, expect } from 'vitest';
-import { createNavigationState } from '../navigation.js';
+import { createNavigationState, HOTSPOTS } from '../navigation.js';
 
 describe('NavigationState', () => {
   it('starts at overview', () => {
@@ -40,5 +40,17 @@ describe('NavigationState', () => {
     const state = createNavigationState();
     const ok = state.startTransition('nonexistent');
     expect(ok).toBe(false);
+  });
+});
+
+describe('HOTSPOTS', () => {
+  it('includes desk hotspot', () => {
+    expect(HOTSPOTS.desk).toBeDefined();
+    expect(HOTSPOTS.desk.label).toBe('Gaming Desk');
+  });
+
+  it('includes pedestal hotspot', () => {
+    expect(HOTSPOTS.pedestal).toBeDefined();
+    expect(HOTSPOTS.pedestal.label).toBe('Magic Tome');
   });
 });
