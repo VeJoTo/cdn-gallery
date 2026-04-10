@@ -352,6 +352,128 @@ function buildGamingChair() {
   return group;
 }
 
+function buildBookshelf() {
+  const group = new THREE.Group();
+  group.position.set(-3.4, 0, -2.5);
+  group.rotation.y = Math.PI / 2;
+
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x1b3a4b });
+  const shelfMat = new THREE.MeshLambertMaterial({ color: 0x0a1a28 });
+
+  // Frame
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 0.3), frameMat);
+  frame.position.y = 0.9;
+  frame.castShadow = true;
+  group.add(frame);
+
+  // Shelves
+  const shelfYs = [0.5, 0.95, 1.4];
+  for (const sy of shelfYs) {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.03, 0.28), shelfMat);
+    shelf.position.y = sy;
+    shelf.position.z = 0.001;
+    group.add(shelf);
+  }
+
+  // Books — 4 colours rotated through, ~10 per shelf
+  const bookColours = [0xff006e, 0x00e5ff, 0x9b00ff, 0xffd166, 0x1b3a4b];
+  for (const sy of shelfYs) {
+    let xOffset = -0.5;
+    for (let i = 0; i < 10; i++) {
+      const colour = bookColours[i % bookColours.length];
+      const book = new THREE.Mesh(
+        new THREE.BoxGeometry(0.085, 0.22, 0.18),
+        new THREE.MeshLambertMaterial({ color: colour })
+      );
+      book.position.set(xOffset + 0.04, sy + 0.13, 0);
+      group.add(book);
+      xOffset += 0.095 + (i % 3) * 0.005;
+    }
+  }
+
+  return group;
+}
+
+function buildMiniFridge() {
+  const group = new THREE.Group();
+  group.position.set(-3.0, 0, -2.8);
+
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(0.7, 1.0, 0.6),
+    new THREE.MeshLambertMaterial({ color: 0x0a1a28 })
+  );
+  body.position.y = 0.5;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  // Door split trim
+  const trim = new THREE.Mesh(
+    new THREE.BoxGeometry(0.72, 0.01, 0.605),
+    new THREE.MeshLambertMaterial({ color: 0x030810 })
+  );
+  trim.position.y = 0.65;
+  group.add(trim);
+
+  // Handle
+  const handle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.04, 0.2, 0.04),
+    new THREE.MeshStandardMaterial({
+      color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.6
+    })
+  );
+  handle.position.set(0.3, 0.7, 0.31);
+  group.add(handle);
+
+  // Top emissive strip
+  const topStrip = new THREE.Mesh(
+    new THREE.BoxGeometry(0.7, 0.02, 0.6),
+    new THREE.MeshStandardMaterial({
+      color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.0
+    })
+  );
+  topStrip.position.y = 1.01;
+  group.add(topStrip);
+
+  return group;
+}
+
+function buildFloorLamp() {
+  const group = new THREE.Group();
+  group.position.set(2.6, 0, 1.8);
+
+  const blackMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
+
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.15, 0.15, 0.04, 12),
+    blackMat
+  );
+  base.position.y = 0.02;
+  group.add(base);
+
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.025, 0.025, 1.6, 8),
+    blackMat
+  );
+  pole.position.y = 0.84;
+  group.add(pole);
+
+  const tube = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.06, 0.5, 12),
+    new THREE.MeshStandardMaterial({
+      color: 0x9b00ff, emissive: 0x9b00ff, emissiveIntensity: 1.2
+    })
+  );
+  tube.position.y = 1.7;
+  group.add(tube);
+
+  const halo = new THREE.PointLight(0x9b00ff, 0.5, 4);
+  halo.position.y = 1.7;
+  group.add(halo);
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
   const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
@@ -360,11 +482,17 @@ export function createObjects(scene) {
   const beanBag2    = buildBeanBag(0.8, 2.2);
   const desk        = buildDesk();
   const chair       = buildGamingChair();
+  const bookshelf   = buildBookshelf();
+  const fridge      = buildMiniFridge();
+  const floorLamp   = buildFloorLamp();
 
   arcadeLeft.userData  = { clickable: true, hotspot: 'arcade-left' };
   arcadeRight.userData = { clickable: true, hotspot: 'arcade-right' };
 
-  scene.add(arcadeLeft, arcadeRight, table, beanBag1, beanBag2, desk, chair);
+  scene.add(
+    arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
+    desk, chair, bookshelf, fridge, floorLamp
+  );
 
   return { arcadeLeft, arcadeRight, desk };
 }
