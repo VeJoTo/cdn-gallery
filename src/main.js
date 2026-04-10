@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createGatekeeper } from './scene/gatekeeper.js';
@@ -38,6 +39,17 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// ── OrbitControls (free rotation/zoom in addition to hotspot navigation) ──
+export const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;       // panning would let users wander off into the void
+controls.minDistance = 1.5;
+controls.maxDistance = 15;
+controls.minPolarAngle = 0.2;     // don't go straight down through the floor
+controls.maxPolarAngle = Math.PI / 2 - 0.05; // don't go below the floor
+controls.target.set(0, 1, 0);
+
 // ── Render loop ───────────────────────────────────
 const clock = new THREE.Clock();
 const updateCallbacks = [];
@@ -50,6 +62,7 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   for (const fn of updateCallbacks) fn(delta);
+  controls.update();
   renderer.render(scene, camera);
 }
 
@@ -71,7 +84,7 @@ const clickableObjects = [
 
 const ui       = createUI(camera, renderer);
 const navState = createNavigationState();
-const nav      = createNavigationSystem(camera, navState, ui);
+const nav      = createNavigationSystem(camera, navState, ui, controls);
 
 // Hide arcades when zoomed into a wall (they'd otherwise block the view)
 const baseGoTo = nav.goTo;

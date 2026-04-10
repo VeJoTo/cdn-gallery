@@ -33,7 +33,7 @@ export function createNavigationState() {
   };
 }
 
-export function createNavigationSystem(camera, state, ui) {
+export function createNavigationSystem(camera, state, ui, controls) {
   // Proxy object for GSAP to tween plain numbers instead of Vector3
   const proxy = {
     px: camera.position.x,
@@ -45,6 +45,9 @@ export function createNavigationSystem(camera, state, ui) {
   function applyProxy() {
     camera.position.set(proxy.px, proxy.py, proxy.pz);
     camera.lookAt(proxy.tx, proxy.ty, proxy.tz);
+    if (controls) {
+      controls.target.set(proxy.tx, proxy.ty, proxy.tz);
+    }
   }
 
   function goTo(id) {
