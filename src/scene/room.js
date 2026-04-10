@@ -40,7 +40,7 @@ export function createRoom(scene) {
   scene.add(ceil);
 
   // ── Lighting ────────────────────────────────────
-  const ambient = new THREE.AmbientLight(0x1a3a5c, 0.2);
+  const ambient = new THREE.AmbientLight(0x4a3a8c, 0.55);
   scene.add(ambient);
 
   const dirLight = new THREE.DirectionalLight(0xffd166, 0.6);
@@ -84,4 +84,49 @@ export function createRoom(scene) {
   rightStrip.rotation.y = -Math.PI / 2;
   rightStrip.position.set(3.45, 0.01, 0);
   scene.add(rightStrip);
+
+  // ── Ceiling-edge neon strips (LED tape along top of walls) ──
+  const ceilingY = 3.45;
+
+  // Left wall top edge — cyan, runs along z (room depth = 6)
+  const sideStripGeom = new THREE.BoxGeometry(6, 0.04, 0.08);
+
+  const leftCeilMat = new THREE.MeshStandardMaterial({
+    color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.6
+  });
+  const leftCeilStrip = new THREE.Mesh(sideStripGeom, leftCeilMat);
+  leftCeilStrip.rotation.y = Math.PI / 2;
+  leftCeilStrip.position.set(-3.45, ceilingY, 0);
+  scene.add(leftCeilStrip);
+
+  // Right wall top edge — purple, runs along z
+  const rightCeilMat = new THREE.MeshStandardMaterial({
+    color: 0x9b00ff, emissive: 0x9b00ff, emissiveIntensity: 1.6
+  });
+  const rightCeilStrip = new THREE.Mesh(sideStripGeom, rightCeilMat);
+  rightCeilStrip.rotation.y = -Math.PI / 2;
+  rightCeilStrip.position.set(3.45, ceilingY, 0);
+  scene.add(rightCeilStrip);
+
+  // Back wall top edge — pink, runs along x (room width = 7)
+  const backStripGeom = new THREE.BoxGeometry(7, 0.04, 0.08);
+  const backCeilMat = new THREE.MeshStandardMaterial({
+    color: 0xff006e, emissive: 0xff006e, emissiveIntensity: 1.6
+  });
+  const backCeilStrip = new THREE.Mesh(backStripGeom, backCeilMat);
+  backCeilStrip.position.set(0, ceilingY, -2.96);
+  scene.add(backCeilStrip);
+
+  // ── Coloured fill lights near each ceiling strip ──
+  const cyanFill = new THREE.PointLight(0x00e5ff, 1.2, 10);
+  cyanFill.position.set(-3.0, 3.2, 0);
+  scene.add(cyanFill);
+
+  const purpleFill = new THREE.PointLight(0x9b00ff, 1.2, 10);
+  purpleFill.position.set(3.0, 3.2, 0);
+  scene.add(purpleFill);
+
+  const pinkFill = new THREE.PointLight(0xff006e, 1.2, 10);
+  pinkFill.position.set(0, 3.2, -2.5);
+  scene.add(pinkFill);
 }
