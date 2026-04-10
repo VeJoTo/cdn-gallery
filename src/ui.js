@@ -21,6 +21,23 @@ export const BOOK_PAGES = [
   }
 ];
 
+const KEYWORD_RESPONSES = [
+  { keys: ['xp', 'level', 'experience'], reply: 'Earn XP by exploring rooms and reading panels. Each discovery counts!' },
+  { keys: ['cdn', 'centre', 'narrative'], reply: 'CDN is the Centre for Digital Narrative at UiB — we study how digital tech shapes stories.' },
+  { keys: ['arcade', 'game'],             reply: 'The arcades hold interactive CDN research. Click them to fly in!' },
+  { keys: ['book', 'tome', 'lore', 'codex'], reply: 'Ah, the Codex! Visit the magical pedestal in the corner to read its secrets.' },
+  { keys: ['globe', 'world', 'map'],      reply: 'The desk globe shows CDN\'s international research connections.' },
+  { keys: ['hi', 'hello', 'hey'],         reply: 'Hello, curious visitor! Ask me anything about this gallery.' }
+];
+
+export function answer(question) {
+  const q = question.toLowerCase();
+  for (const { keys, reply } of KEYWORD_RESPONSES) {
+    if (keys.some(k => q.includes(k))) return reply;
+  }
+  return "I'm still learning about that one. Try asking about XP, CDN, the arcades, or the magical book!";
+}
+
 export function getNextPageIndex(current) {
   return Math.min(current + 1, BOOK_PAGES.length - 1);
 }
@@ -78,31 +95,40 @@ export function createUI(camera, renderer) {
 
   drawerClose.addEventListener('click', closePanelDrawer);
 
-  // ── Gatekeeper chat ──────────────────────────────
-  const GATEKEEPER_RESPONSES = {
-    "What's in this room?":
-      "Great question! This gaming room holds CDN research presented as interactive exhibits. Try clicking the arcade cabinets — they hold secrets!",
-    "How do I earn XP?":
-      "Explore the room, read the wall panels, and interact with exhibits. Each discovery earns you XP. Unlock new rooms as you level up!",
-    "Tell me about CDN":
-      "CDN — the Centre for Digital Narrative at UiB — studies how digital technologies shape the stories we tell. Pretty fascinating, right?"
-  };
+  // ── Gatekeeper chat (speech bubble + free-form input) ──
+  const SUGGESTED_QUESTIONS = [
+    "What's in this room?",
+    "How do I earn XP?",
+    "Tell me about CDN"
+  ];
+
+  const chatInput = document.getElementById('chat-input');
+  const chatSend  = document.getElementById('chat-send');
+
+  function appendChatMessage(text, role) {
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function sendChatMessage(text) {
+    if (!text.trim()) return;
+    appendChatMessage(text, 'user');
+    appendChatMessage(answer(text), 'gatekeeper');
+  }
 
   function openGatekeeperChat() {
-    chatMessages.innerHTML = `
-      <div class="chat-msg gatekeeper">Hello, curious visitor! I'm your guide. What would you like to know?</div>
-    `;
-    chatChips.innerHTML = Object.keys(GATEKEEPER_RESPONSES).map(q =>
-      `<button class="chat-chip" data-q="${q}">${q}</button>`
+    chatMessages.innerHTML = '';
+    appendChatMessage("Hello, curious visitor! I'm your guide. Ask me anything.", 'gatekeeper');
+
+    chatChips.innerHTML = SUGGESTED_QUESTIONS.map(q =>
+      `<button class="chat-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`
     ).join('');
 
     chatChips.querySelectorAll('.chat-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const q = chip.dataset.q;
-        chatMessages.innerHTML += `<div class="chat-msg user">${q}</div>`;
-        chatMessages.innerHTML += `<div class="chat-msg gatekeeper">${GATEKEEPER_RESPONSES[q]}</div>`;
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      });
+      chip.addEventListener('click', () => sendChatMessage(chip.dataset.q));
     });
 
     gatekeeperChat.classList.remove('hidden');
@@ -115,6 +141,16 @@ export function createUI(camera, renderer) {
   }
 
   chatClose.addEventListener('click', closeGatekeeperChat);
+  chatSend.addEventListener('click', () => {
+    sendChatMessage(chatInput.value);
+    chatInput.value = '';
+  });
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      sendChatMessage(chatInput.value);
+      chatInput.value = '';
+    }
+  });
 
   // ── Inventory overlay ────────────────────────────
   function openInventory() {
@@ -241,12 +277,29 @@ export function createUI(camera, renderer) {
     }
   }
 
+  // Anchor gatekeeper chat to wizard screen position
+  const wizardWorldPos = new THREE.Vector3(0.6, 2.4, -2.2);
+  const _chatVec = new THREE.Vector3();
+
+  function updateChatAnchor() {
+    if (gatekeeperChat.classList.contains('hidden')) return;
+    const w = renderer.domElement.clientWidth;
+    const h = renderer.domElement.clientHeight;
+    _chatVec.copy(wizardWorldPos);
+    _chatVec.project(camera);
+    const x = (_chatVec.x + 1) / 2 * w;
+    const y = (-_chatVec.y + 1) / 2 * h;
+    gatekeeperChat.style.left = `${x}px`;
+    gatekeeperChat.style.top  = `${y}px`;
+  }
+
   return {
     updateHUD,
     openPanelDrawer,
     openGatekeeperChat,
     openInventory,
     openBook,
-    updateHints
+    updateHints,
+    updateChatAnchor
   };
 }

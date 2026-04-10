@@ -100,6 +100,6 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
-addUpdateCallback(() => ui.updateHints());
+addUpdateCallback(() => { ui.updateHints(); ui.updateChatAnchor(); });
 
 animate();

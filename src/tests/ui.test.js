@@ -24,3 +24,27 @@ describe('Book overlay', () => {
     expect(getPrevPageIndex(0)).toBe(0);
   });
 });
+
+import { answer } from '../ui.js';
+
+describe('Gatekeeper answer()', () => {
+  it('returns CDN reply for "cdn" keyword', () => {
+    expect(answer('Tell me about CDN')).toMatch(/Centre for Digital Narrative/);
+  });
+
+  it('returns XP reply for "xp" keyword', () => {
+    expect(answer('how do I earn xp?')).toMatch(/XP/);
+  });
+
+  it('returns book reply for "book" keyword', () => {
+    expect(answer('what is the book?')).toMatch(/Codex/);
+  });
+
+  it('returns fallback for unknown question', () => {
+    expect(answer('what colour is the sky?')).toMatch(/still learning/);
+  });
+
+  it('is case-insensitive', () => {
+    expect(answer('CDN')).toEqual(answer('cdn'));
+  });
+});
