@@ -143,6 +143,21 @@ Restyle the CDN 3D gallery gaming room from its current warm-brown placeholder t
 - **Top emissive strip**: `BoxGeometry(0.7, 0.02, 0.6)` `MeshStandardMaterial` `#00e5ff` emissive @ `1.0` at `y: 1.01`.
 - `castShadow = true`, `receiveShadow = true`.
 
+### NEW — Magical pedestal with book
+
+`buildPedestal()` returns a `THREE.Group` at `(-2.8, 0, 2.6)` (front-left corner).
+
+- **Column**: `CylinderGeometry(0.18, 0.22, 1.0, 12)` `MeshLambertMaterial` `#1b3a4b` at `y: 0.5`. `castShadow = true`.
+- **Top plate**: `CylinderGeometry(0.25, 0.25, 0.04, 12)` `MeshLambertMaterial` `#0a1a28` at `y: 1.02`.
+- **Glow ring**: `TorusGeometry(0.22, 0.012, 8, 24)` `MeshStandardMaterial` `#9b00ff` emissive `#9b00ff` @ `1.4`, at `y: 1.04`, rotated `rotation.x = -Math.PI / 2`.
+- **Pedestal point light**: `#9b00ff`, intensity `0.6`, distance `2.5`, at `y: 1.2` (attached to the pedestal group).
+- **Book group** (child of pedestal group, hovers above the top plate):
+  - **Left page**: `BoxGeometry(0.18, 0.01, 0.22)` `MeshStandardMaterial` `#f5d0a9` (parchment) emissive `#ffd166` @ `0.4`, position `(-0.095, 1.22, 0)`, rotation `(0, 0, -0.08)` (slight tilt for open-book look).
+  - **Right page**: same geometry & material, position `(0.095, 1.22, 0)`, rotation `(0, 0, 0.08)`.
+  - **Spine**: `BoxGeometry(0.01, 0.012, 0.22)` `#1b3a4b` at `(0, 1.215, 0)`.
+- **Book bobbing**: pedestal group exposes `userData.bookGroup` so the update loop can do `bookGroup.position.y = 0.04 * Math.sin(time * 1.5)` and `bookGroup.rotation.y += delta * 0.2` (slow rotation).
+- The pedestal group root sets `userData = { clickable: true, hotspot: 'pedestal', action: 'openBook' }`. The click handler calls `nav.goTo('pedestal')` AND `ui.openBook()` after the camera transition completes (or both immediately — see Click Handling below).
+
 ### NEW — Floor lamp
 
 `buildFloorLamp()`. Position: between the bean bags and the right wall, `(2.6, 0, 1.8)`.
@@ -157,24 +172,27 @@ Restyle the CDN 3D gallery gaming room from its current warm-brown placeholder t
 ### `createObjects(scene)` — updated return
 
 ```js
-return { arcadeLeft, arcadeRight, desk, globeUpdate };
+return { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate };
 ```
 
-`globeUpdate(delta)` is a function that rotates the globe sphere; `main.js` registers it with `addUpdateCallback`. (Same pattern as `gatekeeper.update`.)
+`sceneUpdate(delta, elapsed)` is a single update callback that animates the globe (rotation) and the pedestal book (bobbing + slow rotation). `main.js` registers it with `addUpdateCallback`.
 
-The desk group is added to `clickableObjects` (its descendants traversed by the existing click walker).
+The desk and pedestal groups are added to `clickableObjects` along with all poster meshes. The existing raycaster `intersectObjects(..., true)` recurses into children, and the click walker walks parent chains to find the nearest `clickable` ancestor — so the inner monitor / globe / book meshes can each have their own `userData.action` and they'll dispatch correctly.
 
-Posters, fridge handle (no, fridge is scenery), bookshelf (scenery), chair (scenery), neon sign (scenery), rug (scenery), floor lamp (scenery) — only **desk + monitors + globe + posters** are clickable. Everything else is decoration.
+Bookshelf, chair, neon sign, rug, fridge, floor lamp — scenery only, not clickable. **Clickable**: arcade cabinets, gatekeeper, wall panels, desk (+monitor +globe), posters, pedestal book.
 
 ---
 
 ## Navigation (`src/navigation.js`)
 
-Add new hotspot:
+Add two new hotspots:
 
 ```js
-desk: { position: { x: 1.8, y: 1.5, z: -0.6 }, target: { x: 1.8, y: 1.2, z: -2.6 }, label: 'Gaming Desk' }
+desk:     { position: { x: 1.8,  y: 1.5, z: -0.6 }, target: { x: 1.8,  y: 1.2, z: -2.6 }, label: 'Gaming Desk' },
+pedestal: { position: { x: -2.0, y: 1.4, z: 1.6  }, target: { x: -2.8, y: 1.2, z: 2.6  }, label: 'Magic Tome' }
 ```
+
+The click handler dispatches both `nav.goTo(hotspot)` and any associated `action`. The current implementation already does this — the `action: 'openBook'` will fire on the same click that triggers `hotspot: 'pedestal'`.
 
 ---
 
@@ -205,9 +223,121 @@ Canvas texture colours:
 
 ---
 
-## UI (`src/ui.js`)
+## UI (`src/ui.js` + `index.html`)
 
-Add two new entries to `GATEKEEPER_RESPONSES` is not needed. The existing `openPanelDrawer(panelId, panelTitle)` already handles `desk-research`, `globe`, and `poster-N` IDs through its placeholder text — no code change in `ui.js` is required for the new clickable objects.
+### Book overlay (NEW)
+
+Add to `index.html`:
+
+```html
+<div id="book-overlay" class="hidden">
+  <div id="book-container">
+    <div id="book-page-left" class="book-page"></div>
+    <div id="book-page-right" class="book-page"></div>
+    <button id="book-prev" class="book-nav">‹</button>
+    <button id="book-next" class="book-nav">›</button>
+    <button id="book-close" class="book-close">×</button>
+  </div>
+</div>
+```
+
+Add to `createUI`:
+
+```js
+const BOOK_PAGES = [
+  { left: '<h2>The Codex of Digital Narratives</h2><p>In the beginning, stories were carved into stone…</p>', right: '<p>Then came the printing press, and tales spread on paper wings.</p>' },
+  { left: '<p>Now, narratives unfurl across screens, weaving through pixels and code.</p>', right: '<p>The Centre for Digital Narrative studies these new storytelling realms.</p>' },
+  { left: '<p>Hypertext, interactive fiction, generative AI, virtual worlds…</p>', right: '<p>Every link, every choice, every algorithm shapes the tale.</p><p class="book-end">— Fin —</p>' }
+];
+
+let bookPageIndex = 0;
+
+function renderBookPage() {
+  document.getElementById('book-page-left').innerHTML  = BOOK_PAGES[bookPageIndex].left;
+  document.getElementById('book-page-right').innerHTML = BOOK_PAGES[bookPageIndex].right;
+  document.getElementById('book-prev').disabled = bookPageIndex === 0;
+  document.getElementById('book-next').disabled = bookPageIndex === BOOK_PAGES.length - 1;
+}
+
+function openBook() {
+  bookPageIndex = 0;
+  renderBookPage();
+  document.getElementById('book-overlay').classList.remove('hidden');
+}
+
+function closeBook() {
+  document.getElementById('book-overlay').classList.add('hidden');
+}
+
+document.getElementById('book-prev').addEventListener('click',  () => { if (bookPageIndex > 0) { bookPageIndex--; renderBookPage(); } });
+document.getElementById('book-next').addEventListener('click',  () => { if (bookPageIndex < BOOK_PAGES.length - 1) { bookPageIndex++; renderBookPage(); } });
+document.getElementById('book-close').addEventListener('click', closeBook);
+document.getElementById('book-overlay').addEventListener('click', (e) => { if (e.target.id === 'book-overlay') closeBook(); });
+```
+
+Wire `Escape` key to also call `closeBook()`. Export `openBook` from `createUI`.
+
+The click handler in `navigation.js` already supports `action`. Add a new branch for `action === 'openBook'` that calls `ui.openBook()`.
+
+### Wizard chat rework
+
+The chat panel becomes a **floating speech bubble anchored to the wizard's screen-space position**, not a bottom drawer.
+
+- `#gatekeeper-chat` is positioned absolutely with `left` / `top` updated each frame from the wizard's projected world position (similar to `updateHints`). Add the wizard's world position `new THREE.Vector3(0, 2.2, 1.5)` (the gatekeeper hovers there) to the projection list.
+- The chat bubble has a CSS `::before` triangle pointing left toward the wizard (or right, depending on which side the wizard is on screen).
+- Add a text input row inside `#gatekeeper-chat`:
+
+```html
+<div id="chat-input-row">
+  <input id="chat-input" type="text" placeholder="Ask me anything…" />
+  <button id="chat-send">Send</button>
+</div>
+```
+
+- New responder logic in `createUI`:
+
+```js
+const KEYWORD_RESPONSES = [
+  { keys: ['xp', 'level', 'experience'], reply: 'Earn XP by exploring rooms and reading panels. Each discovery counts!' },
+  { keys: ['cdn', 'centre', 'narrative'], reply: 'CDN is the Centre for Digital Narrative at UiB — we study how digital tech shapes stories.' },
+  { keys: ['arcade', 'game'],             reply: 'The arcades hold interactive CDN research. Click them to fly in!' },
+  { keys: ['book', 'tome', 'lore'],       reply: 'Ah, the Codex! Visit the magical pedestal in the corner to read its secrets.' },
+  { keys: ['globe', 'world', 'map'],      reply: 'The desk globe shows CDN\'s international research connections.' },
+  { keys: ['hi', 'hello', 'hey'],         reply: 'Hello, curious visitor! Ask me anything about this gallery.' }
+];
+
+function answer(question) {
+  const q = question.toLowerCase();
+  for (const { keys, reply } of KEYWORD_RESPONSES) {
+    if (keys.some(k => q.includes(k))) return reply;
+  }
+  return "I'm still learning about that one. Try asking about XP, CDN, the arcades, or the magical book!";
+}
+
+function sendChatMessage(text) {
+  if (!text.trim()) return;
+  chatMessages.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+  chatMessages.innerHTML += `<div class="chat-msg gatekeeper">${escapeHtml(answer(text))}</div>`;
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+document.getElementById('chat-send').addEventListener('click', () => {
+  const input = document.getElementById('chat-input');
+  sendChatMessage(input.value);
+  input.value = '';
+});
+document.getElementById('chat-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    sendChatMessage(e.target.value);
+    e.target.value = '';
+  }
+});
+```
+
+- The existing chip buttons stay above the input as quick-reply suggestions; clicking a chip calls `sendChatMessage(chip.dataset.q)`.
+- The `updateHints` function (or a new sibling `updateChatPosition`) projects the wizard's world position each frame and sets `#gatekeeper-chat.style.left/top` to anchor the speech bubble. Offset the chat by `+80px` x and `-40px` y so it sits beside-and-above the wizard.
+
+Existing `openPanelDrawer(panelId, panelTitle)` continues to handle `desk-research`, `globe`, `poster-N` panels — no changes needed there.
 
 ---
 
@@ -235,6 +365,19 @@ Add two new entries to `GATEKEEPER_RESPONSES` is not needed. The existing `openP
 | XP bar fill | `#00e5ff` |
 | Earned achievement border | `1px solid #ffd166` + gold glow |
 | `.hotspot-hint` colour | `#ffd166` |
+| `#book-overlay` background | `rgba(5,13,20,0.9)` (full-screen scrim) |
+| `#book-container` | flex centre, `1100px` wide × `700px` tall, with two `.book-page` children |
+| `.book-page` background | `linear-gradient(#f5e6c8, #e8d4a8)` (parchment) |
+| `.book-page` border + glow | `1px solid #ffd166` + `box-shadow: 0 0 30px rgba(255,209,102,0.4), inset 0 0 40px rgba(255,209,102,0.2)` |
+| `.book-page` text colour | `#3a2818` (dark brown ink) |
+| `.book-page` font | `'Georgia', serif`, line-height `1.7` |
+| `.book-nav` (prev/next) | absolute on left/right of container, gold `#ffd166` arrows, transparent bg |
+| `.book-close` | top-right `×`, gold |
+| `#chat-input-row` | flex row, padding `8px`, top border `1px solid rgba(0,229,255,0.3)` |
+| `#chat-input` | bg `rgba(5,13,20,0.6)`, border `1px solid #00e5ff`, text `#90e0ef`, padding `6px 10px` |
+| `#chat-send` | bg `#00e5ff`, text `#050d14`, border none, padding `6px 12px` |
+| `#gatekeeper-chat` positioning | `position: absolute` (was bottom drawer) — JS sets `left`/`top` per frame |
+| `#gatekeeper-chat::before` | CSS triangle (`border` trick) on the left edge, colour `rgba(10,26,40,0.97)` — speech-bubble tail pointing toward wizard |
 
 ---
 
@@ -252,11 +395,13 @@ Add two new entries to `GATEKEEPER_RESPONSES` is not needed. The existing `openP
 | File | Change |
 |---|---|
 | `src/scene/room.js` | Colours, all lights, neon floor strips |
-| `src/scene/objects.js` | Restyle existing objects + add desk, chair, bookshelf, posters, neon sign, rug, fridge, floor lamp, globe; new return shape |
+| `src/scene/objects.js` | Restyle existing objects + add desk, chair, bookshelf, posters, neon sign, rug, fridge, floor lamp, globe, magical pedestal + book; new return shape with `sceneUpdate` |
 | `src/scene/gatekeeper.js` | Hat, robe, spectacles, star colours |
 | `src/scene/panels.js` | Canvas texture colours |
-| `src/navigation.js` | Add `desk` hotspot |
-| `src/main.js` | Register `globeUpdate`, push desk + posters to `clickableObjects` |
-| `styles/main.css` | Full colour restyle |
+| `src/navigation.js` | Add `desk` and `pedestal` hotspots; route `action: 'openBook'` to `ui.openBook()` |
+| `src/main.js` | Register `sceneUpdate`, push desk + posters + pedestal to `clickableObjects`, register chat-anchor update |
+| `src/ui.js` | Book overlay (open/close, page nav), wizard chat rework (text input, keyword answers, screen-anchor positioning), export `openBook` |
+| `index.html` | Add `#book-overlay` and `#chat-input-row` markup |
+| `styles/main.css` | Full colour restyle + book overlay styles + chat speech-bubble repositioning + chat input styles |
 
 No new files. No changes to tests.
