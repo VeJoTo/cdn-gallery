@@ -139,6 +139,28 @@ export function createRoom(scene) {
   backCeilStrip.position.set(0, ceilingY, -2.96);
   scene.add(backCeilStrip);
 
+  // Back wall floor strip — gold, runs along x at the base
+  const backFloorMat = new THREE.MeshStandardMaterial({
+    color: 0xffd166, emissive: 0xffd166, emissiveIntensity: 1.4
+  });
+  const backFloorStrip = new THREE.Mesh(backStripGeom, backFloorMat);
+  backFloorStrip.position.set(0, 0.01, -2.96);
+  scene.add(backFloorStrip);
+
+  // ── Vertical corner strips (gold) at back-left and back-right ──
+  const cornerStripGeom = new THREE.BoxGeometry(0.06, 3.45, 0.06);
+  const cornerMat = new THREE.MeshStandardMaterial({
+    color: 0xffd166, emissive: 0xffd166, emissiveIntensity: 1.5
+  });
+
+  const backLeftCorner = new THREE.Mesh(cornerStripGeom, cornerMat);
+  backLeftCorner.position.set(-3.45, 1.725, -2.96);
+  scene.add(backLeftCorner);
+
+  const backRightCorner = new THREE.Mesh(cornerStripGeom, cornerMat);
+  backRightCorner.position.set(3.45, 1.725, -2.96);
+  scene.add(backRightCorner);
+
   // ── Coloured fill lights near each ceiling strip ──
   const cyanFill = new THREE.PointLight(0x00e5ff, 2.5, 14);
   cyanFill.position.set(-3.0, 3.2, 0);
