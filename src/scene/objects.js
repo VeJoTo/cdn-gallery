@@ -690,6 +690,77 @@ function buildPedestal() {
   return group;
 }
 
+function buildTV() {
+  const group = new THREE.Group();
+  // Right wall, mounted high up
+  group.position.set(3.49, 2.85, 0);
+  group.rotation.y = -Math.PI / 2; // facing into the room (toward -x)
+
+  // Bezel
+  const bezel = new THREE.Mesh(
+    new THREE.BoxGeometry(2.2, 1.3, 0.08),
+    new THREE.MeshLambertMaterial({ color: 0x0a0a0a })
+  );
+  group.add(bezel);
+
+  // Inner frame
+  const inner = new THREE.Mesh(
+    new THREE.BoxGeometry(2.0, 1.15, 0.04),
+    new THREE.MeshLambertMaterial({ color: 0x000000 })
+  );
+  inner.position.z = 0.05;
+  group.add(inner);
+
+  // ── Video element + texture ──
+  const video = document.createElement('video');
+  video.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+  video.crossOrigin = 'anonymous';
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.autoplay = true;
+  video.play().catch(() => { /* autoplay blocked — user click will start it */ });
+
+  const videoTex = new THREE.VideoTexture(video);
+  videoTex.colorSpace = THREE.SRGBColorSpace;
+
+  const screen = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.92, 1.08),
+    new THREE.MeshBasicMaterial({ map: videoTex })
+  );
+  screen.position.z = 0.071;
+  group.add(screen);
+
+  // A subtle emissive frame strip just inside the bezel for neon glow
+  const glowMat = new THREE.MeshStandardMaterial({
+    color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.0
+  });
+  // Top + bottom + left + right strips
+  const stripT = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
+  stripT.position.set(0,  0.585, 0.072);
+  group.add(stripT);
+  const stripB = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
+  stripB.position.set(0, -0.585, 0.072);
+  group.add(stripB);
+  const stripL = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.15, 0.01), glowMat);
+  stripL.position.set(-0.99, 0, 0.072);
+  group.add(stripL);
+  const stripR = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.15, 0.01), glowMat);
+  stripR.position.set(0.99, 0, 0.072);
+  group.add(stripR);
+
+  // Click action: opens a panel describing the video
+  group.userData = {
+    clickable: true,
+    action: 'openPanel',
+    panelId: 'tv',
+    panelTitle: 'CDN Video Archive',
+    video
+  };
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
   const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
@@ -704,6 +775,7 @@ export function createObjects(scene) {
   const neonSign    = buildNeonSign();
   const rug         = buildRug();
   const pedestal    = buildPedestal();
+  const tv          = buildTV();
 
   const posters = [
     buildPoster(-2.5, 2.0, -2.99, 0xff006e, 0x9b00ff, 'NEON RUNNER',  0),
@@ -714,10 +786,20 @@ export function createObjects(scene) {
   arcadeLeft.userData  = { clickable: true, hotspot: 'arcade-left' };
   arcadeRight.userData = { clickable: true, hotspot: 'arcade-right' };
 
+  // Make decorative objects clickable — each opens the panel drawer with placeholder content
+  table.userData     = { clickable: true, action: 'openPanel', panelId: 'table',     panelTitle: 'Card Games & Social Play' };
+  beanBag1.userData  = { clickable: true, action: 'openPanel', panelId: 'beanbag-1', panelTitle: 'Casual Seating' };
+  beanBag2.userData  = { clickable: true, action: 'openPanel', panelId: 'beanbag-2', panelTitle: 'Casual Seating' };
+  chair.userData     = { clickable: true, action: 'openPanel', panelId: 'chair',     panelTitle: 'Pro Gaming Station' };
+  bookshelf.userData = { clickable: true, action: 'openPanel', panelId: 'bookshelf', panelTitle: 'Game Library' };
+  fridge.userData    = { clickable: true, action: 'openPanel', panelId: 'fridge',    panelTitle: 'Refreshments' };
+  floorLamp.userData = { clickable: true, action: 'openPanel', panelId: 'lamp',      panelTitle: 'Mood Lighting' };
+  neonSign.userData  = { clickable: true, action: 'openPanel', panelId: 'sign',      panelTitle: 'Welcome to the Game Room' };
+
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
-    neonSign, rug, pedestal, ...posters
+    neonSign, rug, pedestal, tv, ...posters
   );
 
   // ── Animation: spin globe + bob book ──
@@ -733,5 +815,8 @@ export function createObjects(scene) {
     }
   }
 
-  return { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate };
+  return {
+    arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
+    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv]
+  };
 }
