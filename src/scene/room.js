@@ -40,7 +40,7 @@ export function createRoom(scene) {
   scene.add(ceil);
 
   // ── Lighting ────────────────────────────────────
-  const ambient = new THREE.AmbientLight(0x4a3a8c, 0.55);
+  const ambient = new THREE.AmbientLight(0x7a3acc, 1.1);
   scene.add(ambient);
 
   const dirLight = new THREE.DirectionalLight(0xffd166, 0.6);
