@@ -146,3 +146,86 @@ body {
 
 /* ── Utility ────────────────────────────────────── */
 .hidden { display: none !important; }
+
+/* ── Book overlay ───────────────────────────────── */
+#book-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5,13,20,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+#book-overlay.hidden { display: none; }
+
+#book-container {
+  position: relative;
+  display: flex;
+  width: min(1100px, 95vw);
+  height: min(700px, 85vh);
+  gap: 8px;
+}
+
+.book-page {
+  flex: 1;
+  background: linear-gradient(180deg, #f5e6c8, #e8d4a8);
+  border: 1px solid #ffd166;
+  box-shadow:
+    0 0 30px rgba(255,209,102,0.4),
+    inset 0 0 40px rgba(255,209,102,0.2);
+  padding: 48px 56px;
+  font-family: 'Georgia', serif;
+  color: #3a2818;
+  line-height: 1.7;
+  font-size: 17px;
+  border-radius: 4px;
+  overflow-y: auto;
+}
+
+.book-page h2 {
+  font-size: 26px;
+  margin-bottom: 16px;
+  color: #5a3a18;
+}
+
+.book-page p { margin-bottom: 14px; }
+
+.book-page .book-end {
+  text-align: center;
+  font-style: italic;
+  margin-top: 32px;
+  color: #8a5a28;
+}
+
+.book-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 2px solid #ffd166;
+  color: #ffd166;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.book-nav:hover:not(:disabled) { background: #ffd166; color: #050d14; }
+.book-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+
+#book-prev { left: -60px; }
+#book-next { right: -60px; }
+
+.book-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: #ffd166;
+  font-size: 32px;
+  cursor: pointer;
+  line-height: 1;
+}

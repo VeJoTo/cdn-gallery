@@ -6,6 +6,29 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+export const BOOK_PAGES = [
+  {
+    left:  '<h2>The Codex of Digital Narratives</h2><p>In the beginning, stories were carved into stone, etched in clay, whispered around fires.</p>',
+    right: '<p>Then came the printing press, and tales spread on paper wings across continents.</p>'
+  },
+  {
+    left:  '<p>Now, narratives unfurl across screens, weaving through pixels and code.</p><p>Every link, every choice, every algorithm shapes the tale.</p>',
+    right: '<p>The Centre for Digital Narrative studies these new storytelling realms — where reader becomes co-author, where stories adapt to their audience.</p>'
+  },
+  {
+    left:  '<p>Hypertext, interactive fiction, generative AI, virtual worlds, augmented reality…</p><p>The form keeps shifting, but the human need to tell and hear stories endures.</p>',
+    right: '<p>Welcome, traveller, to this gallery of digital tales.</p><p class="book-end">— Fin —</p>'
+  }
+];
+
+export function getNextPageIndex(current) {
+  return Math.min(current + 1, BOOK_PAGES.length - 1);
+}
+
+export function getPrevPageIndex(current) {
+  return Math.max(current - 1, 0);
+}
+
 export function createUI(camera, renderer) {
   const breadcrumb       = document.getElementById('breadcrumb');
   const backBtn          = document.getElementById('back-btn');
@@ -138,12 +161,45 @@ export function createUI(camera, renderer) {
     if (e.target === inventoryOverlay) closeInventory();
   });
 
+  // ── Book overlay ─────────────────────────────────
+  const bookOverlay  = document.getElementById('book-overlay');
+  const bookPageL    = document.getElementById('book-page-left');
+  const bookPageR    = document.getElementById('book-page-right');
+  const bookPrev     = document.getElementById('book-prev');
+  const bookNext     = document.getElementById('book-next');
+  const bookClose    = document.getElementById('book-close');
+
+  let bookPageIndex = 0;
+
+  function renderBookPage() {
+    bookPageL.innerHTML = BOOK_PAGES[bookPageIndex].left;
+    bookPageR.innerHTML = BOOK_PAGES[bookPageIndex].right;
+    bookPrev.disabled = bookPageIndex === 0;
+    bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
+  }
+
+  function openBook() {
+    bookPageIndex = 0;
+    renderBookPage();
+    bookOverlay.classList.remove('hidden');
+  }
+
+  function closeBook() {
+    bookOverlay.classList.add('hidden');
+  }
+
+  bookPrev.addEventListener('click',  () => { bookPageIndex = getPrevPageIndex(bookPageIndex); renderBookPage(); });
+  bookNext.addEventListener('click',  () => { bookPageIndex = getNextPageIndex(bookPageIndex); renderBookPage(); });
+  bookClose.addEventListener('click', closeBook);
+  bookOverlay.addEventListener('click', (e) => { if (e.target === bookOverlay) closeBook(); });
+
   // ── Global Escape key ────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closePanelDrawer();
       closeGatekeeperChat();
       closeInventory();
+      closeBook();
     }
   });
 
@@ -190,6 +246,7 @@ export function createUI(camera, renderer) {
     openPanelDrawer,
     openGatekeeperChat,
     openInventory,
+    openBook,
     updateHints
   };
 }

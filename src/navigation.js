@@ -90,5 +90,6 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui) {
     if (hotspot)                     nav.goTo(hotspot);
     if (action === 'openGatekeeper') ui.openGatekeeperChat();
     if (action === 'openPanel')      ui.openPanelDrawer(panelId, panelTitle);
+    if (action === 'openBook')       ui.openBook();
   });
 }
