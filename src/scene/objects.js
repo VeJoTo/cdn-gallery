@@ -474,6 +474,59 @@ function buildFloorLamp() {
   return group;
 }
 
+function buildPoster(x, y, z, frameColor, accentColor, title, idx) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 320;
+  canvas.height = 440;
+  const ctx = canvas.getContext('2d');
+
+  // Dark background
+  ctx.fillStyle = '#050d14';
+  ctx.fillRect(0, 0, 320, 440);
+
+  // Neon frame
+  ctx.strokeStyle = '#' + frameColor.toString(16).padStart(6, '0');
+  ctx.lineWidth = 6;
+  ctx.strokeRect(8, 8, 304, 424);
+
+  // Title
+  ctx.fillStyle = '#ffd166';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(title, 160, 50);
+
+  // Geometric placeholder art
+  ctx.fillStyle = '#' + accentColor.toString(16).padStart(6, '0');
+  ctx.beginPath();
+  ctx.arc(160, 200, 70, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#ffd166';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(80, 320);
+  ctx.lineTo(240, 320);
+  ctx.lineTo(160, 200);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.fillStyle = '#90e0ef';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('PLACEHOLDER', 160, 400);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.MeshBasicMaterial({ map: tex });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.1), mat);
+  plane.position.set(x, y, z);
+  plane.userData = {
+    clickable: true,
+    action: 'openPanel',
+    panelId: 'poster-' + idx,
+    panelTitle: title
+  };
+  return plane;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
   const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
@@ -486,13 +539,20 @@ export function createObjects(scene) {
   const fridge      = buildMiniFridge();
   const floorLamp   = buildFloorLamp();
 
+  const posters = [
+    buildPoster(-2.5, 2.0, -2.99, 0xff006e, 0x9b00ff, 'NEON RUNNER',  0),
+    buildPoster(-1.4, 2.0, -2.99, 0x00e5ff, 0xff006e, 'PIXEL QUEST',  1),
+    buildPoster(-0.3, 2.0, -2.99, 0x9b00ff, 0x00e5ff, 'STAR ARCADE',  2)
+  ];
+
   arcadeLeft.userData  = { clickable: true, hotspot: 'arcade-left' };
   arcadeRight.userData = { clickable: true, hotspot: 'arcade-right' };
 
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
-    desk, chair, bookshelf, fridge, floorLamp
+    desk, chair, bookshelf, fridge, floorLamp,
+    ...posters
   );
 
-  return { arcadeLeft, arcadeRight, desk };
+  return { arcadeLeft, arcadeRight, desk, posters };
 }
