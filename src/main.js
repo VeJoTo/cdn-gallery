@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createGatekeeper } from './scene/gatekeeper.js';
@@ -15,6 +16,14 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// ── CSS3D renderer (for the TV's YouTube iframe) ──
+export const cssRenderer = new CSS3DRenderer();
+cssRenderer.setSize(window.innerWidth, window.innerHeight);
+cssRenderer.domElement.id = 'css3d-layer';
+document.body.appendChild(cssRenderer.domElement);
+
+export const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
@@ -37,6 +46,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  cssRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ── OrbitControls (free rotation/zoom in addition to hotspot navigation) ──
@@ -64,11 +74,31 @@ function animate() {
   for (const fn of updateCallbacks) fn(delta);
   controls.update();
   renderer.render(scene, camera);
+  cssRenderer.render(cssScene, camera);
 }
 
 createRoom(scene);
 const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv } = createObjects(scene);
 addUpdateCallback(sceneUpdate);
+
+// ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
+const tvVideoIframe = document.createElement('iframe');
+tvVideoIframe.src = 'https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=0&rel=0&modestbranding=1&playsinline=1';
+tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+
+const tvCSS3D = new CSS3DObject(tvVideoIframe);
+// Screen mesh in buildTV is at local (0, 0, 0.071) inside the TV group.
+// TV group is at (3.49, 2.85, 0) with rotation.y = -Math.PI/2.
+// Local +Z maps to world -X after that rotation, so world position is:
+//   (3.49 - 0.071, 2.85, 0) = (3.419, 2.85, 0)
+tvCSS3D.position.set(3.419, 2.85, 0);
+// Face world -X: starting orientation (+Z facing) rotated by +π/2 about Y.
+tvCSS3D.rotation.y = Math.PI / 2;
+// Iframe CSS size is 1280 × 720 px; target world size is 1.92 × 1.08 units.
+// Uniform scale = 1.92 / 1280 = 0.0015
+const tvScale = 1.92 / 1280;
+tvCSS3D.scale.set(tvScale, tvScale, tvScale);
+cssScene.add(tvCSS3D);
 const gatekeeper = createGatekeeper(scene);
 addUpdateCallback(gatekeeper.update);
 const panels = createPanels(scene);
@@ -117,7 +147,6 @@ document.getElementById('inventory-btn').addEventListener('click', () => ui.open
 addUpdateCallback(() => {
   ui.updateHints();
   ui.updateChatAnchor();
-  ui.updateTVAnchor(tv);
 });
 
 animate();

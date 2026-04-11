@@ -343,15 +343,17 @@ body {
 }
 #chat-send:hover { background: #90e0ef; }
 
-/* ── 3D TV: YouTube iframe overlay ──────────────── */
-#tv-iframe {
-  position: fixed;
-  border: 0;
+/* ── 3D TV: CSS3D iframe layer ──────────────────── */
+#css3d-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 5;
+  z-index: 2;
 }
-#tv-iframe.visible {
-  opacity: 1;
+#css3d-layer iframe {
+  border: 0;
+  width: 1280px;
+  height: 720px;
+  pointer-events: auto;
 }
