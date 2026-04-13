@@ -278,6 +278,9 @@ let podcastOpen = false;
 podcastToggle.addEventListener('click', () => {
   podcastOpen = !podcastOpen;
   if (podcastOpen) {
+    // Reload iframe with autoplay to start playing immediately
+    const iframe = document.getElementById('spotify-iframe');
+    if (iframe) iframe.src = 'https://open.spotify.com/embed/episode/629iwUQqeciMedvx9oseyf?theme=0&autoplay=1';
     spotifyPlayer.classList.remove('hidden');
     podcastToggle.textContent = '⏸ Playing';
     // Pause music if playing
