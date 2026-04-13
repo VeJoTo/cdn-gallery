@@ -81,7 +81,7 @@ addUpdateCallback(sceneUpdate);
 
 // ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
 const tvVideoIframe = document.createElement('iframe');
-tvVideoIframe.src = 'https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=1&rel=0&modestbranding=1&playsinline=1';
+tvVideoIframe.src = `https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
 
 const tvCSS3D = new CSS3DObject(tvVideoIframe);
@@ -156,6 +156,20 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
+
+// TV sound toggle
+const soundBtn = document.getElementById('sound-btn');
+let tvMuted = true;
+soundBtn.addEventListener('click', () => {
+  tvMuted = !tvMuted;
+  const cmd = tvMuted ? 'mute' : 'unMute';
+  tvVideoIframe.contentWindow.postMessage(
+    JSON.stringify({ event: 'command', func: cmd, args: '' }),
+    '*'
+  );
+  soundBtn.textContent = tvMuted ? '🔇 Sound' : '🔊 Sound';
+  soundBtn.classList.toggle('unmuted', !tvMuted);
+});
 
 addUpdateCallback(() => ui.updateHints());
 

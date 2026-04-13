@@ -42,6 +42,27 @@ body {
 }
 #back-btn:hover { background: #a8d8ea; color: #0d2137; }
 
+#sound-btn {
+  position: fixed;
+  top: 16px;
+  right: 230px;
+  background: rgba(13,33,55,0.6);
+  border: 1px solid #a8d8ea;
+  color: #a8d8ea;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transition: background 0.2s, color 0.2s;
+}
+#sound-btn:hover { background: #a8d8ea; color: #0d2137; }
+#sound-btn.unmuted {
+  border-color: #e84393;
+  color: #e84393;
+}
+#sound-btn.unmuted:hover { background: #e84393; color: #0d2137; }
+
 #guide-btn {
   position: fixed;
   top: 16px;
