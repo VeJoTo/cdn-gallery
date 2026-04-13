@@ -102,6 +102,7 @@ body {
   width: 360px;
   height: 100vh;
   background: rgba(10,26,40,0.97);
+  z-index: 10;
   border-left: 1px solid #00e5ff;
   box-shadow: 0 0 14px rgba(0,229,255,0.35);
   padding: 24px;
@@ -126,38 +127,207 @@ body {
 #drawer-content h2 { font-size: 18px; margin-bottom: 12px; margin-top: 8px; color: #ffd166; }
 #drawer-content p  { font-size: 14px; line-height: 1.6; color: #90e0ef; margin-bottom: 12px; }
 
-/* ── Inventory overlay ──────────────────────────── */
+/* ── Inventory overlay (Scrapbook) ──────────────── */
 #inventory-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5,13,20,0.93);
+  background: rgba(5,13,20,0.88);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 60;
 }
 #inventory-overlay.hidden { display: none; }
 
 #inventory-content {
-  background: rgba(10,26,40,0.97);
-  border: 1px solid #00e5ff;
-  box-shadow: 0 0 20px rgba(0,229,255,0.3);
-  border-radius: 12px;
-  padding: 32px;
-  width: 480px;
-  max-width: calc(100vw - 32px);
   position: relative;
-  color: #90e0ef;
+  width: min(960px, 95vw);
+  max-height: 90vh;
 }
 
 #inventory-close {
   position: absolute;
-  top: 14px;
-  right: 18px;
-  background: none;
-  border: none;
-  color: #90e0ef;
-  font-size: 22px;
+  top: -8px;
+  right: -8px;
+  background: #2a2a2e;
+  border: 2px solid #9b00ff;
+  color: #ffd166;
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   cursor: pointer;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.scrapbook {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(155,0,255,0.2);
+}
+
+.scrapbook-page {
+  flex: 1;
+  background: #f5f0e0;
+  padding: 28px 24px;
+  position: relative;
+  min-height: 480px;
+  color: #3a3020;
+}
+
+.scrapbook-left {
+  background: linear-gradient(135deg, #f5f0e0 0%, #ede6d0 100%);
+  border-right: none;
+}
+
+.scrapbook-right {
+  background: linear-gradient(225deg, #f5f0e0 0%, #ede6d0 100%);
+}
+
+.scrapbook-spine {
+  width: 16px;
+  background: linear-gradient(90deg, #d4c8a0, #c0b48a, #d4c8a0);
+  box-shadow: inset 2px 0 4px rgba(0,0,0,0.15), inset -2px 0 4px rgba(0,0,0,0.15);
+}
+
+.scrapbook-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 22px;
+  color: #3a2818;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #c0a878;
+  padding-bottom: 8px;
+}
+
+.polaroid {
+  background: #fff;
+  padding: 8px 8px 28px;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.2);
+  transform: rotate(-2deg);
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+.polaroid-img {
+  width: 180px;
+  height: 130px;
+  background: #222;
+}
+
+.polaroid-caption {
+  font-family: 'Georgia', serif;
+  font-size: 12px;
+  color: #5a4a3a;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.sticky-note {
+  background: #fef3a0;
+  padding: 14px 16px;
+  box-shadow: 2px 3px 6px rgba(0,0,0,0.15);
+  transform: rotate(1.5deg);
+  max-width: 220px;
+  margin-top: 8px;
+}
+
+.sticky-note h3 {
+  font-family: 'Georgia', serif;
+  font-size: 15px;
+  color: #5a4a20;
+  margin-bottom: 8px;
+}
+
+.sticky-note ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sticky-note li {
+  font-size: 13px;
+  color: #5a4a30;
+  padding: 3px 0;
+  border-bottom: 1px dashed rgba(0,0,0,0.1);
+}
+
+.sticky-note li::before {
+  content: '☐ ';
+  color: #a09070;
+}
+
+.discovery-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.discovery-item {
+  background: rgba(0,0,0,0.05);
+  border: 2px dashed #c0b090;
+  border-radius: 6px;
+  padding: 14px;
+  text-align: center;
+  opacity: 0.4;
+}
+
+.discovery-item.found {
+  opacity: 1;
+  border-style: solid;
+  border-color: #9b00ff;
+  background: rgba(155,0,255,0.05);
+}
+
+.discovery-thumb {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.discovery-label {
+  font-family: 'Georgia', serif;
+  font-size: 12px;
+  color: #5a4a3a;
+}
+
+.scrapbook-page-num {
+  text-align: center;
+  font-family: 'Georgia', serif;
+  font-size: 12px;
+  color: #a09070;
+  margin-top: 16px;
+}
+
+.scrapbook-tabs {
+  position: absolute;
+  top: 20px;
+  right: -48px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scrapbook-tab {
+  background: #ede6d0;
+  border: 1px solid #c0b090;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #5a4a3a;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  text-align: left;
+}
+
+.scrapbook-tab:hover {
+  background: #ffd166;
+  color: #3a2818;
 }
 
 /* ── Utility ────────────────────────────────────── */

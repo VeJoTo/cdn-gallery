@@ -741,7 +741,7 @@ function buildPedestal() {
 function buildRabbitHole() {
   const group = new THREE.Group();
   // On the floor, left of centre — near the table area
-  group.position.set(-1.5, 0, 0.5);
+  group.position.set(0.4, 0, -2.2);
 
   // Dark hole (recessed cylinder going down)
   const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
