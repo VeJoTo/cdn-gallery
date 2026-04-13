@@ -1112,6 +1112,149 @@ function buildWallTagging() {
   return group;
 }
 
+function buildRadio() {
+  const group = new THREE.Group();
+  // On the table, slightly to the side
+  group.position.set(-0.4, 0.49, 1.5);
+
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1a1a2a });
+
+  // Main body (retro boombox shape)
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(0.4, 0.22, 0.15),
+    bodyMat
+  );
+  body.position.y = 0.11;
+  body.castShadow = true;
+  group.add(body);
+
+  // Speaker grilles (two circles on the front)
+  const grilleMat = new THREE.MeshLambertMaterial({ color: 0x2a2a3a });
+  for (const gx of [-0.1, 0.1]) {
+    const grille = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.06, 0.01, 12),
+      grilleMat
+    );
+    grille.rotation.x = Math.PI / 2;
+    grille.position.set(gx, 0.11, 0.08);
+    group.add(grille);
+
+    // Speaker cone ring
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.055, 0.005, 6, 16),
+      new THREE.MeshStandardMaterial({
+        color: 0xaa00ff, emissive: 0xaa00ff, emissiveIntensity: 0.5
+      })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(gx, 0.11, 0.081);
+    group.add(ring);
+  }
+
+  // Display screen (small glowing strip in the center)
+  const display = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 0.04, 0.01),
+    new THREE.MeshStandardMaterial({
+      color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 1.0
+    })
+  );
+  display.position.set(0, 0.16, 0.08);
+  group.add(display);
+
+  // Antenna
+  const antenna = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.005, 0.005, 0.25, 6),
+    new THREE.MeshLambertMaterial({ color: 0x888888 })
+  );
+  antenna.position.set(0.15, 0.3, 0);
+  antenna.rotation.z = -0.3;
+  group.add(antenna);
+
+  // Small glowing tip on antenna
+  const tip = new THREE.Mesh(
+    new THREE.SphereGeometry(0.012, 6, 4),
+    new THREE.MeshStandardMaterial({
+      color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 1.5
+    })
+  );
+  tip.position.set(0.15 + Math.sin(0.3) * 0.25, 0.3 + Math.cos(0.3) * 0.25, 0);
+  group.add(tip);
+
+  return group;
+}
+
+function createMusicNotes(scene) {
+  const notes = [];
+  const noteChars = ['♪', '♫', '♬'];
+  const noteColors = [0xff00ff, 0x00ffff, 0xaa00ff, 0xf8f1e0];
+
+  for (let i = 0; i < 12; i++) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 64, 64);
+    ctx.font = '48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const color = noteColors[i % noteColors.length];
+    ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+    ctx.fillText(noteChars[i % noteChars.length], 32, 32);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0 })
+    );
+    // Start at radio position
+    sprite.position.set(-0.4 + (Math.random() - 0.5) * 0.3, 0.7, 1.5);
+    sprite.scale.set(0.15, 0.15, 0.15);
+    sprite.userData = {
+      speed: 0.3 + Math.random() * 0.4,
+      drift: (Math.random() - 0.5) * 0.5,
+      phase: Math.random() * Math.PI * 2,
+      baseX: -0.4 + (Math.random() - 0.5) * 0.3
+    };
+    scene.add(sprite);
+    notes.push(sprite);
+  }
+
+  let active = false;
+
+  function update(delta, elapsed) {
+    for (const note of notes) {
+      if (active) {
+        note.material.opacity = Math.min(note.material.opacity + delta * 2, 0.8);
+        note.position.y += note.userData.speed * delta;
+        note.position.x = note.userData.baseX + Math.sin(elapsed * 2 + note.userData.phase) * 0.15;
+
+        // Reset when too high
+        if (note.position.y > 2.5) {
+          note.position.y = 0.6 + Math.random() * 0.2;
+          note.position.x = -0.4 + (Math.random() - 0.5) * 0.3;
+          note.userData.baseX = note.position.x;
+          note.material.opacity = 0;
+        }
+      } else {
+        note.material.opacity = Math.max(note.material.opacity - delta * 2, 0);
+      }
+    }
+  }
+
+  function setActive(isActive) {
+    active = isActive;
+    if (isActive) {
+      // Reset positions when turning on
+      for (const note of notes) {
+        note.position.y = 0.6 + Math.random() * 0.5;
+        note.position.x = -0.4 + (Math.random() - 0.5) * 0.3;
+        note.userData.baseX = note.position.x;
+      }
+    }
+  }
+
+  return { update, setActive };
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(0, 0xff00ff);
   const arcadeRight = buildArcadeCabinet(0, 0x00ffff);
@@ -1191,6 +1334,8 @@ export function createObjects(scene) {
   const tv          = buildTV();
   const globe       = buildGlobe();
   const wallTagging = buildWallTagging();
+  const radio       = buildRadio();
+  const musicNotes  = createMusicNotes(scene);
 
   const posters = [
     buildPoster(-2.5, 2.0, -2.99, 0xe84393, 0xf2a6c1, 'GALAGA',         0),
@@ -1271,7 +1416,7 @@ export function createObjects(scene) {
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
     neonSign, rug, pedestal, rabbitHole, tv, globe, ...posters,
-    wallTagging
+    wallTagging, radio
   );
 
   // ── Animation: spin globe + bob book ──
@@ -1289,11 +1434,12 @@ export function createObjects(scene) {
       holoDiamond.rotation.y += delta * 1.5;
       holoDiamond.position.y = 0.82 + Math.sin(elapsed * 2) * 0.03;
     }
+    if (musicNotes) musicNotes.update(delta, elapsed);
   }
 
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
-    tv, globe,
+    tv, globe, musicNotes,
     extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole, globe, aiPoster]
   };
 }

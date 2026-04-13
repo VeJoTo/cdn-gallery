@@ -76,7 +76,7 @@ function animate() {
 }
 
 createRoom(scene);
-const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv, globe } = createObjects(scene);
+const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv, globe, musicNotes } = createObjects(scene);
 addUpdateCallback(sceneUpdate);
 
 // ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
@@ -180,6 +180,7 @@ soundCheckbox.addEventListener('change', () => {
     musicCheckbox.checked = false;
     musicPlaying = false;
     sendMusicCommand('pauseVideo');
+    musicNotes.setActive(false);
   }
 });
 
@@ -190,7 +191,8 @@ let musicPlaying = false;
 
 const RADIO_TRACKS = [
   `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
-  `https://www.youtube.com/embed/TQvXEza4fPc?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`
+  `https://www.youtube.com/embed/TQvXEza4fPc?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
+  `https://www.youtube.com/embed/K4Ad2MXKLv8?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`
 ];
 let currentTrack = 0;
 
@@ -212,6 +214,7 @@ function sendMusicCommand(cmd) {
 musicCheckbox.addEventListener('change', () => {
   musicPlaying = musicCheckbox.checked;
   sendMusicCommand(musicPlaying ? 'playVideo' : 'pauseVideo');
+  musicNotes.setActive(musicPlaying);
 });
 
 trackButtons.forEach(btn => {
