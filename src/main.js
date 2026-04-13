@@ -114,6 +114,8 @@ const soundCheckbox = document.getElementById('sound-checkbox');
 const soundToggleDiv = document.getElementById('sound-toggle');
 soundToggleDiv.style.display = 'none'; // hidden by default
 
+const standupBtn = document.getElementById('standup-btn');
+
 // Hide arcades when zoomed into a wall (they'd otherwise block the view)
 const baseGoTo = nav.goTo;
 nav.goTo = (id) => {
@@ -123,6 +125,9 @@ nav.goTo = (id) => {
   arcadeRight.visible = !hideArcades;
   // Show TV sound toggle only when zoomed into TV
   soundToggleDiv.style.display = id === 'tv' ? 'flex' : 'none';
+  // Show "Stand Up" button when seated
+  const isSeated = id.startsWith('seat-');
+  standupBtn.classList.toggle('hidden', !isSeated);
 };
 
 setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
@@ -166,6 +171,10 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   controls.target.set(0, 1, 0);
   controls.update();
 });
+standupBtn.addEventListener('click', () => {
+  nav.goTo('overview');
+  standupBtn.classList.add('hidden');
+});
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
@@ -184,10 +193,17 @@ soundCheckbox.addEventListener('change', () => {
   }
 });
 
-// ── Radio: background music with track switching ──
+// ── Radio: Music / Podcast modes ──
 const musicCheckbox = document.getElementById('music-checkbox');
 const trackButtons = document.querySelectorAll('.radio-track');
+const modeTabs = document.querySelectorAll('.radio-mode');
+const musicControls = document.getElementById('radio-music-controls');
+const podcastControls = document.getElementById('radio-podcast-controls');
+const podcastToggle = document.getElementById('podcast-toggle');
+const spotifyPlayer = document.getElementById('spotify-player');
+const spotifyClose = document.getElementById('spotify-close');
 let musicPlaying = false;
+let currentMode = 'music';
 
 const RADIO_TRACKS = [
   `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
@@ -211,6 +227,34 @@ function sendMusicCommand(cmd) {
   } catch (e) { /* ignore */ }
 }
 
+// Mode switching
+modeTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const mode = tab.dataset.mode;
+    if (mode === currentMode) return;
+    currentMode = mode;
+    modeTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    if (mode === 'music') {
+      musicControls.classList.remove('hidden');
+      podcastControls.classList.add('hidden');
+      spotifyPlayer.classList.add('hidden');
+    } else {
+      musicControls.classList.add('hidden');
+      podcastControls.classList.remove('hidden');
+      // Pause YouTube music when switching to podcast
+      if (musicPlaying) {
+        musicCheckbox.checked = false;
+        musicPlaying = false;
+        sendMusicCommand('pauseVideo');
+        musicNotes.setActive(false);
+      }
+    }
+  });
+});
+
+// Music controls
 musicCheckbox.addEventListener('change', () => {
   musicPlaying = musicCheckbox.checked;
   sendMusicCommand(musicPlaying ? 'playVideo' : 'pauseVideo');
@@ -222,15 +266,37 @@ trackButtons.forEach(btn => {
     const idx = parseInt(btn.dataset.track);
     if (idx === currentTrack) return;
     currentTrack = idx;
-
-    // Update active button styling
     trackButtons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    // Switch track: reload iframe with new URL, auto-play if music was playing
     const autoplay = musicPlaying ? '1' : '0';
     musicIframe.src = RADIO_TRACKS[currentTrack].replace('autoplay=0', `autoplay=${autoplay}`);
   });
+});
+
+// Podcast controls
+let podcastOpen = false;
+podcastToggle.addEventListener('click', () => {
+  podcastOpen = !podcastOpen;
+  if (podcastOpen) {
+    spotifyPlayer.classList.remove('hidden');
+    podcastToggle.textContent = '⏸ Playing';
+    // Pause music if playing
+    if (musicPlaying) {
+      musicCheckbox.checked = false;
+      musicPlaying = false;
+      sendMusicCommand('pauseVideo');
+      musicNotes.setActive(false);
+    }
+  } else {
+    spotifyPlayer.classList.add('hidden');
+    podcastToggle.textContent = '▶ Play';
+  }
+});
+
+spotifyClose.addEventListener('click', () => {
+  spotifyPlayer.classList.add('hidden');
+  podcastOpen = false;
+  podcastToggle.textContent = '▶ Play';
 });
 
 addUpdateCallback(() => ui.updateHints());

@@ -16,19 +16,35 @@
   <div id="breadcrumb"></div>
   <button id="back-btn" class="hidden">← Back</button>
   <button id="reset-btn">⌂ Reset View</button>
+  <button id="standup-btn" class="hidden">↑ Stand Up</button>
   <div id="radio-widget">
-    <div id="radio-controls">
+    <div id="radio-mode-tabs">
+      <button class="radio-mode active" data-mode="music">🎵 Music</button>
+      <button class="radio-mode" data-mode="podcast">🎙 Podcast</button>
+    </div>
+    <div id="radio-music-controls">
       <label class="toggle-switch">
         <input type="checkbox" id="music-checkbox" />
         <span class="toggle-slider"></span>
       </label>
-      <span id="radio-label">📻 Radio</span>
+      <div id="radio-tracks">
+        <button class="radio-track active" data-track="0">Ch 1</button>
+        <button class="radio-track" data-track="1">Ch 2</button>
+        <button class="radio-track" data-track="2">Ch 3</button>
+      </div>
     </div>
-    <div id="radio-tracks">
-      <button class="radio-track active" data-track="0">Ch 1</button>
-      <button class="radio-track" data-track="1">Ch 2</button>
-      <button class="radio-track" data-track="2">Ch 3</button>
+    <div id="radio-podcast-controls" class="hidden">
+      <button id="podcast-toggle">▶ Play</button>
     </div>
+  </div>
+  <div id="spotify-player" class="hidden">
+    <button id="spotify-close">×</button>
+    <iframe id="spotify-iframe"
+      src="https://open.spotify.com/embed/episode/629iwUQqeciMedvx9oseyf?theme=0"
+      width="300" height="152"
+      frameBorder="0"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"></iframe>
   </div>
   <div id="sound-toggle" title="Toggle video sound">
     <label class="toggle-switch">

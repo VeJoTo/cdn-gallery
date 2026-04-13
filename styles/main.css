@@ -64,30 +64,118 @@ body {
   right: 380px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   z-index: 40;
   background: rgba(10,0,24,0.7);
   border: 1px solid #aa00ff;
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 6px 10px;
 }
 
-#radio-controls {
+#radio-mode-tabs {
+  display: flex;
+  gap: 2px;
+  margin-right: 6px;
+}
+
+.radio-mode {
+  background: transparent;
+  border: 1px solid #aa00ff;
+  color: #a8d8ea;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.radio-mode.active {
+  background: #aa00ff;
+  color: #f8f1e0;
+}
+
+.radio-mode:hover:not(.active) {
+  background: rgba(170,0,255,0.3);
+}
+
+#radio-music-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-#radio-label {
+#radio-podcast-controls {
+  display: flex;
+  align-items: center;
+}
+
+#podcast-toggle {
+  background: rgba(170,0,255,0.2);
+  border: 1px solid #aa00ff;
   color: #a8d8ea;
-  font-size: 13px;
-  user-select: none;
+  padding: 3px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+#podcast-toggle:hover { background: rgba(170,0,255,0.4); }
+
+#spotify-player {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 40;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+#spotify-player.hidden { display: none; }
+
+#spotify-close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#spotify-iframe {
+  border-radius: 12px;
 }
 
 #radio-tracks {
   display: flex;
   gap: 4px;
 }
+
+#standup-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10,0,24,0.8);
+  border: 2px solid #00ffff;
+  color: #00ffff;
+  padding: 10px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  z-index: 40;
+  transition: background 0.2s, color 0.2s;
+}
+#standup-btn:hover { background: #00ffff; color: #0a0018; }
 
 .radio-track {
   background: rgba(170,0,255,0.15);

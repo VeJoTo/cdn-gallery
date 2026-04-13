@@ -1404,9 +1404,9 @@ export function createObjects(scene) {
 
   // Make decorative objects clickable — each opens the panel drawer with placeholder content
   table.userData     = { clickable: true, hotspot: 'table', action: 'openReport', panelTitle: 'CDN Annual Report' };
-  beanBag1.userData  = { clickable: true, action: 'openPanel', panelId: 'beanbag-1', panelTitle: 'Casual Seating' };
-  beanBag2.userData  = { clickable: true, action: 'openPanel', panelId: 'beanbag-2', panelTitle: 'Casual Seating' };
-  chair.userData     = { clickable: true, action: 'openPanel', panelId: 'chair',     panelTitle: 'Pro Gaming Station' };
+  beanBag1.userData  = { clickable: true, hotspot: 'seat-beanbag-left' };
+  beanBag2.userData  = { clickable: true, hotspot: 'seat-beanbag-right' };
+  chair.userData     = { clickable: true, hotspot: 'seat-chair' };
   bookshelf.userData = { clickable: true, action: 'openPanel', panelId: 'bookshelf', panelTitle: 'Game Library' };
   fridge.userData    = { clickable: true, action: 'openPanel', panelId: 'fridge',    panelTitle: 'Refreshments' };
   floorLamp.userData = { clickable: true, action: 'openPanel', panelId: 'lamp',      panelTitle: 'Mood Lighting' };

@@ -16,7 +16,10 @@ export const HOTSPOTS = {
   exit:           { position: { x: 0,    y: 2,   z: 5  }, target: { x: 0,    y: 1,   z: 3 }, label: 'Exit' },
   table:          { position: { x: 0.5,  y: 1.2, z: 0.8 }, target: { x: 0,    y: 0.5, z: 1.5 }, label: 'Table' },
   'desk-left-monitor':  { position: { x: 1.0, y: 1.4, z: -1.8 }, target: { x: 1.25, y: 1.18, z: -3.0 }, label: 'Left Monitor' },
-  'desk-right-monitor': { position: { x: 2.6, y: 1.4, z: -1.8 }, target: { x: 2.35, y: 1.18, z: -3.0 }, label: 'Right Monitor' }
+  'desk-right-monitor': { position: { x: 2.6, y: 1.4, z: -1.8 }, target: { x: 2.35, y: 1.18, z: -3.0 }, label: 'Right Monitor' },
+  'seat-beanbag-left':  { position: { x: -0.8, y: 0.5, z: 2.2 }, target: { x: 0, y: 1.0, z: 0 }, label: 'Relaxing...' },
+  'seat-beanbag-right': { position: { x: 0.8, y: 0.5, z: 2.2 }, target: { x: 0, y: 1.0, z: 0 }, label: 'Relaxing...' },
+  'seat-chair':         { position: { x: 1.8, y: 0.7, z: -1.7 }, target: { x: 1.8, y: 1.2, z: -2.6 }, label: 'Seated at desk' }
 };
 
 export function createNavigationState() {
