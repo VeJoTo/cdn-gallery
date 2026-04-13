@@ -60,7 +60,7 @@ function buildArcadeCabinet(xPos, screenColor) {
   group.add(jStick);
 
   // Buttons (3): hot pink, light blue, cream
-  const buttonColors = [0xe84393, 0xa8d8ea, 0xf8f1e0];
+  const buttonColors = [0xff00ff, 0x00ffff, 0xf8f1e0];
   for (let i = 0; i < 3; i++) {
     const btn = new THREE.Mesh(
       new THREE.CylinderGeometry(0.04, 0.04, 0.04, 8),
@@ -162,7 +162,7 @@ function buildBeanBag(x, z) {
 
   const cushion = new THREE.Mesh(
     new THREE.SphereGeometry(0.3, 10, 8),
-    new THREE.MeshLambertMaterial({ color: 0xf2a6c1 })
+    new THREE.MeshLambertMaterial({ color: 0xff00ff })
   );
   cushion.scale.y = 0.45;
   cushion.position.y = 0.46;
@@ -278,7 +278,7 @@ function buildDesk() {
   const kbLed = new THREE.Mesh(
     new THREE.BoxGeometry(0.015, 0.005, 0.015),
     new THREE.MeshStandardMaterial({
-      color: 0xa8d8ea, emissive: 0xa8d8ea, emissiveIntensity: 1.0
+      color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 1.0
     })
   );
   kbLed.position.set(0.25, 0.91, 0.02);
@@ -351,21 +351,21 @@ function buildGamingChair() {
   back.castShadow = true;
   group.add(back);
 
-  // Headrest neon stripe (hot pink)
+  // Headrest neon stripe (magenta)
   const headrest = new THREE.Mesh(
     new THREE.BoxGeometry(0.5, 0.12, 0.085),
     new THREE.MeshStandardMaterial({
-      color: 0xe84393, emissive: 0xe84393, emissiveIntensity: 0.7
+      color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 0.7
     })
   );
   headrest.position.set(0, 1.28, -0.205);
   group.add(headrest);
 
-  // Vertical light blue accent strip down the centre of the back
+  // Vertical cyan accent strip down the centre of the back
   const accent = new THREE.Mesh(
     new THREE.BoxGeometry(0.06, 0.85, 0.085),
     new THREE.MeshStandardMaterial({
-      color: 0xa8d8ea, emissive: 0xa8d8ea, emissiveIntensity: 0.7
+      color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 0.7
     })
   );
   accent.position.set(0, 0.92, -0.205);
@@ -438,6 +438,16 @@ function buildBookshelf() {
     }
   }
 
+  // Small screen wedged between books (cyberpunk detail)
+  const miniScreen = new THREE.Mesh(
+    new THREE.BoxGeometry(0.12, 0.18, 0.01),
+    new THREE.MeshStandardMaterial({
+      color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 0.8
+    })
+  );
+  miniScreen.position.set(0.4, 1.55, 0.16);
+  group.add(miniScreen);
+
   // Pac-Man easter egg on top of bookshelf
   const pacShape = new THREE.SphereGeometry(0.08, 16, 12, 0.3, Math.PI * 2 - 0.6);
   const pacman = new THREE.Mesh(pacShape, new THREE.MeshLambertMaterial({ color: 0xf8f1e0 }));
@@ -473,7 +483,7 @@ function buildMiniFridge() {
   const handle = new THREE.Mesh(
     new THREE.BoxGeometry(0.04, 0.2, 0.04),
     new THREE.MeshStandardMaterial({
-      color: 0xa8d8ea, emissive: 0xa8d8ea, emissiveIntensity: 0.6
+      color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 0.6
     })
   );
   handle.position.set(0.3, 0.7, 0.31);
@@ -483,7 +493,7 @@ function buildMiniFridge() {
   const topStrip = new THREE.Mesh(
     new THREE.BoxGeometry(0.7, 0.02, 0.6),
     new THREE.MeshStandardMaterial({
-      color: 0xa8d8ea, emissive: 0xa8d8ea, emissiveIntensity: 1.0
+      color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 1.0
     })
   );
   topStrip.position.y = 1.01;
@@ -515,13 +525,13 @@ function buildFloorLamp() {
   const tube = new THREE.Mesh(
     new THREE.CylinderGeometry(0.06, 0.06, 0.5, 12),
     new THREE.MeshStandardMaterial({
-      color: 0xf2a6c1, emissive: 0xf2a6c1, emissiveIntensity: 1.2
+      color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 1.2
     })
   );
   tube.position.y = 1.7;
   group.add(tube);
 
-  const halo = new THREE.PointLight(0xf2a6c1, 0.5, 4);
+  const halo = new THREE.PointLight(0xff00ff, 0.5, 4);
   halo.position.y = 1.7;
   group.add(halo);
 
@@ -680,7 +690,7 @@ function buildPedestal() {
   const glowRing = new THREE.Mesh(
     new THREE.TorusGeometry(0.22, 0.012, 8, 24),
     new THREE.MeshStandardMaterial({
-      color: 0xf2a6c1, emissive: 0xf2a6c1, emissiveIntensity: 1.4
+      color: 0xaa00ff, emissive: 0xaa00ff, emissiveIntensity: 1.4
     })
   );
   glowRing.position.y = 1.04;
@@ -688,7 +698,7 @@ function buildPedestal() {
   group.add(glowRing);
 
   // Pedestal point light
-  const halo = new THREE.PointLight(0xf2a6c1, 0.6, 2.5);
+  const halo = new THREE.PointLight(0xaa00ff, 0.6, 2.5);
   halo.position.y = 1.2;
   group.add(halo);
 
@@ -751,11 +761,11 @@ function buildRabbitHole() {
   dirtRing.position.y = 0.02;
   group.add(dirtRing);
 
-  // Glowing soft pink ring
+  // Glowing outer ring
   const ring = new THREE.Mesh(
     new THREE.TorusGeometry(0.48, 0.025, 8, 32),
     new THREE.MeshStandardMaterial({
-      color: 0xf2a6c1, emissive: 0xf2a6c1, emissiveIntensity: 1.8
+      color: 0xaa00ff, emissive: 0xaa00ff, emissiveIntensity: 1.8
     })
   );
   ring.rotation.x = -Math.PI / 2;
@@ -779,8 +789,8 @@ function buildRabbitHole() {
     group.add(tuft);
   }
 
-  // Point light from within (eerie soft pink glow)
-  const glow = new THREE.PointLight(0xf2a6c1, 1.0, 3);
+  // Point light from within
+  const glow = new THREE.PointLight(0xaa00ff, 1.0, 3);
   glow.position.y = -0.3;
   group.add(glow);
 
@@ -1103,8 +1113,8 @@ function buildWallTagging() {
 }
 
 export function createObjects(scene) {
-  const arcadeLeft  = buildArcadeCabinet(0, 0xe84393);
-  const arcadeRight = buildArcadeCabinet(0, 0xa8d8ea);
+  const arcadeLeft  = buildArcadeCabinet(0, 0xff00ff);
+  const arcadeRight = buildArcadeCabinet(0, 0x00ffff);
 
   // Position arcades on the left wall, side by side, facing into the room
   arcadeLeft.position.set(-3.15, 0, 0.8);
@@ -1136,6 +1146,38 @@ export function createObjects(scene) {
   ghostEye2.position.set(0.03, 0.16, 0.06);
   ghostGroup.add(ghostEye2);
   scene.add(ghostGroup);
+
+  // Holographic display (cyberpunk decoration)
+  const holoGroup = new THREE.Group();
+  holoGroup.position.set(1.5, 0, 2.0);
+  const holoPole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.08, 0.6, 8),
+    new THREE.MeshLambertMaterial({ color: 0x1a1a2a })
+  );
+  holoPole.position.y = 0.3;
+  holoGroup.add(holoPole);
+  const holoDisc = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.15, 0.15, 0.02, 16),
+    new THREE.MeshStandardMaterial({
+      color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 1.5
+    })
+  );
+  holoDisc.position.y = 0.62;
+  holoGroup.add(holoDisc);
+  // Floating holographic diamond above the disc
+  const holoDiamond = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.08, 0),
+    new THREE.MeshStandardMaterial({
+      color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 1.0,
+      transparent: true, opacity: 0.7
+    })
+  );
+  holoDiamond.position.y = 0.82;
+  holoGroup.add(holoDiamond);
+  const holoLight = new THREE.PointLight(0x00ffff, 0.5, 2);
+  holoLight.position.y = 0.7;
+  holoGroup.add(holoLight);
+  scene.add(holoGroup);
 
   const desk        = buildDesk();
   const chair       = buildGamingChair();
@@ -1242,6 +1284,10 @@ export function createObjects(scene) {
     if (bookGroup) {
       bookGroup.position.y = 1.18 + Math.sin(elapsed * 1.5) * 0.04;
       bookGroup.rotation.y += delta * 0.2;
+    }
+    if (holoDiamond) {
+      holoDiamond.rotation.y += delta * 1.5;
+      holoDiamond.position.y = 0.82 + Math.sin(elapsed * 2) * 0.03;
     }
   }
 

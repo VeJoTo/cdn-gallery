@@ -25,8 +25,8 @@ export const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d2137);
-scene.fog = new THREE.Fog(0x0d2137, 15, 30);
+scene.background = new THREE.Color(0x0a0018);
+scene.fog = new THREE.FogExp2(0x0a0018, 0.06);
 
 // ── Camera ────────────────────────────────────────
 export const camera = new THREE.PerspectiveCamera(
