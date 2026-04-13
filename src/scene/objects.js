@@ -974,6 +974,134 @@ function buildGlobe() {
   return group;
 }
 
+function buildWallTagging() {
+  const group = new THREE.Group();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Transparent background (the wall shows through)
+  ctx.clearRect(0, 0, 1024, 512);
+
+  // "CDN" — large hot pink tag
+  ctx.save();
+  ctx.translate(180, 180);
+  ctx.rotate(-0.08);
+  ctx.font = 'bold italic 120px sans-serif';
+  ctx.fillStyle = '#e84393';
+  ctx.strokeStyle = '#0d2137';
+  ctx.lineWidth = 4;
+  ctx.strokeText('CDN', 0, 0);
+  ctx.fillText('CDN', 0, 0);
+  // Drip effect
+  ctx.fillStyle = '#e84393';
+  ctx.fillRect(45, 5, 3, 30);
+  ctx.fillRect(155, 5, 3, 25);
+  ctx.fillRect(265, 5, 3, 35);
+  ctx.restore();
+
+  // "DIGITAL NARRATIVE" — smaller, light blue, angular
+  ctx.save();
+  ctx.translate(500, 100);
+  ctx.rotate(0.05);
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillStyle = '#a8d8ea';
+  ctx.fillText('DIGITAL', 0, 0);
+  ctx.fillText('NARRATIVE', 0, 36);
+  ctx.restore();
+
+  // "UiB" with circle — cream
+  ctx.save();
+  ctx.translate(780, 200);
+  ctx.beginPath();
+  ctx.arc(30, -10, 45, 0, Math.PI * 2);
+  ctx.strokeStyle = '#f8f1e0';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.font = 'bold 40px sans-serif';
+  ctx.fillStyle = '#f8f1e0';
+  ctx.textAlign = 'center';
+  ctx.fillText('UiB', 30, 5);
+  ctx.restore();
+
+  // "PLAY" — blocky, soft pink
+  ctx.save();
+  ctx.translate(100, 380);
+  ctx.rotate(0.12);
+  ctx.font = 'bold 64px sans-serif';
+  ctx.fillStyle = '#f2a6c1';
+  ctx.strokeStyle = '#0d2137';
+  ctx.lineWidth = 3;
+  ctx.strokeText('PLAY', 0, 0);
+  ctx.fillText('PLAY', 0, 0);
+  ctx.restore();
+
+  // Stars
+  ctx.fillStyle = '#f8f1e0';
+  ctx.font = '36px sans-serif';
+  ctx.fillText('★', 450, 300);
+  ctx.fillText('★', 700, 380);
+  ctx.fillStyle = '#e84393';
+  ctx.fillText('★', 620, 140);
+
+  // Arrow
+  ctx.save();
+  ctx.translate(500, 400);
+  ctx.rotate(-0.1);
+  ctx.strokeStyle = '#a8d8ea';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(120, 0);
+  ctx.lineTo(100, -15);
+  ctx.moveTo(120, 0);
+  ctx.lineTo(100, 15);
+  ctx.stroke();
+  ctx.restore();
+
+  // Heart
+  ctx.save();
+  ctx.translate(830, 350);
+  ctx.fillStyle = '#e84393';
+  ctx.beginPath();
+  ctx.moveTo(0, -10);
+  ctx.bezierCurveTo(-20, -35, -50, -10, 0, 20);
+  ctx.moveTo(0, -10);
+  ctx.bezierCurveTo(20, -35, 50, -10, 0, 20);
+  ctx.fill();
+  ctx.restore();
+
+  // Squiggly underline under CDN
+  ctx.save();
+  ctx.strokeStyle = '#f2a6c1';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let x = 100; x < 420; x += 10) {
+    const y = 220 + Math.sin(x * 0.15) * 6;
+    if (x === 100) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    side: THREE.DoubleSide
+  });
+
+  // Large plane covering most of the right wall
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 2.5), mat);
+  plane.position.set(3.47, 1.5, 0);
+  plane.rotation.y = -Math.PI / 2;
+  group.add(plane);
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(0, 0xe84393);
   const arcadeRight = buildArcadeCabinet(0, 0xa8d8ea);
@@ -1020,6 +1148,7 @@ export function createObjects(scene) {
   const rabbitHole  = buildRabbitHole();
   const tv          = buildTV();
   const globe       = buildGlobe();
+  const wallTagging = buildWallTagging();
 
   const posters = [
     buildPoster(-2.5, 2.0, -2.99, 0xe84393, 0xf2a6c1, 'GALAGA',         0),
@@ -1099,7 +1228,8 @@ export function createObjects(scene) {
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
-    neonSign, rug, pedestal, rabbitHole, tv, globe, ...posters
+    neonSign, rug, pedestal, rabbitHole, tv, globe, ...posters,
+    wallTagging
   );
 
   // ── Animation: spin globe + bob book ──
