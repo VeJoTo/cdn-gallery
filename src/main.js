@@ -25,8 +25,8 @@ export const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x050d14);
-scene.fog = new THREE.Fog(0x050d14, 15, 30);
+scene.background = new THREE.Color(0x0d2137);
+scene.fog = new THREE.Fog(0x0d2137, 15, 30);
 
 // ── Camera ────────────────────────────────────────
 export const camera = new THREE.PerspectiveCamera(
@@ -81,7 +81,7 @@ addUpdateCallback(sceneUpdate);
 
 // ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
 const tvVideoIframe = document.createElement('iframe');
-tvVideoIframe.src = 'https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=0&rel=0&modestbranding=1&playsinline=1';
+tvVideoIframe.src = 'https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=1&rel=0&modestbranding=1&playsinline=1';
 tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
 
 const tvCSS3D = new CSS3DObject(tvVideoIframe);
