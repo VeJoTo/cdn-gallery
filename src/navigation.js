@@ -90,8 +90,9 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui) {
 
     const { hotspot, action, panelId, panelTitle } = obj.userData;
 
-    if (hotspot)                nav.goTo(hotspot);
-    if (action === 'openPanel') ui.openPanelDrawer(panelId, panelTitle);
+    if (hotspot)                     nav.goTo(hotspot);
+    if (action === 'openPanel')      ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openBook')       ui.openBook();
+    if (action === 'enterRabbitHole') ui.openRabbitHole();
   });
 }

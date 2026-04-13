@@ -738,6 +738,55 @@ function buildPedestal() {
   return group;
 }
 
+function buildRabbitHole() {
+  const group = new THREE.Group();
+  // On the floor, left of centre — near the table area
+  group.position.set(-1.5, 0, 0.5);
+
+  // Dark hole (recessed cylinder going down)
+  const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const hole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.4, 0.35, 0.3, 24),
+    holeMat
+  );
+  hole.position.y = -0.15;
+  group.add(hole);
+
+  // Glowing purple ring around the hole
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(0.42, 0.03, 8, 32),
+    new THREE.MeshStandardMaterial({
+      color: 0x9b00ff, emissive: 0x9b00ff, emissiveIntensity: 1.8
+    })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.01;
+  group.add(ring);
+
+  // Second inner ring (gold)
+  const innerRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.32, 0.015, 8, 32),
+    new THREE.MeshStandardMaterial({
+      color: 0xffd166, emissive: 0xffd166, emissiveIntensity: 1.4
+    })
+  );
+  innerRing.rotation.x = -Math.PI / 2;
+  innerRing.position.y = 0.01;
+  group.add(innerRing);
+
+  // Point light from within the hole (eerie purple glow)
+  const glow = new THREE.PointLight(0x9b00ff, 1.0, 3);
+  glow.position.y = -0.2;
+  group.add(glow);
+
+  group.userData = {
+    clickable: true,
+    action: 'enterRabbitHole'
+  };
+
+  return group;
+}
+
 function buildTV() {
   const group = new THREE.Group();
   // Right wall, mounted high up
@@ -833,6 +882,7 @@ export function createObjects(scene) {
   const neonSign    = buildNeonSign();
   const rug         = buildRug();
   const pedestal    = buildPedestal();
+  const rabbitHole  = buildRabbitHole();
   const tv          = buildTV();
 
   const posters = [
@@ -857,7 +907,7 @@ export function createObjects(scene) {
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
-    neonSign, rug, pedestal, tv, ...posters
+    neonSign, rug, pedestal, rabbitHole, tv, ...posters
   );
 
   // ── Animation: spin globe + bob book ──
@@ -876,6 +926,6 @@ export function createObjects(scene) {
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
     tv,
-    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv]
+    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole]
   };
 }

@@ -229,6 +229,50 @@ export function createUI(camera, renderer) {
   bookClose.addEventListener('click', closeBook);
   bookOverlay.addEventListener('click', (e) => { if (e.target === bookOverlay) closeBook(); });
 
+  // ── Rabbit hole scrollytelling ──────────────────
+  const rhOverlay     = document.getElementById('rabbit-hole-overlay');
+  const rhClimbBack   = document.getElementById('rh-climb-back');
+  const rhAchievement = document.getElementById('rh-achievement');
+  const rhSections    = document.querySelectorAll('.rh-section');
+  let rhAchievementUnlocked = false;
+
+  function openRabbitHole() {
+    rhOverlay.classList.remove('hidden');
+    rhOverlay.scrollTop = 0;
+    // Reset section visibility
+    rhSections.forEach(s => s.classList.remove('visible'));
+    // Start observing sections for scroll-based reveal
+    setTimeout(checkRHSections, 100);
+  }
+
+  function closeRabbitHole() {
+    rhOverlay.classList.add('hidden');
+  }
+
+  function checkRHSections() {
+    const scrollY = rhOverlay.scrollTop;
+    const viewH = rhOverlay.clientHeight;
+
+    rhSections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      const overlayRect = rhOverlay.getBoundingClientRect();
+      const sectionTop = rect.top - overlayRect.top;
+      if (sectionTop < viewH * 0.8) {
+        section.classList.add('visible');
+      }
+    });
+
+    // Check if user scrolled to the final section
+    const lastSection = rhSections[rhSections.length - 1];
+    if (lastSection && lastSection.classList.contains('visible') && !rhAchievementUnlocked) {
+      rhAchievementUnlocked = true;
+      rhAchievement.classList.remove('hidden');
+    }
+  }
+
+  rhOverlay.addEventListener('scroll', checkRHSections);
+  rhClimbBack.addEventListener('click', closeRabbitHole);
+
   // ── Global Escape key ────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -236,6 +280,7 @@ export function createUI(camera, renderer) {
       closeGatekeeperChat();
       closeInventory();
       closeBook();
+      closeRabbitHole();
     }
   });
 
@@ -283,6 +328,7 @@ export function createUI(camera, renderer) {
     openGatekeeperChat,
     openInventory,
     openBook,
+    openRabbitHole,
     updateHints
   };
 }
