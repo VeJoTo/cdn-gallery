@@ -76,14 +76,39 @@ export function createUI(camera, renderer) {
 
   // ── Panel drawer ─────────────────────────────────
   function openPanelDrawer(panelId, title) {
-    // panelId reserved for real content lookup when placeholder is replaced
     const safeTitle = escapeHtml(title);
-    drawerContent.innerHTML = `
-      <h2>${safeTitle}</h2>
-      <p>This panel presents CDN research on <strong>${safeTitle}</strong>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-      <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.</p>
-      <p>Explore the interactive elements in this room to learn more about this area of CDN research.</p>
-    `;
+    let content = '';
+
+    if (panelId === 'globe') {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>The CDN globe showcases international research connections. Explore one of our featured works:</p>
+        <div style="background:rgba(13,33,55,0.5);border:1px solid #a8d8ea;border-radius:8px;padding:16px;margin:16px 0">
+          <h3 style="color:#e84393;font-size:16px;margin-bottom:8px">Fin du Monde</h3>
+          <p style="font-size:13px">An interactive digital narrative exploring themes of endings and new beginnings, part of the CDN collection.</p>
+          <a href="https://collection.cdn.uib.no/2024/05/10/fin-du-monde/" target="_blank" rel="noopener"
+             style="display:inline-block;margin-top:10px;padding:8px 16px;background:#e84393;color:#0d2137;border-radius:4px;text-decoration:none;font-size:13px;font-weight:bold">
+            Visit CDN Collection →
+          </a>
+        </div>
+        <p>CDN — the Centre for Digital Narrative at UiB — connects researchers across the globe studying digital storytelling.</p>
+      `;
+    } else if (panelId === 'tv') {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>This screen shows a video from the Centre for Digital Narrative. Use the YouTube controls to unmute and watch with sound.</p>
+        <p>The CDN produces video content showcasing research, events, and creative digital narratives.</p>
+      `;
+    } else {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>This panel presents CDN research on <strong>${safeTitle}</strong>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.</p>
+        <p>Explore the interactive elements in this room to learn more about this area of CDN research.</p>
+      `;
+    }
+
+    drawerContent.innerHTML = content;
     panelDrawer.classList.remove('hidden');
     requestAnimationFrame(() => panelDrawer.classList.add('open'));
   }
