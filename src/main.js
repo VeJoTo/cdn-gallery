@@ -175,6 +175,12 @@ soundCheckbox.addEventListener('change', () => {
     JSON.stringify({ event: 'command', func: cmd, args: '' }),
     '*'
   );
+  // Pause music when video sound is turned on
+  if (soundCheckbox.checked && musicPlaying) {
+    musicCheckbox.checked = false;
+    musicPlaying = false;
+    sendMusicCommand('pauseVideo');
+  }
 });
 
 // ── Radio: background music with track switching ──
