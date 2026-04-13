@@ -16,7 +16,13 @@
   <div id="breadcrumb"></div>
   <button id="back-btn" class="hidden">← Back</button>
   <button id="reset-btn">⌂ Reset View</button>
-  <button id="music-btn" title="Toggle background music">🎵 Music</button>
+  <div id="music-toggle" title="Toggle background music">
+    <label class="toggle-switch">
+      <input type="checkbox" id="music-checkbox" />
+      <span class="toggle-slider"></span>
+    </label>
+    <span id="music-label">🎵 Music</span>
+  </div>
   <button id="sound-btn" title="Toggle TV sound">🔇 Sound</button>
   <button id="guide-btn">Guide</button>
   <button id="inventory-btn">Inventory</button>

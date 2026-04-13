@@ -246,11 +246,21 @@ function buildDesk() {
     group.add(screen);
 
     if (x < 0) leftMonitorRefs.push(screen);
+    if (x > 0) {
+      screen.userData = {
+        clickable: true,
+        hotspot: 'desk-right-monitor',
+        action: 'openPanel',
+        panelId: 'desk-code',
+        panelTitle: 'Code & Development'
+      };
+    }
   }
 
   // The left monitor opens a panel
   leftMonitorRefs[0].userData = {
     clickable: true,
+    hotspot: 'desk-left-monitor',
     action: 'openPanel',
     panelId: 'desk-research',
     panelTitle: 'Digital Storytelling Research'
@@ -1063,7 +1073,7 @@ export function createObjects(scene) {
     new THREE.MeshBasicMaterial({ map: aiTex })
   );
   // Right wall, facing left
-  aiPoster.position.set(3.48, 2.0, 0);
+  aiPoster.position.set(3.48, 1.8, -1.8);
   aiPoster.rotation.y = -Math.PI / 2;
   aiPoster.userData = {
     clickable: true,

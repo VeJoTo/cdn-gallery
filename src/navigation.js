@@ -14,7 +14,9 @@ export const HOTSPOTS = {
   'rabbit-hole':  { position: { x: -0.2, y: 1.2, z: -1.5 }, target: { x: -0.8, y: 0.2, z: -2.4 }, label: 'Rabbit Hole' },
   tv:             { position: { x: 2.0,  y: 2.8, z: 0   }, target: { x: 3.49, y: 2.85, z: 0  }, label: 'TV' },
   exit:           { position: { x: 0,    y: 2,   z: 5  }, target: { x: 0,    y: 1,   z: 3 }, label: 'Exit' },
-  table:          { position: { x: 0.5,  y: 1.2, z: 0.8 }, target: { x: 0,    y: 0.5, z: 1.5 }, label: 'Table' }
+  table:          { position: { x: 0.5,  y: 1.2, z: 0.8 }, target: { x: 0,    y: 0.5, z: 1.5 }, label: 'Table' },
+  'desk-left-monitor':  { position: { x: 1.0, y: 1.4, z: -1.8 }, target: { x: 1.25, y: 1.18, z: -3.0 }, label: 'Left Monitor' },
+  'desk-right-monitor': { position: { x: 2.6, y: 1.4, z: -1.8 }, target: { x: 2.35, y: 1.18, z: -3.0 }, label: 'Right Monitor' }
 };
 
 export function createNavigationState() {
@@ -74,7 +76,7 @@ export function createNavigationSystem(camera, state, ui, controls) {
   return { goTo };
 }
 
-export function setupClickHandler(renderer, camera, clickableObjects, nav, ui) {
+export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState) {
   const raycaster = new THREE.Raycaster();
   const mouse     = new THREE.Vector2();
   let downX = 0, downY = 0;
@@ -109,6 +111,6 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui) {
     if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openBook')        ui.openBook();
     if (action === 'enterRabbitHole') ui.openRabbitHole();
-    if (action === 'openReport')      ui.openReport();
+    if (action === 'openReport' && navState.current === 'table') ui.openReport();
   });
 }

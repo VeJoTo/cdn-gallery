@@ -120,7 +120,7 @@ nav.goTo = (id) => {
   soundBtn.style.display = id === 'tv' ? 'block' : 'none';
 };
 
-setupClickHandler(renderer, camera, clickableObjects, nav, ui);
+setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
 
 // Pointer cursor on hover over clickable objects
 const hoverRaycaster = new THREE.Raycaster();
@@ -180,7 +180,7 @@ soundBtn.addEventListener('click', () => {
 });
 
 // Background music (hidden YouTube iframe)
-const musicBtn = document.getElementById('music-btn');
+const musicCheckbox = document.getElementById('music-checkbox');
 let musicPlaying = false;
 const musicIframe = document.createElement('iframe');
 musicIframe.allow = 'autoplay; encrypted-media';
@@ -188,15 +188,13 @@ musicIframe.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;po
 musicIframe.src = `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 document.body.appendChild(musicIframe);
 
-musicBtn.addEventListener('click', () => {
-  musicPlaying = !musicPlaying;
+musicCheckbox.addEventListener('change', () => {
+  musicPlaying = musicCheckbox.checked;
   const cmd = musicPlaying ? 'playVideo' : 'pauseVideo';
   musicIframe.contentWindow.postMessage(
     JSON.stringify({ event: 'command', func: cmd, args: '' }),
     '*'
   );
-  musicBtn.textContent = musicPlaying ? '🎵 Playing' : '🎵 Music';
-  musicBtn.classList.toggle('playing', musicPlaying);
 });
 
 addUpdateCallback(() => ui.updateHints());

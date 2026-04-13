@@ -360,12 +360,16 @@ export function createUI(camera, renderer) {
   });
 
   // ── Hotspot hints (screen-space projection) ──────
-  const HINT_HOTSPOTS = ['arcade-left', 'arcade-right', 'wall-left', 'wall-right'];
+  const HINT_HOTSPOTS = ['arcade-left', 'arcade-right', 'desk', 'table', 'globe', 'pedestal', 'rabbit-hole', 'tv'];
   const hintWorldPositions = {
-    'arcade-left':  new THREE.Vector3(-2.5, 0.1, 0.2),
-    'arcade-right': new THREE.Vector3(2.5,  0.1, 0.2),
-    'wall-left':    new THREE.Vector3(-3.4, 1.75, 0),
-    'wall-right':   new THREE.Vector3(3.4,  1.75, 0)
+    'arcade-left':  new THREE.Vector3(-3.15, 1.3, 0.8),
+    'arcade-right': new THREE.Vector3(-3.15, 1.3, -0.5),
+    'desk':         new THREE.Vector3(1.8, 1.0, -2.6),
+    'table':        new THREE.Vector3(0, 0.5, 1.5),
+    'globe':        new THREE.Vector3(0.2, 0.85, -2.4),
+    'pedestal':     new THREE.Vector3(-2.8, 1.2, 2.6),
+    'rabbit-hole':  new THREE.Vector3(-0.8, 0.3, -2.4),
+    'tv':           new THREE.Vector3(3.4, 2.85, 0)
   };
 
   const hintEls = {};
