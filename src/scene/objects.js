@@ -1093,9 +1093,9 @@ function buildWallTagging() {
     side: THREE.DoubleSide
   });
 
-  // Large plane covering most of the right wall
-  const plane = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 2.5), mat);
-  plane.position.set(3.47, 1.5, 0);
+  // Smaller plane in the lower portion of the right wall, away from the TV
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 1.8), mat);
+  plane.position.set(3.47, 0.9, -0.5);
   plane.rotation.y = -Math.PI / 2;
   group.add(plane);
 

@@ -109,6 +109,11 @@ const ui       = createUI(camera, renderer);
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
 
+// TV sound toggle (declared here so nav.goTo decorator can reference it)
+const soundCheckbox = document.getElementById('sound-checkbox');
+const soundToggleDiv = document.getElementById('sound-toggle');
+soundToggleDiv.style.display = 'none'; // hidden by default
+
 // Hide arcades when zoomed into a wall (they'd otherwise block the view)
 const baseGoTo = nav.goTo;
 nav.goTo = (id) => {
@@ -116,8 +121,8 @@ nav.goTo = (id) => {
   const hideArcades = id === 'wall-left';
   arcadeLeft.visible  = !hideArcades;
   arcadeRight.visible = !hideArcades;
-  // Show TV sound button only when zoomed into TV
-  soundBtn.style.display = id === 'tv' ? 'block' : 'none';
+  // Show TV sound toggle only when zoomed into TV
+  soundToggleDiv.style.display = id === 'tv' ? 'flex' : 'none';
 };
 
 setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
@@ -164,19 +169,12 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
-// TV sound toggle
-const soundBtn = document.getElementById('sound-btn');
-soundBtn.style.display = 'none'; // hidden by default, shown when zoomed to TV
-let tvMuted = true;
-soundBtn.addEventListener('click', () => {
-  tvMuted = !tvMuted;
-  const cmd = tvMuted ? 'mute' : 'unMute';
+soundCheckbox.addEventListener('change', () => {
+  const cmd = soundCheckbox.checked ? 'unMute' : 'mute';
   tvVideoIframe.contentWindow.postMessage(
     JSON.stringify({ event: 'command', func: cmd, args: '' }),
     '*'
   );
-  soundBtn.textContent = tvMuted ? '🔇 Sound' : '🔊 Sound';
-  soundBtn.classList.toggle('unmuted', !tvMuted);
 });
 
 // Background music (hidden YouTube iframe)

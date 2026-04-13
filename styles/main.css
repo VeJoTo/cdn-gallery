@@ -61,7 +61,7 @@ body {
 #music-toggle {
   position: fixed;
   top: 18px;
-  right: 300px;
+  right: 380px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -119,26 +119,21 @@ body {
   background: #f8f1e0;
 }
 
-#sound-btn {
+#sound-toggle {
   position: fixed;
-  top: 16px;
-  right: 230px;
-  background: rgba(13,33,55,0.6);
-  border: 1px solid #a8d8ea;
+  top: 18px;
+  right: 160px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 40;
+}
+
+#sound-label {
   color: #a8d8ea;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
   font-size: 13px;
-  letter-spacing: 0.05em;
-  transition: background 0.2s, color 0.2s;
+  user-select: none;
 }
-#sound-btn:hover { background: #a8d8ea; color: #0d2137; }
-#sound-btn.unmuted {
-  border-color: #e84393;
-  color: #e84393;
-}
-#sound-btn.unmuted:hover { background: #e84393; color: #0d2137; }
 
 #guide-btn {
   position: fixed;
@@ -241,6 +236,7 @@ body {
   position: relative;
   width: min(960px, 95vw);
   max-height: 90vh;
+  overflow: visible;
 }
 
 #inventory-close {
@@ -265,7 +261,7 @@ body {
 .scrapbook {
   display: flex;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(242,166,193,0.2);
 }
 .scrapbook, .scrapbook * {
@@ -409,7 +405,7 @@ body {
 .scrapbook-tabs {
   position: absolute;
   top: 60px;
-  right: -70px;
+  right: -140px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -419,7 +415,7 @@ body {
   background: #fef3a0;
   border: none;
   border-radius: 0 8px 8px 0;
-  padding: 10px 14px 10px 10px;
+  padding: 10px 16px 10px 12px;
   font-family: 'Caveat', cursive;
   font-size: 16px;
   color: #3a2818;
@@ -428,7 +424,7 @@ body {
   transition: transform 0.2s, box-shadow 0.2s;
   text-align: left;
   box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
-  min-width: 120px;
+  min-width: 140px;
 }
 
 .scrapbook-tab:nth-child(1) { background: #fef3a0; }
