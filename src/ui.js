@@ -121,7 +121,7 @@ export function createUI(camera, renderer) {
 
   function openGatekeeperChat() {
     chatMessages.innerHTML = '';
-    appendChatMessage("Hello, curious visitor! I'm your guide. Ask me anything.", 'gatekeeper');
+    appendChatMessage("Hey Kids! Welcome to the CDN gallery! What are you curious about?", 'gatekeeper');
 
     chatChips.innerHTML = SUGGESTED_QUESTIONS.map(q =>
       `<button class="chat-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`

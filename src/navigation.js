@@ -74,8 +74,19 @@ export function createNavigationSystem(camera, state, ui, controls) {
 export function setupClickHandler(renderer, camera, clickableObjects, nav, ui) {
   const raycaster = new THREE.Raycaster();
   const mouse     = new THREE.Vector2();
+  let downX = 0, downY = 0;
 
-  renderer.domElement.addEventListener('click', (event) => {
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    downX = e.clientX;
+    downY = e.clientY;
+  });
+
+  renderer.domElement.addEventListener('mouseup', (event) => {
+    // Ignore if the mouse moved more than 5px (that's a drag, not a click)
+    const dx = event.clientX - downX;
+    const dy = event.clientY - downY;
+    if (Math.sqrt(dx * dx + dy * dy) > 5) return;
+
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
     mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
@@ -91,9 +102,9 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui) {
 
     const { hotspot, action, panelId, panelTitle } = obj.userData;
 
-    if (hotspot)                     nav.goTo(hotspot);
-    if (action === 'openPanel')      ui.openPanelDrawer(panelId, panelTitle);
-    if (action === 'openBook')       ui.openBook();
+    if (hotspot)                      nav.goTo(hotspot);
+    if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
+    if (action === 'openBook')        ui.openBook();
     if (action === 'enterRabbitHole') ui.openRabbitHole();
   });
 }

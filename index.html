@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CDN 3D Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles/main.css" />
 </head>
 <body>
@@ -21,11 +24,9 @@
   </div>
 
   <div id="gatekeeper-chat" class="hidden">
-    <button id="chat-close">×</button>
-    <div id="chat-portrait">
-      <img src="/gatekeeper.jpg" alt="The Guide" />
-    </div>
-    <div id="chat-body">
+    <img id="guide-portrait" src="/gatekeeper.jpg" alt="The Guide" />
+    <div id="guide-dialog">
+      <button id="chat-close">×</button>
       <div id="chat-header">
         <div>
           <div id="chat-header-name">The Guide</div>
