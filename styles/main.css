@@ -246,34 +246,52 @@ body {
   line-height: 1;
 }
 
-/* ── Gatekeeper chat (speech bubble) ────────────── */
+/* ── Gatekeeper chat (RPG dialog style) ─────────── */
 #gatekeeper-chat {
   position: fixed;
-  top: 60px;
-  right: 16px;
-  width: 340px;
-  max-height: calc(100vh - 80px);
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(860px, calc(100vw - 32px));
   background: rgba(10,26,40,0.97);
   border: 1px solid #9b00ff;
-  box-shadow: 0 0 18px rgba(155,0,255,0.4);
-  border-radius: 12px;
-  padding: 16px;
+  box-shadow: 0 0 24px rgba(155,0,255,0.5);
+  border-radius: 14px;
+  padding: 0;
   opacity: 0;
   transition: opacity 0.25s;
   z-index: 50;
-  overflow-y: auto;
+  display: flex;
+  overflow: hidden;
 }
 #gatekeeper-chat.open { opacity: 1; }
 #gatekeeper-chat.hidden { display: none; }
 
-#chat-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #9b00ff;
-  margin-right: 10px;
+#chat-portrait {
+  width: 220px;
+  min-height: 280px;
+  background: linear-gradient(135deg, rgba(155,0,255,0.15), rgba(0,229,255,0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  border-right: 1px solid rgba(155,0,255,0.3);
+  padding: 16px;
+}
+
+#chat-portrait img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  filter: drop-shadow(0 0 12px rgba(155,0,255,0.4));
+}
+
+#chat-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  min-width: 0;
 }
 
 #chat-header {
@@ -285,7 +303,7 @@ body {
 }
 
 #chat-header-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   color: #ffd166;
 }
@@ -295,21 +313,26 @@ body {
   color: rgba(144,224,239,0.6);
 }
 
+/* Remove the old avatar from header since portrait is now in its own section */
+#chat-avatar { display: none; }
+
 #chat-close {
   position: absolute;
-  top: 8px;
-  right: 12px;
+  top: 10px;
+  right: 14px;
   background: none;
   border: none;
   color: #90e0ef;
   font-size: 20px;
   cursor: pointer;
+  z-index: 2;
 }
 
 #chat-messages {
-  min-height: 60px;
-  max-height: 200px;
-  margin-bottom: 12px;
+  flex: 1;
+  min-height: 80px;
+  max-height: 220px;
+  margin-bottom: 10px;
   overflow-y: auto;
 }
 
@@ -319,13 +342,13 @@ body {
   margin-bottom: 8px;
   padding: 8px 12px;
   border-radius: 8px;
-  max-width: 85%;
+  max-width: 90%;
   word-wrap: break-word;
 }
 .chat-msg.gatekeeper { background: #1b3a4b; color: #90e0ef; }
 .chat-msg.user       { background: #9b00ff; color: #fff; margin-left: auto; }
 
-#chat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+#chat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 
 .chat-chip {
   background: transparent;
@@ -383,3 +406,117 @@ body {
   height: 720px;
   pointer-events: auto;
 }
+
+/* ── Rabbit hole scrollytelling ─────────────────── */
+#rabbit-hole-overlay {
+  position: fixed;
+  inset: 0;
+  background: #050d14;
+  z-index: 200;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+#rabbit-hole-overlay.hidden { display: none; }
+
+#rabbit-hole-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 80px 24px 120px;
+}
+
+.rh-title {
+  font-size: 48px;
+  color: #ffd166;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.rh-subtitle {
+  font-size: 18px;
+  color: rgba(144,224,239,0.7);
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.rh-section {
+  margin-bottom: 100px;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.rh-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.rh-section h2 {
+  font-size: 28px;
+  color: #00e5ff;
+  margin-bottom: 16px;
+}
+
+.rh-section p {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #90e0ef;
+  margin-bottom: 14px;
+}
+
+.rh-rabbit {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.rh-rabbit-big {
+  font-size: 64px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.rh-final {
+  text-align: center;
+}
+
+.rh-final h2 {
+  color: #ffd166;
+}
+
+#rh-achievement {
+  background: rgba(155,0,255,0.15);
+  border: 1px solid #9b00ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px auto;
+  max-width: 360px;
+  animation: achievementPop 0.5s ease;
+}
+
+.rh-achievement-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.rh-achievement-text {
+  font-size: 16px;
+  color: #ffd166;
+}
+
+@keyframes achievementPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+#rh-climb-back {
+  margin-top: 32px;
+  background: transparent;
+  border: 2px solid #ffd166;
+  color: #ffd166;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#rh-climb-back:hover { background: #ffd166; color: #050d14; }
