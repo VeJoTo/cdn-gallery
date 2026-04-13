@@ -676,21 +676,29 @@ function buildPedestal() {
 
 function buildRabbitHole() {
   const group = new THREE.Group();
-  // On the floor, left of centre — near the table area
-  group.position.set(0.4, 0, -2.2);
+  group.position.set(-0.8, 0, -2.4);
 
-  // Dark hole (recessed cylinder going down)
+  // Deep dark hole cylinder
   const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   const hole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.4, 0.35, 0.3, 24),
+    new THREE.CylinderGeometry(0.35, 0.3, 0.5, 24),
     holeMat
   );
-  hole.position.y = -0.15;
+  hole.position.y = -0.25;
   group.add(hole);
 
-  // Glowing purple ring around the hole
+  // Dirt/earth ring around the hole (brown)
+  const dirtRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.38, 0.08, 8, 32),
+    new THREE.MeshLambertMaterial({ color: 0x5a3a1e })
+  );
+  dirtRing.rotation.x = -Math.PI / 2;
+  dirtRing.position.y = 0.02;
+  group.add(dirtRing);
+
+  // Glowing purple ring
   const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(0.42, 0.03, 8, 32),
+    new THREE.TorusGeometry(0.48, 0.025, 8, 32),
     new THREE.MeshStandardMaterial({
       color: 0x9b00ff, emissive: 0x9b00ff, emissiveIntensity: 1.8
     })
@@ -699,21 +707,49 @@ function buildRabbitHole() {
   ring.position.y = 0.01;
   group.add(ring);
 
-  // Second inner ring (gold)
-  const innerRing = new THREE.Mesh(
-    new THREE.TorusGeometry(0.32, 0.015, 8, 32),
-    new THREE.MeshStandardMaterial({
-      color: 0xffd166, emissive: 0xffd166, emissiveIntensity: 1.4
-    })
-  );
-  innerRing.rotation.x = -Math.PI / 2;
-  innerRing.position.y = 0.01;
-  group.add(innerRing);
+  // Small grass/moss tufts around the edge
+  const grassMat = new THREE.MeshLambertMaterial({ color: 0x2a6a2a });
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2 + (i % 2) * 0.2;
+    const tuft = new THREE.Mesh(
+      new THREE.BoxGeometry(0.06, 0.08, 0.04),
+      grassMat
+    );
+    tuft.position.set(
+      Math.cos(angle) * 0.4,
+      0.04,
+      Math.sin(angle) * 0.4
+    );
+    tuft.rotation.y = angle;
+    group.add(tuft);
+  }
 
-  // Point light from within the hole (eerie purple glow)
+  // Point light from within (eerie purple glow)
   const glow = new THREE.PointLight(0x9b00ff, 1.0, 3);
-  glow.position.y = -0.2;
+  glow.position.y = -0.3;
   group.add(glow);
+
+  // Floating label above the hole: "🐰 Rabbit Hole ↓"
+  const labelCanvas = document.createElement('canvas');
+  labelCanvas.width = 256;
+  labelCanvas.height = 64;
+  const lctx = labelCanvas.getContext('2d');
+  lctx.clearRect(0, 0, 256, 64);
+  lctx.font = 'bold 22px sans-serif';
+  lctx.textAlign = 'center';
+  lctx.fillStyle = '#ffd166';
+  lctx.shadowColor = '#9b00ff';
+  lctx.shadowBlur = 10;
+  lctx.fillText('🐰 Rabbit Hole ↓', 128, 36);
+
+  const labelTex = new THREE.CanvasTexture(labelCanvas);
+  const label = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.8, 0.2),
+    new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, side: THREE.DoubleSide })
+  );
+  label.position.y = 0.6;
+  label.rotation.x = -0.3; // tilt slightly toward camera
+  group.add(label);
 
   group.userData = {
     clickable: true,
@@ -872,8 +908,14 @@ function buildGlobe() {
 }
 
 export function createObjects(scene) {
-  const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
-  const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
+  const arcadeLeft  = buildArcadeCabinet(0, 0xff006e);
+  const arcadeRight = buildArcadeCabinet(0, 0x00e5ff);
+
+  // Position arcades on the left wall, side by side, facing into the room
+  arcadeLeft.position.set(-3.15, 0, 0.8);
+  arcadeLeft.rotation.y = Math.PI / 2;
+  arcadeRight.position.set(-3.15, 0, -0.5);
+  arcadeRight.rotation.y = Math.PI / 2;
   const table       = buildTable();
   const beanBag1    = buildBeanBag(-0.8, 2.2);
   const beanBag2    = buildBeanBag(0.8, 2.2);

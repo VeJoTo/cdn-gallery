@@ -113,7 +113,7 @@ const nav      = createNavigationSystem(camera, navState, ui, controls);
 const baseGoTo = nav.goTo;
 nav.goTo = (id) => {
   baseGoTo(id);
-  const hideArcades = id === 'wall-left' || id === 'wall-right';
+  const hideArcades = id === 'wall-left';
   arcadeLeft.visible  = !hideArcades;
   arcadeRight.visible = !hideArcades;
 };
