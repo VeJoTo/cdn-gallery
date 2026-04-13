@@ -155,33 +155,54 @@ export function createUI(camera, renderer) {
   // ── Inventory overlay ────────────────────────────
   function openInventory() {
     inventoryContent.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:20px">Inventory</h2>
-      <div style="margin-bottom:16px">
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(240,236,224,.5);margin-bottom:6px">Level</div>
-        <div style="font-size:28px;font-weight:bold">Level 1</div>
-      </div>
-      <div style="margin-bottom:20px">
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(240,236,224,.5);margin-bottom:6px">XP Progress</div>
-        <div style="background:rgba(255,255,255,.1);border-radius:4px;height:10px;width:100%">
-          <div style="background:#ccaa55;width:30%;height:100%;border-radius:4px"></div>
-        </div>
-        <div style="font-size:12px;color:rgba(240,236,224,.5);margin-top:4px">150 / 500 XP</div>
-      </div>
-      <div>
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(240,236,224,.5);margin-bottom:10px">Achievements</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${[
-            { icon: '🏛', name: 'First Steps', desc: 'Entered the gallery',  earned: true  },
-            { icon: '🎮', name: 'Player One',  desc: 'Found an arcade',      earned: true  },
-            { icon: '🗝', name: 'Keymaster',   desc: 'Unlock Level 3',       earned: false },
-            { icon: '📚', name: 'Scholar',     desc: 'Read 5 panels',        earned: false }
-          ].map(a => `
-            <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px;opacity:${a.earned ? 1 : 0.4}">
-              <div style="font-size:22px">${a.icon}</div>
-              <div style="font-size:13px;font-weight:bold;margin-top:4px">${a.name}</div>
-              <div style="font-size:11px;color:rgba(240,236,224,.6)">${a.desc}</div>
+      <div class="scrapbook">
+        <div class="scrapbook-page scrapbook-left">
+          <h2 class="scrapbook-title">The Game Room</h2>
+          <div class="polaroid">
+            <div class="polaroid-img" style="background:#1a1a3e;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:32px">🎮</span>
             </div>
-          `).join('')}
+            <div class="polaroid-caption">My exploration so far</div>
+          </div>
+          <div class="sticky-note">
+            <h3>Tasks</h3>
+            <ul>
+              <li>Explore the game room</li>
+              <li>Read the wall panels</li>
+              <li>Visit the rabbit hole</li>
+              <li>Talk to the Guide</li>
+            </ul>
+          </div>
+          <div class="scrapbook-doodle" style="position:absolute;bottom:20px;right:20px;font-size:24px;transform:rotate(-8deg);opacity:0.5">✨</div>
+        </div>
+        <div class="scrapbook-spine"></div>
+        <div class="scrapbook-page scrapbook-right">
+          <h2 class="scrapbook-title">Discoveries</h2>
+          <div class="discovery-grid">
+            <div class="discovery-item found">
+              <div class="discovery-thumb">🏛</div>
+              <div class="discovery-label">Game Room</div>
+            </div>
+            <div class="discovery-item found">
+              <div class="discovery-thumb">📺</div>
+              <div class="discovery-label">TV Archive</div>
+            </div>
+            <div class="discovery-item">
+              <div class="discovery-thumb">?</div>
+              <div class="discovery-label">???</div>
+            </div>
+            <div class="discovery-item">
+              <div class="discovery-thumb">?</div>
+              <div class="discovery-label">???</div>
+            </div>
+          </div>
+          <div class="scrapbook-page-num">1 / 20</div>
+          <div class="scrapbook-tabs">
+            <button class="scrapbook-tab">🏆 Achievements</button>
+            <button class="scrapbook-tab">👤 Profile</button>
+            <button class="scrapbook-tab">📚 Resources</button>
+            <button class="scrapbook-tab">🌐 CDN Website</button>
+          </div>
         </div>
       </div>
     `;
