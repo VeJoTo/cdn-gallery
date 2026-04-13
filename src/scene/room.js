@@ -10,7 +10,7 @@ export function createRoom(scene) {
   const tileSize = 64;
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
-      fctx.fillStyle = (row + col) % 2 === 0 ? '#1e1230' : '#2d1f3d';
+      fctx.fillStyle = (row + col) % 2 === 0 ? '#1e1240' : '#2e0e40';
       fctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
     }
   }
@@ -27,10 +27,10 @@ export function createRoom(scene) {
   wallCanvas.height = 256;
   const wctx = wallCanvas.getContext('2d');
   // Base wall color
-  wctx.fillStyle = '#2d1f3d';
+  wctx.fillStyle = '#3a1a50';
   wctx.fillRect(0, 0, 256, 256);
   // Mortar lines (slightly lighter)
-  wctx.strokeStyle = '#3a2850';
+  wctx.strokeStyle = '#5a2d6e';
   wctx.lineWidth = 2;
   const brickH = 20;
   const brickW = 50;
@@ -55,15 +55,15 @@ export function createRoom(scene) {
   const wallMat = new THREE.MeshStandardMaterial({
     map: wallTex,
     color: 0x0a0018,
-    emissive: 0x3a2050,
+    emissive: 0x5a1d6e,
     emissiveIntensity: 0.5,
     roughness: 0.85,
     side: THREE.FrontSide
   });
   const ceilMat  = new THREE.MeshStandardMaterial({
-    color: 0x1a1028,
-    emissive: 0x2a1838,
-    emissiveIntensity: 0.35,
+    color: 0x141444,
+    emissive: 0x1e2264,
+    emissiveIntensity: 0.3,
     side: THREE.FrontSide
   });
 
@@ -101,15 +101,15 @@ export function createRoom(scene) {
   scene.add(ceil);
 
   // ── Lighting ────────────────────────────────────
-  const ambient = new THREE.AmbientLight(0x6a3070, 0.9);
+  const ambient = new THREE.AmbientLight(0xc77dba, 0.7);
   scene.add(ambient);
 
-  // Hemisphere light: hot pink from above, dark navy from below
-  const hemi = new THREE.HemisphereLight(0xff66cc, 0x2a1838, 0.8);
+  // Hemisphere light: rose from above, navy from below
+  const hemi = new THREE.HemisphereLight(0xd65878, 0x1e2264, 0.7);
   hemi.position.set(0, 4, 0);
   scene.add(hemi);
 
-  const dirLight = new THREE.DirectionalLight(0xffaa66, 0.6);
+  const dirLight = new THREE.DirectionalLight(0xffaa66, 0.5);
   dirLight.position.set(2, 8, 6);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near = 0.5;
@@ -120,15 +120,15 @@ export function createRoom(scene) {
   dirLight.shadow.camera.bottom = -8;
   scene.add(dirLight);
 
-  const neonPink = new THREE.PointLight(0xff00ff, 2.5, 8);
+  const neonPink = new THREE.PointLight(0xc77dba, 2.0, 8);
   neonPink.position.set(-2.5, 1.5, 0.5);
   scene.add(neonPink);
 
-  const neonTeal = new THREE.PointLight(0x00ffff, 2.5, 8);
+  const neonTeal = new THREE.PointLight(0x4dd4e6, 2.0, 8);
   neonTeal.position.set(2.5, 1.5, 0.5);
   scene.add(neonTeal);
 
-  const neonPurple = new THREE.PointLight(0xaa00ff, 1.5, 12);
+  const neonPurple = new THREE.PointLight(0x5a1d6e, 1.5, 12);
   neonPurple.position.set(0, 2.5, 1.5);
   scene.add(neonPurple);
 
@@ -136,7 +136,7 @@ export function createRoom(scene) {
   const stripGeom = new THREE.BoxGeometry(6, 0.02, 0.06);
 
   const leftStripMat = new THREE.MeshStandardMaterial({
-    color: 0xff44aa, emissive: 0xff44aa, emissiveIntensity: 2.0
+    color: 0xd65878, emissive: 0xd65878, emissiveIntensity: 2.0
   });
   const leftStrip = new THREE.Mesh(stripGeom, leftStripMat);
   leftStrip.rotation.y = Math.PI / 2;
@@ -144,7 +144,7 @@ export function createRoom(scene) {
   scene.add(leftStrip);
 
   const rightStripMat = new THREE.MeshStandardMaterial({
-    color: 0xa8d8ea, emissive: 0xa8d8ea, emissiveIntensity: 2.0
+    color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 2.0
   });
   const rightStrip = new THREE.Mesh(stripGeom, rightStripMat);
   rightStrip.rotation.y = -Math.PI / 2;
@@ -158,26 +158,26 @@ export function createRoom(scene) {
   const sideStripGeom = new THREE.BoxGeometry(6, 0.04, 0.08);
 
   const leftCeilMat = new THREE.MeshStandardMaterial({
-    color: 0xa8d8ea, emissive: 0xa8d8ea, emissiveIntensity: 2.5
+    color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 2.5
   });
   const leftCeilStrip = new THREE.Mesh(sideStripGeom, leftCeilMat);
   leftCeilStrip.rotation.y = Math.PI / 2;
   leftCeilStrip.position.set(-3.45, ceilingY, 0);
   scene.add(leftCeilStrip);
 
-  // Right wall top edge — soft pink, runs along z
+  // Right wall top edge — orchid, runs along z
   const rightCeilMat = new THREE.MeshStandardMaterial({
-    color: 0xf2a6c1, emissive: 0xf2a6c1, emissiveIntensity: 2.5
+    color: 0xc77dba, emissive: 0xc77dba, emissiveIntensity: 2.5
   });
   const rightCeilStrip = new THREE.Mesh(sideStripGeom, rightCeilMat);
   rightCeilStrip.rotation.y = -Math.PI / 2;
   rightCeilStrip.position.set(3.45, ceilingY, 0);
   scene.add(rightCeilStrip);
 
-  // Back wall top edge — hot pink, runs along x (room width = 7)
+  // Back wall top edge — rose, runs along x (room width = 7)
   const backStripGeom = new THREE.BoxGeometry(7, 0.04, 0.08);
   const backCeilMat = new THREE.MeshStandardMaterial({
-    color: 0xe84393, emissive: 0xe84393, emissiveIntensity: 2.5
+    color: 0xd65878, emissive: 0xd65878, emissiveIntensity: 2.5
   });
   const backCeilStrip = new THREE.Mesh(backStripGeom, backCeilMat);
   backCeilStrip.position.set(0, ceilingY, -2.96);
@@ -197,7 +197,7 @@ export function createRoom(scene) {
 
   // Back wall floor strip — cream, runs along x at the base
   const backFloorMat = new THREE.MeshStandardMaterial({
-    color: 0xf8f1e0, emissive: 0xf8f1e0, emissiveIntensity: 2.0
+    color: 0xddd0c0, emissive: 0xddd0c0, emissiveIntensity: 2.0
   });
   const backFloorStrip = new THREE.Mesh(backStripGeom, backFloorMat);
   backFloorStrip.position.set(0, 0.01, -2.96);
@@ -206,7 +206,7 @@ export function createRoom(scene) {
   // ── Vertical corner strips (cream) at back-left and back-right ──
   const cornerStripGeom = new THREE.BoxGeometry(0.06, 3.45, 0.06);
   const cornerMat = new THREE.MeshStandardMaterial({
-    color: 0xf8f1e0, emissive: 0xf8f1e0, emissiveIntensity: 1.5
+    color: 0xddd0c0, emissive: 0xddd0c0, emissiveIntensity: 1.5
   });
 
   const backLeftCorner = new THREE.Mesh(cornerStripGeom, cornerMat);
@@ -218,9 +218,9 @@ export function createRoom(scene) {
   scene.add(backRightCorner);
 
   // ── Exposed cables running along walls (cyberpunk detail) ──
-  const cableMat = new THREE.MeshLambertMaterial({ color: 0x1a1a2a });
+  const cableMat = new THREE.MeshLambertMaterial({ color: 0x1e2264 });
   const cableGlowMat = new THREE.MeshStandardMaterial({
-    color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 0.6
+    color: 0xc77dba, emissive: 0xc77dba, emissiveIntensity: 0.6
   });
 
   // Horizontal cable bundles along left wall at mid-height
@@ -279,21 +279,103 @@ export function createRoom(scene) {
   diagCable.rotation.z = 0.3;
   scene.add(diagCable);
 
+  // ── AI circuit pattern on back wall ──
+  const circuitCanvas = document.createElement('canvas');
+  circuitCanvas.width = 512;
+  circuitCanvas.height = 256;
+  const cctx = circuitCanvas.getContext('2d');
+  cctx.clearRect(0, 0, 512, 256);
+
+  // Draw circuit traces
+  cctx.strokeStyle = '#4dd4e6';
+  cctx.lineWidth = 1.5;
+  cctx.shadowColor = '#4dd4e6';
+  cctx.shadowBlur = 4;
+
+  // Horizontal traces
+  const traceYs = [40, 80, 130, 170, 220];
+  for (const ty of traceYs) {
+    cctx.beginPath();
+    let x = Math.random() * 100;
+    cctx.moveTo(x, ty);
+    while (x < 512) {
+      const segLen = 30 + Math.random() * 80;
+      x += segLen;
+      cctx.lineTo(Math.min(x, 512), ty);
+      if (Math.random() > 0.6 && x < 480) {
+        const dy = (Math.random() > 0.5 ? 1 : -1) * (15 + Math.random() * 25);
+        cctx.lineTo(x, ty + dy);
+        cctx.lineTo(x + 20, ty + dy);
+        x += 20;
+        cctx.lineTo(x, ty);
+      }
+    }
+    cctx.stroke();
+  }
+
+  // Circuit nodes (small circles at intersections)
+  cctx.fillStyle = '#c77dba';
+  cctx.shadowColor = '#c77dba';
+  cctx.shadowBlur = 6;
+  for (let i = 0; i < 15; i++) {
+    const nx = 30 + Math.random() * 452;
+    const ny = traceYs[Math.floor(Math.random() * traceYs.length)];
+    cctx.beginPath();
+    cctx.arc(nx, ny, 4, 0, Math.PI * 2);
+    cctx.fill();
+  }
+
+  // "AI" text faintly
+  cctx.shadowBlur = 10;
+  cctx.shadowColor = '#c77dba';
+  cctx.font = 'bold 60px sans-serif';
+  cctx.fillStyle = 'rgba(199,125,186,0.15)';
+  cctx.textAlign = 'center';
+  cctx.fillText('A.I.', 256, 150);
+
+  const circuitTex = new THREE.CanvasTexture(circuitCanvas);
+  const circuitPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(5, 2.5),
+    new THREE.MeshBasicMaterial({ map: circuitTex, transparent: true })
+  );
+  circuitPlane.position.set(0, 1.5, -2.96);
+  scene.add(circuitPlane);
+
+  // ── Floating AI data particles ──
+  const particleCount = 30;
+  const particleGeom = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3]     = (Math.random() - 0.5) * 6;  // x
+    positions[i * 3 + 1] = 0.5 + Math.random() * 2.5;   // y
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 5;   // z
+  }
+  particleGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const particleMat = new THREE.PointsMaterial({
+    color: 0x4dd4e6,
+    size: 0.04,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending
+  });
+  const particles = new THREE.Points(particleGeom, particleMat);
+  scene.add(particles);
+
   // ── Coloured fill lights near each ceiling strip ──
-  const cyanFill = new THREE.PointLight(0xa8d8ea, 3.0, 14);
+  const cyanFill = new THREE.PointLight(0x4dd4e6, 3.0, 14);
   cyanFill.position.set(-3.0, 3.2, 0);
   scene.add(cyanFill);
 
-  const purpleFill = new THREE.PointLight(0xf2a6c1, 3.0, 14);
+  const purpleFill = new THREE.PointLight(0xc77dba, 3.0, 14);
   purpleFill.position.set(3.0, 3.2, 0);
   scene.add(purpleFill);
 
-  const pinkFill = new THREE.PointLight(0xe84393, 3.0, 14);
+  const pinkFill = new THREE.PointLight(0xd65878, 3.0, 14);
   pinkFill.position.set(0, 3.2, -2.5);
   scene.add(pinkFill);
 
   // Extra centre fill — cream to brighten everything
-  const centerFill = new THREE.PointLight(0xff00ff, 2.0, 16);
+  const centerFill = new THREE.PointLight(0xddd0c0, 2.0, 16);
   centerFill.position.set(0, 2.8, 1.0);
   scene.add(centerFill);
 }
