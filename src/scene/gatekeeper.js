@@ -8,7 +8,7 @@ export function createGatekeeper(scene) {
   // ── Load portrait and remove white background ──
   const img = new Image();
   img.crossOrigin = 'anonymous';
-  img.src = import.meta.env.BASE_URL + 'gatekeeper.jpg';
+  img.src = (import.meta.env.BASE_URL || '/') + 'gatekeeper.jpg';
 
   const portraitPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(1.0, 1.3),

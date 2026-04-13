@@ -408,30 +408,37 @@ body {
 
 .scrapbook-tabs {
   position: absolute;
-  top: 340px;
-  right: -48px;
+  top: 60px;
+  right: -70px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
 .scrapbook-tab {
-  background: #ede6d0;
-  border: 1px solid #c0b090;
-  border-left: none;
-  border-radius: 0 6px 6px 0;
-  padding: 8px 10px;
-  font-size: 11px;
-  color: #5a4a3a;
+  background: #fef3a0;
+  border: none;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px 10px 10px;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  color: #3a2818;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   text-align: left;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+  min-width: 120px;
 }
 
+.scrapbook-tab:nth-child(1) { background: #fef3a0; }
+.scrapbook-tab:nth-child(2) { background: #f2a6c1; }
+.scrapbook-tab:nth-child(3) { background: #a8d8ea; }
+.scrapbook-tab:nth-child(4) { background: #c8e6c9; }
+
 .scrapbook-tab:hover {
-  background: #f8f1e0;
-  color: #3a2818;
+  transform: translateX(6px);
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.25);
 }
 
 /* ── Utility ────────────────────────────────────── */
