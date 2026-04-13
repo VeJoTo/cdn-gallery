@@ -277,54 +277,12 @@ export function createUI(camera, renderer) {
     }
   }
 
-  // Anchor gatekeeper chat to wizard screen position
-  const wizardWorldPos = new THREE.Vector3(0.6, 2.4, -2.2);
-  const _chatVec = new THREE.Vector3();
-
-  function updateChatAnchor() {
-    if (gatekeeperChat.classList.contains('hidden')) return;
-    const w = renderer.domElement.clientWidth;
-    const h = renderer.domElement.clientHeight;
-    const margin = 16;
-    const rect = gatekeeperChat.getBoundingClientRect();
-    const bubbleW = rect.width  || 320;
-    const bubbleH = rect.height || 220;
-
-    let left, top;
-
-    _chatVec.copy(wizardWorldPos);
-    _chatVec.project(camera);
-
-    if (_chatVec.z >= 1) {
-      // Wizard is behind the camera — fall back to top-right safe spot
-      left = w - bubbleW - margin;
-      top  = margin;
-    } else {
-      const anchorX = (_chatVec.x + 1) / 2 * w;
-      const anchorY = (-_chatVec.y + 1) / 2 * h;
-      // CSS transform on the bubble is translate(20px, -100%), so visible top-left is:
-      left = anchorX + 20;
-      top  = anchorY - bubbleH;
-    }
-
-    // Clamp into viewport with margin
-    left = Math.max(margin, Math.min(left, w - bubbleW - margin));
-    top  = Math.max(margin, Math.min(top,  h - bubbleH - margin));
-
-    // Cancel the CSS transform offset by writing the computed top-left directly,
-    // and override the translate so it doesn't double-shift
-    gatekeeperChat.style.left = `${left}px`;
-    gatekeeperChat.style.top  = `${top}px`;
-    gatekeeperChat.style.transform = 'none';
-  }
-
   return {
     updateHUD,
     openPanelDrawer,
     openGatekeeperChat,
     openInventory,
     openBook,
-    updateHints,
-    updateChatAnchor
+    updateHints
   };
 }

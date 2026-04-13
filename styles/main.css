@@ -42,6 +42,22 @@ body {
 }
 #back-btn:hover { background: #00e5ff; color: #050d14; }
 
+#guide-btn {
+  position: fixed;
+  top: 16px;
+  right: 120px;
+  background: rgba(5,13,20,0.6);
+  border: 1px solid #9b00ff;
+  color: #9b00ff;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transition: background 0.2s, color 0.2s;
+}
+#guide-btn:hover { background: #9b00ff; color: #050d14; }
+
 #inventory-btn {
   position: fixed;
   top: 16px;
@@ -233,7 +249,10 @@ body {
 /* ── Gatekeeper chat (speech bubble) ────────────── */
 #gatekeeper-chat {
   position: fixed;
-  width: 320px;
+  top: 60px;
+  right: 16px;
+  width: 340px;
+  max-height: calc(100vh - 80px);
   background: rgba(10,26,40,0.97);
   border: 1px solid #9b00ff;
   box-shadow: 0 0 18px rgba(155,0,255,0.4);
@@ -242,31 +261,38 @@ body {
   opacity: 0;
   transition: opacity 0.25s;
   z-index: 50;
+  overflow-y: auto;
 }
 #gatekeeper-chat.open { opacity: 1; }
 #gatekeeper-chat.hidden { display: none; }
 
-#gatekeeper-chat::before {
-  content: '';
-  position: absolute;
-  left: -12px;
-  top: 30px;
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 12px solid #9b00ff;
+#chat-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #9b00ff;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
-#gatekeeper-chat::after {
-  content: '';
-  position: absolute;
-  left: -10px;
-  top: 31px;
-  width: 0;
-  height: 0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-right: 11px solid rgba(10,26,40,0.97);
+
+#chat-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(155,0,255,0.3);
+}
+
+#chat-header-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffd166;
+}
+
+#chat-header-subtitle {
+  font-size: 11px;
+  color: rgba(144,224,239,0.6);
 }
 
 #chat-close {

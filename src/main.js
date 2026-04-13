@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
-import { createGatekeeper } from './scene/gatekeeper.js';
 import { createPanels } from './scene/panels.js';
 import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
 import { createUI } from './ui.js';
@@ -99,13 +98,10 @@ tvCSS3D.rotation.y = Math.PI / 2;
 const tvScale = 1.92 / 1280;
 tvCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvCSS3D);
-const gatekeeper = createGatekeeper(scene);
-addUpdateCallback(gatekeeper.update);
 const panels = createPanels(scene);
 
 const clickableObjects = [
   ...arcadeLeft.children, ...arcadeRight.children,
-  gatekeeper.group, ...gatekeeper.group.children,
   ...panels,
   desk, ...posters,
   pedestal,
@@ -142,11 +138,9 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 });
 
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
+document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
-addUpdateCallback(() => {
-  ui.updateHints();
-  ui.updateChatAnchor();
-});
+addUpdateCallback(() => ui.updateHints());
 
 animate();
