@@ -1,346 +1,304 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
   <defs>
-    <!-- Starfield glow filter -->
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+    <filter id="neonPink" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.2  0 0 0 0 0  0 0 1 0 0.4  0 0 0 1 0" result="pink"/>
+      <feMerge><feMergeNode in="pink"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="neonCyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 1 0 0 0.8  0 0 1 0 1  0 0 0 1 0" result="cyan"/>
+      <feMerge><feMergeNode in="cyan"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="neonYellow" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.2  0 1 0 0 0.1  0 0 0 0 0  0 0 0 1 0" result="yel"/>
+      <feMerge><feMergeNode in="yel"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="scanlines">
-      <feImage result="tile" width="4" height="4" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='2' fill='%23000' opacity='0.08'/%3E%3C/svg%3E"/>
-      <feTile in="tile" result="pattern"/>
-      <feComposite in="SourceGraphic" in2="pattern" operator="over"/>
+    <filter id="neonGreen" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 1 0 0 0.3  0 0 0.4 0 0  0 0 0 1 0" result="grn"/>
+      <feMerge><feMergeNode in="grn"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <!-- Gradient for background -->
+    <filter id="glitch">
+      <feOffset in="SourceGraphic" dx="3" dy="0" result="r"/>
+      <feColorMatrix in="r" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.4 0" result="red"/>
+      <feOffset in="SourceGraphic" dx="-3" dy="0" result="c"/>
+      <feColorMatrix in="c" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 0.4 0" result="blue"/>
+      <feMerge><feMergeNode in="red"/><feMergeNode in="blue"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="heavyGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a0a1a"/>
-      <stop offset="40%" stop-color="#0d0d2b"/>
-      <stop offset="100%" stop-color="#050510"/>
+      <stop offset="0%" stop-color="#0a0012"/>
+      <stop offset="30%" stop-color="#0d0020"/>
+      <stop offset="60%" stop-color="#0a0018"/>
+      <stop offset="100%" stop-color="#05000a"/>
     </linearGradient>
-    <linearGradient id="titleGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ff3333"/>
-      <stop offset="50%" stop-color="#ff0000"/>
-      <stop offset="100%" stop-color="#cc0000"/>
+    <linearGradient id="gridFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff00aa" stop-opacity="0"/>
+      <stop offset="60%" stop-color="#ff00aa" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#ff00aa" stop-opacity="0.15"/>
     </linearGradient>
-    <radialGradient id="vignette" cx="50%" cy="50%" r="60%">
+    <radialGradient id="vignette" cx="50%" cy="45%" r="55%">
       <stop offset="0%" stop-color="transparent"/>
-      <stop offset="100%" stop-color="#000" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.7"/>
     </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ff00aa" stroke-width="0.3" opacity="0.15"/>
+    </pattern>
+    <pattern id="scanlines" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="2" fill="#000" opacity="0.1"/>
+    </pattern>
   </defs>
 
   <!-- Background -->
   <rect width="800" height="1100" fill="url(#bgGrad)"/>
 
-  <!-- Stars - scattered -->
-  <g opacity="0.7">
-    <circle cx="45" cy="30" r="1" fill="#fff"/>
-    <circle cx="120" cy="85" r="1.5" fill="#aaf"/>
-    <circle cx="230" cy="50" r="1" fill="#fff"/>
-    <circle cx="340" cy="120" r="0.8" fill="#ffa"/>
-    <circle cx="450" cy="40" r="1.2" fill="#fff"/>
-    <circle cx="560" cy="90" r="1" fill="#aff"/>
-    <circle cx="670" cy="60" r="1.5" fill="#fff"/>
-    <circle cx="750" cy="130" r="0.8" fill="#faf"/>
-    <circle cx="80" cy="200" r="1" fill="#fff"/>
-    <circle cx="190" cy="250" r="1.3" fill="#aaf"/>
-    <circle cx="310" cy="230" r="0.7" fill="#fff"/>
-    <circle cx="500" cy="210" r="1.1" fill="#ffa"/>
-    <circle cx="620" cy="270" r="1" fill="#fff"/>
-    <circle cx="720" cy="240" r="1.4" fill="#aff"/>
-    <circle cx="60" cy="350" r="1" fill="#fff"/>
-    <circle cx="170" cy="400" r="0.9" fill="#fff"/>
-    <circle cx="290" cy="380" r="1.2" fill="#faf"/>
-    <circle cx="410" cy="330" r="0.8" fill="#fff"/>
-    <circle cx="530" cy="370" r="1" fill="#aaf"/>
-    <circle cx="650" cy="340" r="1.3" fill="#fff"/>
-    <circle cx="760" cy="390" r="0.7" fill="#ffa"/>
-    <circle cx="100" cy="500" r="1.1" fill="#fff"/>
-    <circle cx="220" cy="540" r="1" fill="#fff"/>
-    <circle cx="350" cy="510" r="1.4" fill="#aff"/>
-    <circle cx="470" cy="480" r="0.9" fill="#fff"/>
-    <circle cx="590" cy="520" r="1.2" fill="#faf"/>
-    <circle cx="710" cy="490" r="1" fill="#fff"/>
-    <circle cx="55" cy="620" r="1.3" fill="#aaf"/>
-    <circle cx="180" cy="670" r="0.8" fill="#fff"/>
-    <circle cx="300" cy="640" r="1" fill="#ffa"/>
-    <circle cx="430" cy="690" r="1.5" fill="#fff"/>
-    <circle cx="550" cy="650" r="0.7" fill="#fff"/>
-    <circle cx="680" cy="700" r="1.1" fill="#aff"/>
-    <circle cx="90" cy="780" r="1" fill="#fff"/>
-    <circle cx="200" cy="810" r="1.2" fill="#faf"/>
-    <circle cx="370" cy="770" r="0.9" fill="#fff"/>
-    <circle cx="510" cy="800" r="1.4" fill="#fff"/>
-    <circle cx="640" cy="830" r="1" fill="#aaf"/>
-    <circle cx="740" cy="760" r="1.3" fill="#fff"/>
-    <circle cx="130" cy="900" r="0.8" fill="#ffa"/>
-    <circle cx="260" cy="940" r="1" fill="#fff"/>
-    <circle cx="400" cy="910" r="1.1" fill="#fff"/>
-    <circle cx="570" cy="950" r="1.5" fill="#aff"/>
-    <circle cx="700" cy="920" r="0.7" fill="#fff"/>
-    <circle cx="50" cy="1020" r="1.2" fill="#fff"/>
-    <circle cx="250" cy="1050" r="1" fill="#faf"/>
-    <circle cx="480" cy="1030" r="1.3" fill="#fff"/>
-    <circle cx="660" cy="1060" r="0.9" fill="#aaf"/>
-    <circle cx="770" cy="1040" r="1" fill="#fff"/>
+  <!-- Perspective grid floor -->
+  <g opacity="0.5">
+    <rect x="0" y="600" width="800" height="500" fill="url(#gridFade)"/>
+    <rect x="0" y="0" width="800" height="1100" fill="url(#grid)"/>
   </g>
 
-  <!-- ===== TITLE "GALAGA" ===== -->
-  <g filter="url(#textGlow)">
-    <!-- G -->
-    <g fill="url(#titleGrad)">
-      <rect x="100" y="70" width="80" height="16" rx="2"/>
-      <rect x="100" y="70" width="16" height="80" rx="2"/>
-      <rect x="100" y="134" width="80" height="16" rx="2"/>
-      <rect x="164" y="110" width="16" height="40" rx="2"/>
-      <rect x="140" y="110" width="40" height="16" rx="2"/>
-    </g>
-    <!-- A -->
-    <g fill="url(#titleGrad)">
-      <rect x="200" y="70" width="16" height="80" rx="2"/>
-      <rect x="264" y="70" width="16" height="80" rx="2"/>
-      <rect x="200" y="70" width="80" height="16" rx="2"/>
-      <rect x="200" y="110" width="80" height="16" rx="2"/>
-    </g>
-    <!-- L -->
-    <g fill="url(#titleGrad)">
-      <rect x="300" y="70" width="16" height="80" rx="2"/>
-      <rect x="300" y="134" width="70" height="16" rx="2"/>
-    </g>
-    <!-- A -->
-    <g fill="url(#titleGrad)">
-      <rect x="390" y="70" width="16" height="80" rx="2"/>
-      <rect x="454" y="70" width="16" height="80" rx="2"/>
-      <rect x="390" y="70" width="80" height="16" rx="2"/>
-      <rect x="390" y="110" width="80" height="16" rx="2"/>
-    </g>
-    <!-- G -->
-    <g fill="url(#titleGrad)">
-      <rect x="490" y="70" width="80" height="16" rx="2"/>
-      <rect x="490" y="70" width="16" height="80" rx="2"/>
-      <rect x="490" y="134" width="80" height="16" rx="2"/>
-      <rect x="554" y="110" width="16" height="40" rx="2"/>
-      <rect x="530" y="110" width="40" height="16" rx="2"/>
-    </g>
-    <!-- A -->
-    <g fill="url(#titleGrad)">
-      <rect x="590" y="70" width="16" height="80" rx="2"/>
-      <rect x="654" y="70" width="16" height="80" rx="2"/>
-      <rect x="590" y="70" width="80" height="16" rx="2"/>
-      <rect x="590" y="110" width="80" height="16" rx="2"/>
+  <!-- Ambient neon haze -->
+  <ellipse cx="400" cy="400" rx="350" ry="200" fill="#ff00cc" opacity="0.03"/>
+  <ellipse cx="250" cy="600" rx="200" ry="150" fill="#00ffff" opacity="0.025"/>
+  <ellipse cx="600" cy="300" rx="180" ry="120" fill="#aa00ff" opacity="0.03"/>
+
+  <!-- Stars -->
+  <g opacity="0.5">
+    <circle cx="45" cy="30" r="1" fill="#ff88ff"/>
+    <circle cx="120" cy="85" r="1.5" fill="#88ffff"/>
+    <circle cx="230" cy="50" r="1" fill="#ffaaff"/>
+    <circle cx="340" cy="120" r="0.8" fill="#00ffcc"/>
+    <circle cx="450" cy="40" r="1.2" fill="#ff66ff"/>
+    <circle cx="560" cy="90" r="1" fill="#66ffff"/>
+    <circle cx="670" cy="60" r="1.5" fill="#ff88cc"/>
+    <circle cx="750" cy="130" r="0.8" fill="#88ffcc"/>
+    <circle cx="80" cy="200" r="1" fill="#cc88ff"/>
+    <circle cx="500" cy="210" r="1.1" fill="#ff44aa"/>
+    <circle cx="620" cy="170" r="1" fill="#44ffcc"/>
+    <circle cx="720" cy="240" r="1.4" fill="#ff66ff"/>
+    <circle cx="170" cy="300" r="0.9" fill="#88ffff"/>
+    <circle cx="290" cy="180" r="1.2" fill="#ffaacc"/>
+    <circle cx="760" cy="390" r="0.7" fill="#cc66ff"/>
+    <circle cx="55" cy="420" r="1.1" fill="#66ffcc"/>
+    <circle cx="730" cy="490" r="1" fill="#ff88ff"/>
+  </g>
+
+  <!-- ===== SCORE (cyberpunk HUD style) ===== -->
+  <text x="120" y="38" font-family="'Courier New', monospace" font-size="13" fill="#00ffcc" letter-spacing="3" opacity="0.7" filter="url(#neonCyan)">PLR_01</text>
+  <text x="115" y="58" font-family="'Courier New', monospace" font-size="15" fill="#00ffff" letter-spacing="2" filter="url(#neonCyan)">038,400</text>
+  <text x="540" y="38" font-family="'Courier New', monospace" font-size="13" fill="#ff00aa" letter-spacing="3" opacity="0.7" filter="url(#neonPink)">HI_SCORE</text>
+  <text x="555" y="58" font-family="'Courier New', monospace" font-size="15" fill="#ff44cc" letter-spacing="2" filter="url(#neonPink)">999,999</text>
+
+  <!-- ===== TITLE "GALAGA" with glitch + neon ===== -->
+  <g filter="url(#glitch)">
+    <g filter="url(#neonPink)">
+      <!-- G -->
+      <g fill="#ff0088">
+        <rect x="100" y="80" width="80" height="14" rx="1"/>
+        <rect x="100" y="80" width="14" height="72" rx="1"/>
+        <rect x="100" y="138" width="80" height="14" rx="1"/>
+        <rect x="166" y="112" width="14" height="40" rx="1"/>
+        <rect x="140" y="112" width="40" height="14" rx="1"/>
+      </g>
+      <!-- A -->
+      <g fill="#ff0088">
+        <rect x="200" y="80" width="14" height="72" rx="1"/>
+        <rect x="264" y="80" width="14" height="72" rx="1"/>
+        <rect x="200" y="80" width="78" height="14" rx="1"/>
+        <rect x="200" y="112" width="78" height="14" rx="1"/>
+      </g>
+      <!-- L -->
+      <g fill="#ff0088">
+        <rect x="298" y="80" width="14" height="72" rx="1"/>
+        <rect x="298" y="138" width="68" height="14" rx="1"/>
+      </g>
+      <!-- A -->
+      <g fill="#ff0088">
+        <rect x="386" y="80" width="14" height="72" rx="1"/>
+        <rect x="450" y="80" width="14" height="72" rx="1"/>
+        <rect x="386" y="80" width="78" height="14" rx="1"/>
+        <rect x="386" y="112" width="78" height="14" rx="1"/>
+      </g>
+      <!-- G -->
+      <g fill="#ff0088">
+        <rect x="484" y="80" width="80" height="14" rx="1"/>
+        <rect x="484" y="80" width="14" height="72" rx="1"/>
+        <rect x="484" y="138" width="80" height="14" rx="1"/>
+        <rect x="550" y="112" width="14" height="40" rx="1"/>
+        <rect x="524" y="112" width="40" height="14" rx="1"/>
+      </g>
+      <!-- A -->
+      <g fill="#ff0088">
+        <rect x="584" y="80" width="14" height="72" rx="1"/>
+        <rect x="648" y="80" width="14" height="72" rx="1"/>
+        <rect x="584" y="80" width="78" height="14" rx="1"/>
+        <rect x="584" y="112" width="78" height="14" rx="1"/>
+      </g>
     </g>
   </g>
 
   <!-- Subtitle -->
-  <text x="400" y="195" text-anchor="middle" font-family="'Courier New', monospace" font-size="18" fill="#5599ff" letter-spacing="12" filter="url(#glow)">CHALLENGING STAGE</text>
+  <text x="400" y="195" text-anchor="middle" font-family="'Courier New', monospace" font-size="14" fill="#00ffcc" letter-spacing="10" filter="url(#neonCyan)" opacity="0.9">// CHALLENGING STAGE //</text>
 
-  <!-- Decorative line -->
-  <line x1="120" y1="215" x2="680" y2="215" stroke="#ff0044" stroke-width="1" opacity="0.6"/>
-  <line x1="140" y1="219" x2="660" y2="219" stroke="#ff0044" stroke-width="0.5" opacity="0.3"/>
+  <!-- Decorative neon lines -->
+  <line x1="80" y1="215" x2="720" y2="215" stroke="#ff0088" stroke-width="1" opacity="0.6" filter="url(#neonPink)"/>
+  <line x1="100" y1="220" x2="700" y2="220" stroke="#00ffcc" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Glitch bar decorations -->
+  <rect x="60" y="168" width="120" height="3" fill="#ff0088" opacity="0.4"/>
+  <rect x="620" y="172" width="100" height="2" fill="#00ffff" opacity="0.3"/>
+  <rect x="200" y="165" width="60" height="2" fill="#ffff00" opacity="0.2"/>
 
   <!-- ===== ALIEN FORMATION ===== -->
 
-  <!-- Row 1: Boss Galaga (top row) — 4 units -->
-  <g filter="url(#strongGlow)">
-    <!-- Boss 1 -->
-    <g transform="translate(260, 270)">
-      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
-      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
-      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
-      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
-      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
-    </g>
-    <!-- Boss 2 -->
-    <g transform="translate(340, 270)">
-      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
-      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
-      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
-      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
-      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
-    </g>
-    <!-- Boss 3 -->
-    <g transform="translate(420, 270)">
-      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
-      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
-      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
-      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
-      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
-    </g>
-    <!-- Boss 4 -->
-    <g transform="translate(500, 270)">
-      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
-      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
-      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
-      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
-      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
-      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
-      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
-      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
+  <!-- Row 1: Boss Galaga — cyberpunk neon green -->
+  <g filter="url(#neonGreen)">
+    <g id="cboss">
+      <rect x="0" y="0" width="8" height="8" fill="#00ff66"/>
+      <rect x="56" y="0" width="8" height="8" fill="#00ff66"/>
+      <rect x="8" y="8" width="8" height="8" fill="#00ff66"/>
+      <rect x="48" y="8" width="8" height="8" fill="#00ff66"/>
+      <rect x="16" y="8" width="32" height="8" fill="#44ffaa"/>
+      <rect x="8" y="16" width="48" height="8" fill="#44ffaa"/>
+      <rect x="0" y="24" width="64" height="8" fill="#00ff66"/>
+      <rect x="16" y="24" width="8" height="8" fill="#ff00ff" opacity="0.9"/>
+      <rect x="40" y="24" width="8" height="8" fill="#ff00ff" opacity="0.9"/>
+      <rect x="8" y="32" width="48" height="8" fill="#44ffaa"/>
+      <rect x="16" y="40" width="32" height="8" fill="#00ff66"/>
     </g>
   </g>
+  <use href="#cboss" x="260" y="260" filter="url(#neonGreen)"/>
+  <use href="#cboss" x="340" y="260" filter="url(#neonGreen)"/>
+  <use href="#cboss" x="420" y="260" filter="url(#neonGreen)"/>
+  <use href="#cboss" x="500" y="260" filter="url(#neonGreen)"/>
 
-  <!-- Row 2: Butterfly aliens (8 units) -->
-  <g filter="url(#glow)">
-    <g id="butterfly">
-      <rect x="8" y="0" width="8" height="8" fill="#ff4444"/>
-      <rect x="24" y="0" width="8" height="8" fill="#ff4444"/>
-      <rect x="0" y="8" width="8" height="8" fill="#ff4444"/>
-      <rect x="8" y="8" width="8" height="8" fill="#ff8844"/>
-      <rect x="16" y="8" width="8" height="8" fill="#ff4444"/>
-      <rect x="24" y="8" width="8" height="8" fill="#ff8844"/>
-      <rect x="32" y="8" width="8" height="8" fill="#ff4444"/>
-      <rect x="0" y="16" width="40" height="8" fill="#ff4444"/>
-      <rect x="8" y="16" width="8" height="8" fill="#ffcc00"/>
-      <rect x="24" y="16" width="8" height="8" fill="#ffcc00"/>
-      <rect x="8" y="24" width="24" height="8" fill="#ff8844"/>
-      <rect x="0" y="32" width="8" height="8" fill="#ff4444"/>
-      <rect x="32" y="32" width="8" height="8" fill="#ff4444"/>
-    </g>
+  <!-- Row 2-3: Butterfly aliens — cyberpunk magenta/pink -->
+  <g id="cbutterfly">
+    <rect x="8" y="0" width="8" height="8" fill="#ff0088"/>
+    <rect x="24" y="0" width="8" height="8" fill="#ff0088"/>
+    <rect x="0" y="8" width="8" height="8" fill="#ff0088"/>
+    <rect x="8" y="8" width="8" height="8" fill="#ff44aa"/>
+    <rect x="16" y="8" width="8" height="8" fill="#ff0088"/>
+    <rect x="24" y="8" width="8" height="8" fill="#ff44aa"/>
+    <rect x="32" y="8" width="8" height="8" fill="#ff0088"/>
+    <rect x="0" y="16" width="40" height="8" fill="#ff0088"/>
+    <rect x="8" y="16" width="8" height="8" fill="#ffff00"/>
+    <rect x="24" y="16" width="8" height="8" fill="#ffff00"/>
+    <rect x="8" y="24" width="24" height="8" fill="#ff44aa"/>
+    <rect x="0" y="32" width="8" height="8" fill="#ff0088"/>
+    <rect x="32" y="32" width="8" height="8" fill="#ff0088"/>
   </g>
-  <!-- Butterfly row instances -->
-  <use href="#butterfly" x="170" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="220" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="270" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="320" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="370" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="420" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="470" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="520" y="340" filter="url(#glow)"/>
-  <use href="#butterfly" x="570" y="340" filter="url(#glow)"/>
+  <use href="#cbutterfly" x="170" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="220" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="270" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="320" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="370" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="420" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="470" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="520" y="330" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="570" y="330" filter="url(#neonPink)"/>
 
-  <!-- Row 3: Second butterfly row -->
-  <use href="#butterfly" x="170" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="220" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="270" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="320" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="370" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="420" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="470" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="520" y="395" filter="url(#glow)"/>
-  <use href="#butterfly" x="570" y="395" filter="url(#glow)"/>
+  <use href="#cbutterfly" x="170" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="220" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="270" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="320" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="370" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="420" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="470" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="520" y="385" filter="url(#neonPink)"/>
+  <use href="#cbutterfly" x="570" y="385" filter="url(#neonPink)"/>
 
-  <!-- Row 4 & 5: Bee/moth aliens -->
-  <g id="bee">
-    <rect x="16" y="0" width="8" height="8" fill="#5588ff"/>
-    <rect x="8" y="8" width="24" height="8" fill="#5588ff"/>
-    <rect x="0" y="16" width="40" height="8" fill="#3366dd"/>
-    <rect x="8" y="16" width="8" height="8" fill="#88bbff"/>
-    <rect x="24" y="16" width="8" height="8" fill="#88bbff"/>
-    <rect x="8" y="24" width="24" height="8" fill="#5588ff"/>
-    <rect x="0" y="24" width="8" height="8" fill="#3366dd"/>
-    <rect x="32" y="24" width="8" height="8" fill="#3366dd"/>
+  <!-- Row 4-5: Bee aliens — cyberpunk cyan -->
+  <g id="cbee">
+    <rect x="16" y="0" width="8" height="8" fill="#00ffff"/>
+    <rect x="8" y="8" width="24" height="8" fill="#00ffff"/>
+    <rect x="0" y="16" width="40" height="8" fill="#00aaff"/>
+    <rect x="8" y="16" width="8" height="8" fill="#ccffff"/>
+    <rect x="24" y="16" width="8" height="8" fill="#ccffff"/>
+    <rect x="8" y="24" width="24" height="8" fill="#00ffff"/>
+    <rect x="0" y="24" width="8" height="8" fill="#00aaff"/>
+    <rect x="32" y="24" width="8" height="8" fill="#00aaff"/>
   </g>
-  <use href="#bee" x="150" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="200" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="250" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="300" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="350" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="400" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="450" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="500" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="550" y="450" filter="url(#glow)"/>
-  <use href="#bee" x="600" y="450" filter="url(#glow)"/>
+  <use href="#cbee" x="150" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="200" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="250" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="300" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="350" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="400" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="450" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="500" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="550" y="440" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="600" y="440" filter="url(#neonCyan)"/>
 
-  <use href="#bee" x="150" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="200" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="250" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="300" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="350" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="400" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="450" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="500" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="550" y="500" filter="url(#glow)"/>
-  <use href="#bee" x="600" y="500" filter="url(#glow)"/>
+  <use href="#cbee" x="150" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="200" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="250" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="300" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="350" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="400" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="450" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="500" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="550" y="490" filter="url(#neonCyan)"/>
+  <use href="#cbee" x="600" y="490" filter="url(#neonCyan)"/>
 
-  <!-- ===== PLAYER SHIP ===== -->
-  <g transform="translate(370, 850)" filter="url(#strongGlow)">
+  <!-- ===== PLAYER SHIP — neon cyan ===== -->
+  <g transform="translate(370, 830)" filter="url(#neonCyan)">
     <rect x="24" y="0" width="8" height="8" fill="#ffffff"/>
-    <rect x="16" y="8" width="24" height="8" fill="#ffffff"/>
-    <rect x="16" y="16" width="24" height="8" fill="#00ccff"/>
+    <rect x="16" y="8" width="24" height="8" fill="#ccffff"/>
+    <rect x="16" y="16" width="24" height="8" fill="#00ffff"/>
     <rect x="8" y="24" width="40" height="8" fill="#00ccff"/>
-    <rect x="0" y="32" width="56" height="8" fill="#0088cc"/>
-    <rect x="0" y="40" width="8" height="8" fill="#0088cc"/>
-    <rect x="24" y="40" width="8" height="8" fill="#0088cc"/>
-    <rect x="48" y="40" width="8" height="8" fill="#0088cc"/>
+    <rect x="0" y="32" width="56" height="8" fill="#0088ff"/>
+    <rect x="0" y="40" width="8" height="8" fill="#0088ff"/>
+    <rect x="24" y="40" width="8" height="8" fill="#0088ff"/>
+    <rect x="48" y="40" width="8" height="8" fill="#0088ff"/>
   </g>
 
-  <!-- Laser beam from player -->
-  <rect x="397" y="580" width="3" height="270" fill="#00ffff" opacity="0.8" filter="url(#strongGlow)"/>
+  <!-- Laser beam — hot pink -->
+  <rect x="396" y="570" width="4" height="260" fill="#ff00ff" opacity="0.85" filter="url(#heavyGlow)"/>
+  <rect x="397" y="570" width="2" height="260" fill="#ffffff" opacity="0.5"/>
 
-  <!-- Explosion effect on a hit alien -->
-  <g transform="translate(389, 560)" filter="url(#strongGlow)">
+  <!-- Explosion -->
+  <g transform="translate(388, 545)" filter="url(#heavyGlow)">
     <rect x="8" y="0" width="8" height="8" fill="#ffff00" opacity="0.9"/>
-    <rect x="0" y="8" width="8" height="8" fill="#ff8800" opacity="0.8"/>
-    <rect x="16" y="8" width="8" height="8" fill="#ff4400" opacity="0.7"/>
-    <rect x="8" y="16" width="8" height="8" fill="#ffcc00" opacity="0.9"/>
-    <rect x="-8" y="16" width="8" height="8" fill="#ff6600" opacity="0.5"/>
-    <rect x="24" y="0" width="8" height="8" fill="#ff6600" opacity="0.5"/>
+    <rect x="0" y="8" width="8" height="8" fill="#ff00ff" opacity="0.8"/>
+    <rect x="16" y="8" width="8" height="8" fill="#ff0088" opacity="0.7"/>
+    <rect x="8" y="16" width="8" height="8" fill="#ffff00" opacity="0.9"/>
+    <rect x="-8" y="16" width="8" height="8" fill="#ff00cc" opacity="0.5"/>
+    <rect x="24" y="0" width="8" height="8" fill="#00ffff" opacity="0.5"/>
+    <rect x="24" y="16" width="8" height="8" fill="#ff44ff" opacity="0.4"/>
+    <rect x="-8" y="0" width="8" height="8" fill="#00ffcc" opacity="0.3"/>
   </g>
 
-  <!-- ===== SCORE DISPLAY ===== -->
-  <text x="120" y="42" font-family="'Courier New', monospace" font-size="16" fill="#ffffff" letter-spacing="2">1UP</text>
-  <text x="110" y="62" font-family="'Courier New', monospace" font-size="16" fill="#ff3333" letter-spacing="2" filter="url(#glow)">38,400</text>
+  <!-- ===== BOTTOM HUD ===== -->
+  <!-- Glitch bars -->
+  <rect x="60" y="905" width="680" height="1" fill="#ff0088" opacity="0.4"/>
+  <rect x="80" y="910" width="640" height="0.5" fill="#00ffff" opacity="0.3"/>
 
-  <text x="370" y="42" text-anchor="middle" font-family="'Courier New', monospace" font-size="16" fill="#ffffff" letter-spacing="2">HIGH SCORE</text>
-  <text x="370" y="62" text-anchor="middle" font-family="'Courier New', monospace" font-size="16" fill="#ff3333" letter-spacing="2" filter="url(#glow)">999,999</text>
-
-  <!-- ===== BOTTOM INFO ===== -->
-  <!-- Lives display -->
-  <g transform="translate(60, 950)">
-    <!-- Mini ship 1 -->
-    <rect x="8" y="0" width="4" height="4" fill="#00ccff"/>
-    <rect x="4" y="4" width="12" height="4" fill="#0088cc"/>
-    <rect x="0" y="8" width="20" height="4" fill="#0066aa"/>
-    <!-- Mini ship 2 -->
-    <rect x="38" y="0" width="4" height="4" fill="#00ccff"/>
-    <rect x="34" y="4" width="12" height="4" fill="#0088cc"/>
-    <rect x="30" y="8" width="20" height="4" fill="#0066aa"/>
+  <!-- Lives -->
+  <g transform="translate(60, 935)" filter="url(#neonCyan)">
+    <rect x="8" y="0" width="4" height="4" fill="#00ffff"/>
+    <rect x="4" y="4" width="12" height="4" fill="#00aaff"/>
+    <rect x="0" y="8" width="20" height="4" fill="#0088cc"/>
+    <rect x="38" y="0" width="4" height="4" fill="#00ffff"/>
+    <rect x="34" y="4" width="12" height="4" fill="#00aaff"/>
+    <rect x="30" y="8" width="20" height="4" fill="#0088cc"/>
   </g>
 
-  <!-- Stage flags -->
-  <text x="400" y="960" text-anchor="middle" font-family="'Courier New', monospace" font-size="14" fill="#5599ff" letter-spacing="6">STAGE 03</text>
+  <text x="400" y="948" text-anchor="middle" font-family="'Courier New', monospace" font-size="13" fill="#ff0088" letter-spacing="8" filter="url(#neonPink)" opacity="0.8">STG_03</text>
 
-  <!-- Bottom decorative line -->
-  <line x1="60" y1="985" x2="740" y2="985" stroke="#224488" stroke-width="1" opacity="0.4"/>
+  <!-- Footer -->
+  <line x1="100" y1="975" x2="700" y2="975" stroke="#ff0088" stroke-width="0.5" opacity="0.2"/>
+  <text x="400" y="1010" text-anchor="middle" font-family="'Courier New', monospace" font-size="11" fill="#ff0088" letter-spacing="4" opacity="0.5">© 1981 NAMCO // NEON DISTRICT ED.</text>
+  <text x="400" y="1040" text-anchor="middle" font-family="'Courier New', monospace" font-size="12" fill="#00ffcc" letter-spacing="5" filter="url(#neonCyan)" opacity="0.6">INSERT CREDIT ▮</text>
 
-  <!-- Footer text -->
-  <text x="400" y="1020" text-anchor="middle" font-family="'Courier New', monospace" font-size="12" fill="#445588" letter-spacing="4">© 1981 NAMCO LTD.</text>
-  <text x="400" y="1050" text-anchor="middle" font-family="'Courier New', monospace" font-size="11" fill="#334466" letter-spacing="3">INSERT COIN</text>
-
-  <!-- CRT vignette overlay -->
+  <!-- Scanline overlay -->
+  <rect width="800" height="1100" fill="url(#scanlines)" pointer-events="none" opacity="0.4"/>
+  <!-- Vignette -->
   <rect width="800" height="1100" fill="url(#vignette)" pointer-events="none"/>
 </svg>
