@@ -58,20 +58,55 @@ body {
 }
 #reset-btn:hover { background: #a8d8ea; color: #0d2137; }
 
-#music-toggle {
+#radio-widget {
   position: fixed;
-  top: 18px;
+  top: 12px;
   right: 380px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   z-index: 40;
+  background: rgba(10,0,24,0.7);
+  border: 1px solid #aa00ff;
+  border-radius: 8px;
+  padding: 6px 12px;
 }
 
-#music-label {
+#radio-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#radio-label {
   color: #a8d8ea;
   font-size: 13px;
   user-select: none;
+}
+
+#radio-tracks {
+  display: flex;
+  gap: 4px;
+}
+
+.radio-track {
+  background: rgba(170,0,255,0.15);
+  border: 1px solid #aa00ff;
+  color: #a8d8ea;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.radio-track.active {
+  background: #aa00ff;
+  color: #f8f1e0;
+}
+
+.radio-track:hover:not(.active) {
+  background: rgba(170,0,255,0.35);
 }
 
 .toggle-switch {

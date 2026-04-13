@@ -177,22 +177,51 @@ soundCheckbox.addEventListener('change', () => {
   );
 });
 
-// Background music (hidden YouTube iframe)
+// ── Radio: background music with track switching ──
 const musicCheckbox = document.getElementById('music-checkbox');
+const trackButtons = document.querySelectorAll('.radio-track');
 let musicPlaying = false;
+
+const RADIO_TRACKS = [
+  `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
+  `https://www.youtube.com/embed/TQvXEza4fPc?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`
+];
+let currentTrack = 0;
+
 const musicIframe = document.createElement('iframe');
 musicIframe.allow = 'autoplay; encrypted-media';
 musicIframe.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px';
-musicIframe.src = `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+musicIframe.src = RADIO_TRACKS[currentTrack];
 document.body.appendChild(musicIframe);
+
+function sendMusicCommand(cmd) {
+  try {
+    musicIframe.contentWindow.postMessage(
+      JSON.stringify({ event: 'command', func: cmd, args: '' }),
+      '*'
+    );
+  } catch (e) { /* ignore */ }
+}
 
 musicCheckbox.addEventListener('change', () => {
   musicPlaying = musicCheckbox.checked;
-  const cmd = musicPlaying ? 'playVideo' : 'pauseVideo';
-  musicIframe.contentWindow.postMessage(
-    JSON.stringify({ event: 'command', func: cmd, args: '' }),
-    '*'
-  );
+  sendMusicCommand(musicPlaying ? 'playVideo' : 'pauseVideo');
+});
+
+trackButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const idx = parseInt(btn.dataset.track);
+    if (idx === currentTrack) return;
+    currentTrack = idx;
+
+    // Update active button styling
+    trackButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Switch track: reload iframe with new URL, auto-play if music was playing
+    const autoplay = musicPlaying ? '1' : '0';
+    musicIframe.src = RADIO_TRACKS[currentTrack].replace('autoplay=0', `autoplay=${autoplay}`);
+  });
 });
 
 addUpdateCallback(() => ui.updateHints());

@@ -16,12 +16,18 @@
   <div id="breadcrumb"></div>
   <button id="back-btn" class="hidden">← Back</button>
   <button id="reset-btn">⌂ Reset View</button>
-  <div id="music-toggle" title="Toggle background music">
-    <label class="toggle-switch">
-      <input type="checkbox" id="music-checkbox" />
-      <span class="toggle-slider"></span>
-    </label>
-    <span id="music-label">🎵 Music</span>
+  <div id="radio-widget">
+    <div id="radio-controls">
+      <label class="toggle-switch">
+        <input type="checkbox" id="music-checkbox" />
+        <span class="toggle-slider"></span>
+      </label>
+      <span id="radio-label">📻 Radio</span>
+    </div>
+    <div id="radio-tracks">
+      <button class="radio-track active" data-track="0">Ch 1</button>
+      <button class="radio-track" data-track="1">Ch 2</button>
+    </div>
   </div>
   <div id="sound-toggle" title="Toggle video sound">
     <label class="toggle-switch">
