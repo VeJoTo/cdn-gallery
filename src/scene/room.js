@@ -133,7 +133,7 @@ export function createRoom(scene) {
   scene.add(neonPurple);
 
   // Neon floor strips along the base of left & right walls
-  const stripGeom = new THREE.BoxGeometry(7, 0.02, 0.06);
+  const stripGeom = new THREE.BoxGeometry(6, 0.02, 0.06);
 
   const leftStripMat = new THREE.MeshStandardMaterial({
     color: 0xff44aa, emissive: 0xff44aa, emissiveIntensity: 2.0
