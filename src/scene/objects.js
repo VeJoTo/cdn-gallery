@@ -1453,7 +1453,7 @@ export function createObjects(scene) {
     new THREE.MeshBasicMaterial({ map: aiTex })
   );
   // Right wall, facing left
-  aiPoster.position.set(3.48, 1.5, 2.2);
+  aiPoster.position.set(3.42, 1.5, 2.2);
   aiPoster.rotation.y = -Math.PI / 2;
   aiPoster.userData = {
     clickable: true,
