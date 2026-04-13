@@ -278,56 +278,7 @@ function buildDesk() {
   floppyLabel.position.set(-0.4, 0.898, 0.155);
   group.add(floppyLabel);
 
-  // ── Globe on the left side of the desk ──
-  const globeGroup = new THREE.Group();
-  globeGroup.position.set(-1.0, 0.91, 0.1);
-
-  const standBase = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.08, 0.04, 12),
-    new THREE.MeshLambertMaterial({ color: 0x1b3a4b })
-  );
-  standBase.position.y = 0.02;
-  globeGroup.add(standBase);
-
-  const standArc = new THREE.Mesh(
-    new THREE.TorusGeometry(0.13, 0.008, 8, 16, Math.PI),
-    new THREE.MeshLambertMaterial({ color: 0x1b3a4b })
-  );
-  standArc.position.y = 0.17;
-  standArc.rotation.x = Math.PI / 2;
-  standArc.rotation.z = Math.PI / 2;
-  globeGroup.add(standArc);
-
-  // Globe sphere with painted continents
-  const globeCanvas = document.createElement('canvas');
-  globeCanvas.width = 256;
-  globeCanvas.height = 128;
-  const gctx = globeCanvas.getContext('2d');
-  gctx.fillStyle = '#1b3a4b';
-  gctx.fillRect(0, 0, 256, 128);
-  gctx.fillStyle = '#ffd166';
-  gctx.beginPath(); gctx.ellipse(60, 50, 22, 14, 0, 0, Math.PI * 2); gctx.fill();
-  gctx.beginPath(); gctx.ellipse(90, 80, 16, 18, 0, 0, Math.PI * 2); gctx.fill();
-  gctx.beginPath(); gctx.ellipse(140, 55, 28, 16, 0, 0, Math.PI * 2); gctx.fill();
-  gctx.beginPath(); gctx.ellipse(180, 90, 20, 12, 0, 0, Math.PI * 2); gctx.fill();
-  gctx.beginPath(); gctx.ellipse(210, 50, 14, 10, 0, 0, Math.PI * 2); gctx.fill();
-
-  const globeTex = new THREE.CanvasTexture(globeCanvas);
-  const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(0.12, 24, 16),
-    new THREE.MeshStandardMaterial({ map: globeTex, roughness: 0.7 })
-  );
-  sphere.position.y = 0.17;
-  sphere.userData = {
-    clickable: true,
-    action: 'openPanel',
-    panelId: 'globe',
-    panelTitle: 'CDN International Reach'
-  };
-  globeGroup.add(sphere);
-
-  group.add(globeGroup);
-  group.userData = { clickable: true, hotspot: 'desk', globeMesh: sphere };
+  group.userData = { clickable: true, hotspot: 'desk' };
 
   return group;
 }
@@ -575,60 +526,45 @@ function buildPoster(x, y, z, frameColor, accentColor, title, idx) {
   return plane;
 }
 
-// Stick-letter segments. Each value is a list of [x, y, w, h] rects (normalized 0-1)
-// drawn into a 0.16-wide × 0.22-tall letter cell.
-const LETTER_SEGMENTS = {
-  G: [[0,0.5,1,0.1],[0,0,0.1,1],[0,0.9,1,0.1],[0.6,0.5,0.4,0.1],[0.9,0.5,0.1,0.5]],
-  A: [[0,0,0.1,1],[0.9,0,0.1,1],[0,0.9,1,0.1],[0,0.45,1,0.1]],
-  M: [[0,0,0.1,1],[0.9,0,0.1,1],[0.4,0.3,0.2,0.1],[0.3,0.15,0.1,0.2],[0.6,0.15,0.1,0.2]],
-  E: [[0,0,0.1,1],[0,0,1,0.1],[0,0.45,0.7,0.1],[0,0.9,1,0.1]],
-  R: [[0,0,0.1,1],[0,0,1,0.1],[0.9,0,0.1,0.5],[0,0.45,1,0.1],[0.5,0.5,0.5,0.5]],
-  O: [[0,0,0.1,1],[0.9,0,0.1,1],[0,0,1,0.1],[0,0.9,1,0.1]]
-};
-
-function buildLetter(char, x, y, color) {
-  const group = new THREE.Group();
-  const segs = LETTER_SEGMENTS[char] || [];
-  const cellW = 0.16;
-  const cellH = 0.22;
-  const mat = new THREE.MeshStandardMaterial({
-    color, emissive: color, emissiveIntensity: 1.4
-  });
-  for (const [sx, sy, sw, sh] of segs) {
-    const seg = new THREE.Mesh(
-      new THREE.BoxGeometry(Math.max(sw * cellW, 0.015), Math.max(sh * cellH, 0.015), 0.025),
-      mat
-    );
-    seg.position.set(
-      x + sx * cellW + (sw * cellW) / 2,
-      y + (1 - sy - sh) * cellH + (sh * cellH) / 2,
-      0
-    );
-    group.add(seg);
-  }
-  return group;
-}
-
 function buildNeonSign() {
   const group = new THREE.Group();
   group.position.set(1.8, 2.85, -2.97);
 
-  const word1 = 'GAME';
-  const word2 = 'ROOM';
-  const letterSpacing = 0.20;
-  const word1Width = word1.length * letterSpacing;
-  const word2Width = word2.length * letterSpacing;
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 192;
+  const ctx = canvas.getContext('2d');
 
-  // GAME (top row)
-  for (let i = 0; i < word1.length; i++) {
-    const letter = buildLetter(word1[i], -word1Width / 2 + i * letterSpacing, 0.12, 0xff006e);
-    group.add(letter);
-  }
-  // ROOM (bottom row)
-  for (let i = 0; i < word2.length; i++) {
-    const letter = buildLetter(word2[i], -word2Width / 2 + i * letterSpacing, -0.18, 0xff006e);
-    group.add(letter);
-  }
+  // Transparent background
+  ctx.clearRect(0, 0, 512, 192);
+
+  // Neon pink glow text
+  ctx.font = 'bold 64px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Glow layers (multiple strokes for neon effect)
+  ctx.shadowColor = '#ff006e';
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = '#ff006e';
+  ctx.fillText('GAME', 256, 60);
+  ctx.fillText('ROOM', 256, 140);
+
+  // Bright core
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = '#ff8ab5';
+  ctx.fillText('GAME', 256, 60);
+  ctx.fillText('ROOM', 256, 140);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    side: THREE.DoubleSide
+  });
+
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.56), mat);
+  group.add(plane);
 
   return group;
 }
@@ -868,6 +804,73 @@ function buildTV() {
   return group;
 }
 
+function buildGlobe() {
+  const group = new THREE.Group();
+  // Standalone position: on the floor to the left of the desk
+  group.position.set(0.2, 0, -2.4);
+
+  // Pedestal base
+  const baseMat = new THREE.MeshLambertMaterial({ color: 0x1b3a4b });
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.2, 0.24, 0.06, 12),
+    baseMat
+  );
+  base.position.y = 0.03;
+  group.add(base);
+
+  // Vertical pole
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.025, 0.025, 0.8, 8),
+    baseMat
+  );
+  pole.position.y = 0.43;
+  group.add(pole);
+
+  // Arc cradle
+  const arc = new THREE.Mesh(
+    new THREE.TorusGeometry(0.28, 0.012, 8, 24, Math.PI),
+    baseMat
+  );
+  arc.position.y = 0.85;
+  arc.rotation.x = Math.PI / 2;
+  arc.rotation.z = Math.PI / 2;
+  group.add(arc);
+
+  // Globe sphere with painted continents — bigger radius
+  const globeCanvas = document.createElement('canvas');
+  globeCanvas.width = 512;
+  globeCanvas.height = 256;
+  const gctx = globeCanvas.getContext('2d');
+  gctx.fillStyle = '#1b3a4b';
+  gctx.fillRect(0, 0, 512, 256);
+  gctx.fillStyle = '#ffd166';
+  // Crude continent blobs (bigger canvas for more detail)
+  gctx.beginPath(); gctx.ellipse(120, 100, 44, 28, 0, 0, Math.PI * 2); gctx.fill();
+  gctx.beginPath(); gctx.ellipse(180, 160, 32, 36, 0, 0, Math.PI * 2); gctx.fill();
+  gctx.beginPath(); gctx.ellipse(280, 110, 56, 32, 0, 0, Math.PI * 2); gctx.fill();
+  gctx.beginPath(); gctx.ellipse(360, 180, 40, 24, 0, 0, Math.PI * 2); gctx.fill();
+  gctx.beginPath(); gctx.ellipse(420, 100, 28, 20, 0, 0, Math.PI * 2); gctx.fill();
+
+  const globeTex = new THREE.CanvasTexture(globeCanvas);
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.25, 32, 24),
+    new THREE.MeshStandardMaterial({ map: globeTex, roughness: 0.6, metalness: 0.1 })
+  );
+  sphere.position.y = 0.85;
+  group.add(sphere);
+
+  group.userData = {
+    clickable: true,
+    hotspot: 'globe',
+    action: 'openPanel',
+    panelId: 'globe',
+    panelTitle: 'CDN International Reach',
+    globeMesh: sphere
+  };
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(-2.5, 0xff006e);
   const arcadeRight = buildArcadeCabinet(2.5,  0x00e5ff);
@@ -884,6 +887,7 @@ export function createObjects(scene) {
   const pedestal    = buildPedestal();
   const rabbitHole  = buildRabbitHole();
   const tv          = buildTV();
+  const globe       = buildGlobe();
 
   const posters = [
     buildPoster(-2.5, 2.0, -2.99, 0xff006e, 0x9b00ff, 'NEON RUNNER',  0),
@@ -907,11 +911,11 @@ export function createObjects(scene) {
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
-    neonSign, rug, pedestal, rabbitHole, tv, ...posters
+    neonSign, rug, pedestal, rabbitHole, tv, globe, ...posters
   );
 
   // ── Animation: spin globe + bob book ──
-  const globeMesh = desk.userData.globeMesh;
+  const globeMesh = globe.userData.globeMesh;
   const bookGroup = pedestal.userData.bookGroup;
   let elapsed = 0;
   function sceneUpdate(delta) {
@@ -925,7 +929,7 @@ export function createObjects(scene) {
 
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
-    tv,
-    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole]
+    tv, globe,
+    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole, globe]
   };
 }

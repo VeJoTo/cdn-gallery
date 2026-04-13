@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
-import { createPanels } from './scene/panels.js';
 import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
 import { createUI } from './ui.js';
 
@@ -77,7 +76,7 @@ function animate() {
 }
 
 createRoom(scene);
-const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv } = createObjects(scene);
+const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv, globe } = createObjects(scene);
 addUpdateCallback(sceneUpdate);
 
 // ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
@@ -92,17 +91,15 @@ const tvCSS3D = new CSS3DObject(tvVideoIframe);
 //   (3.49 - 0.071, 2.85, 0) = (3.419, 2.85, 0)
 tvCSS3D.position.set(3.419, 2.85, 0);
 // Face world -X: starting orientation (+Z facing) rotated by +π/2 about Y.
-tvCSS3D.rotation.y = Math.PI / 2;
+tvCSS3D.rotation.y = -Math.PI / 2;
 // Iframe CSS size is 1280 × 720 px; target world size is 1.92 × 1.08 units.
 // Uniform scale = 1.92 / 1280 = 0.0015
 const tvScale = 1.92 / 1280;
 tvCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvCSS3D);
-const panels = createPanels(scene);
 
 const clickableObjects = [
   ...arcadeLeft.children, ...arcadeRight.children,
-  ...panels,
   desk, ...posters,
   pedestal,
   ...extras
