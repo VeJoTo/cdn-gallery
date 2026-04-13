@@ -288,16 +288,20 @@ podcastToggle.addEventListener('click', () => {
       musicNotes.setActive(false);
     }
   } else {
-    spotifyPlayer.classList.add('hidden');
-    podcastToggle.textContent = '▶ Play';
+    stopPodcast();
   }
 });
 
-spotifyClose.addEventListener('click', () => {
+function stopPodcast() {
+  // Reload iframe src to kill playback
+  const iframe = document.getElementById('spotify-iframe');
+  if (iframe) { const src = iframe.src; iframe.src = ''; iframe.src = src; }
   spotifyPlayer.classList.add('hidden');
   podcastOpen = false;
   podcastToggle.textContent = '▶ Play';
-});
+}
+
+spotifyClose.addEventListener('click', stopPodcast);
 
 addUpdateCallback(() => ui.updateHints());
 
