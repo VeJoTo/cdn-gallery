@@ -10,14 +10,14 @@ export function createRoom(scene) {
   const tileSize = 64;
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
-      fctx.fillStyle = (row + col) % 2 === 0 ? '#120825' : '#0a0018';
+      fctx.fillStyle = (row + col) % 2 === 0 ? '#1e1230' : '#2d1f3d';
       fctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
     }
   }
   const floorTex = new THREE.CanvasTexture(floorCanvas);
   const floorMat = new THREE.MeshStandardMaterial({
     map: floorTex,
-    roughness: 0.15,
+    roughness: 0.25,
     metalness: 0.3,
     side: THREE.FrontSide
   });
@@ -27,10 +27,10 @@ export function createRoom(scene) {
   wallCanvas.height = 256;
   const wctx = wallCanvas.getContext('2d');
   // Base wall color
-  wctx.fillStyle = '#0a0018';
+  wctx.fillStyle = '#2d1f3d';
   wctx.fillRect(0, 0, 256, 256);
   // Mortar lines (slightly lighter)
-  wctx.strokeStyle = '#150828';
+  wctx.strokeStyle = '#3a2850';
   wctx.lineWidth = 2;
   const brickH = 20;
   const brickW = 50;
@@ -55,15 +55,15 @@ export function createRoom(scene) {
   const wallMat = new THREE.MeshStandardMaterial({
     map: wallTex,
     color: 0x0a0018,
-    emissive: 0x1a0830,
-    emissiveIntensity: 0.3,
+    emissive: 0x3a2050,
+    emissiveIntensity: 0.5,
     roughness: 0.85,
     side: THREE.FrontSide
   });
   const ceilMat  = new THREE.MeshStandardMaterial({
-    color: 0x050010,
-    emissive: 0x0a0018,
-    emissiveIntensity: 0.15,
+    color: 0x1a1028,
+    emissive: 0x2a1838,
+    emissiveIntensity: 0.35,
     side: THREE.FrontSide
   });
 
@@ -101,15 +101,15 @@ export function createRoom(scene) {
   scene.add(ceil);
 
   // ── Lighting ────────────────────────────────────
-  const ambient = new THREE.AmbientLight(0x4a1050, 0.6);
+  const ambient = new THREE.AmbientLight(0x6a3070, 0.9);
   scene.add(ambient);
 
   // Hemisphere light: hot pink from above, dark navy from below
-  const hemi = new THREE.HemisphereLight(0xff00ff, 0x0a0018, 0.6);
+  const hemi = new THREE.HemisphereLight(0xff66cc, 0x2a1838, 0.8);
   hemi.position.set(0, 4, 0);
   scene.add(hemi);
 
-  const dirLight = new THREE.DirectionalLight(0x8888ff, 0.4);
+  const dirLight = new THREE.DirectionalLight(0xffaa66, 0.6);
   dirLight.position.set(2, 8, 6);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near = 0.5;
@@ -136,7 +136,7 @@ export function createRoom(scene) {
   const stripGeom = new THREE.BoxGeometry(7, 0.02, 0.06);
 
   const leftStripMat = new THREE.MeshStandardMaterial({
-    color: 0xe84393, emissive: 0xe84393, emissiveIntensity: 2.0
+    color: 0xff44aa, emissive: 0xff44aa, emissiveIntensity: 2.0
   });
   const leftStrip = new THREE.Mesh(stripGeom, leftStripMat);
   leftStrip.rotation.y = Math.PI / 2;
@@ -182,6 +182,18 @@ export function createRoom(scene) {
   const backCeilStrip = new THREE.Mesh(backStripGeom, backCeilMat);
   backCeilStrip.position.set(0, ceilingY, -2.96);
   scene.add(backCeilStrip);
+
+  // Warm amber ceiling accent strip (parallel to back wall, offset)
+  const amberCeilMat = new THREE.MeshStandardMaterial({
+    color: 0xffaa44, emissive: 0xffaa44, emissiveIntensity: 2.0
+  });
+  const amberCeilStrip = new THREE.Mesh(new THREE.BoxGeometry(7, 0.04, 0.08), amberCeilMat);
+  amberCeilStrip.position.set(0, ceilingY, -1.5);
+  scene.add(amberCeilStrip);
+
+  const amberFill = new THREE.PointLight(0xffaa44, 1.5, 10);
+  amberFill.position.set(0, 3.2, -1.5);
+  scene.add(amberFill);
 
   // Back wall floor strip — cream, runs along x at the base
   const backFloorMat = new THREE.MeshStandardMaterial({
