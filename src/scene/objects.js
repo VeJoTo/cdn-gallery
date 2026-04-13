@@ -1375,7 +1375,7 @@ export function createObjects(scene) {
 
   const posters = [
     buildImagePoster(-2.5, 2.0, -2.99, (import.meta.env.BASE_URL || '/') + 'galaga-poster.svg', 'GALAGA', 0),
-    buildPoster(-1.4, 2.0, -2.99, 0xa8d8ea, 0xe84393, 'PAC-MAN',        1),
+    buildImagePoster(-1.4, 2.0, -2.99, (import.meta.env.BASE_URL || '/') + 'pacman-poster.svg', 'PAC-MAN', 1),
     buildPoster(-0.3, 2.0, -2.99, 0xf2a6c1, 0xa8d8ea, 'SPACE INVADERS', 2)
   ];
 
