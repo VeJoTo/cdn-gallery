@@ -1,0 +1,346 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="800" height="1100">
+  <defs>
+    <!-- Starfield glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="scanlines">
+      <feImage result="tile" width="4" height="4" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='2' fill='%23000' opacity='0.08'/%3E%3C/svg%3E"/>
+      <feTile in="tile" result="pattern"/>
+      <feComposite in="SourceGraphic" in2="pattern" operator="over"/>
+    </filter>
+    <!-- Gradient for background -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="40%" stop-color="#0d0d2b"/>
+      <stop offset="100%" stop-color="#050510"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff3333"/>
+      <stop offset="50%" stop-color="#ff0000"/>
+      <stop offset="100%" stop-color="#cc0000"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.6"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="1100" fill="url(#bgGrad)"/>
+
+  <!-- Stars - scattered -->
+  <g opacity="0.7">
+    <circle cx="45" cy="30" r="1" fill="#fff"/>
+    <circle cx="120" cy="85" r="1.5" fill="#aaf"/>
+    <circle cx="230" cy="50" r="1" fill="#fff"/>
+    <circle cx="340" cy="120" r="0.8" fill="#ffa"/>
+    <circle cx="450" cy="40" r="1.2" fill="#fff"/>
+    <circle cx="560" cy="90" r="1" fill="#aff"/>
+    <circle cx="670" cy="60" r="1.5" fill="#fff"/>
+    <circle cx="750" cy="130" r="0.8" fill="#faf"/>
+    <circle cx="80" cy="200" r="1" fill="#fff"/>
+    <circle cx="190" cy="250" r="1.3" fill="#aaf"/>
+    <circle cx="310" cy="230" r="0.7" fill="#fff"/>
+    <circle cx="500" cy="210" r="1.1" fill="#ffa"/>
+    <circle cx="620" cy="270" r="1" fill="#fff"/>
+    <circle cx="720" cy="240" r="1.4" fill="#aff"/>
+    <circle cx="60" cy="350" r="1" fill="#fff"/>
+    <circle cx="170" cy="400" r="0.9" fill="#fff"/>
+    <circle cx="290" cy="380" r="1.2" fill="#faf"/>
+    <circle cx="410" cy="330" r="0.8" fill="#fff"/>
+    <circle cx="530" cy="370" r="1" fill="#aaf"/>
+    <circle cx="650" cy="340" r="1.3" fill="#fff"/>
+    <circle cx="760" cy="390" r="0.7" fill="#ffa"/>
+    <circle cx="100" cy="500" r="1.1" fill="#fff"/>
+    <circle cx="220" cy="540" r="1" fill="#fff"/>
+    <circle cx="350" cy="510" r="1.4" fill="#aff"/>
+    <circle cx="470" cy="480" r="0.9" fill="#fff"/>
+    <circle cx="590" cy="520" r="1.2" fill="#faf"/>
+    <circle cx="710" cy="490" r="1" fill="#fff"/>
+    <circle cx="55" cy="620" r="1.3" fill="#aaf"/>
+    <circle cx="180" cy="670" r="0.8" fill="#fff"/>
+    <circle cx="300" cy="640" r="1" fill="#ffa"/>
+    <circle cx="430" cy="690" r="1.5" fill="#fff"/>
+    <circle cx="550" cy="650" r="0.7" fill="#fff"/>
+    <circle cx="680" cy="700" r="1.1" fill="#aff"/>
+    <circle cx="90" cy="780" r="1" fill="#fff"/>
+    <circle cx="200" cy="810" r="1.2" fill="#faf"/>
+    <circle cx="370" cy="770" r="0.9" fill="#fff"/>
+    <circle cx="510" cy="800" r="1.4" fill="#fff"/>
+    <circle cx="640" cy="830" r="1" fill="#aaf"/>
+    <circle cx="740" cy="760" r="1.3" fill="#fff"/>
+    <circle cx="130" cy="900" r="0.8" fill="#ffa"/>
+    <circle cx="260" cy="940" r="1" fill="#fff"/>
+    <circle cx="400" cy="910" r="1.1" fill="#fff"/>
+    <circle cx="570" cy="950" r="1.5" fill="#aff"/>
+    <circle cx="700" cy="920" r="0.7" fill="#fff"/>
+    <circle cx="50" cy="1020" r="1.2" fill="#fff"/>
+    <circle cx="250" cy="1050" r="1" fill="#faf"/>
+    <circle cx="480" cy="1030" r="1.3" fill="#fff"/>
+    <circle cx="660" cy="1060" r="0.9" fill="#aaf"/>
+    <circle cx="770" cy="1040" r="1" fill="#fff"/>
+  </g>
+
+  <!-- ===== TITLE "GALAGA" ===== -->
+  <g filter="url(#textGlow)">
+    <!-- G -->
+    <g fill="url(#titleGrad)">
+      <rect x="100" y="70" width="80" height="16" rx="2"/>
+      <rect x="100" y="70" width="16" height="80" rx="2"/>
+      <rect x="100" y="134" width="80" height="16" rx="2"/>
+      <rect x="164" y="110" width="16" height="40" rx="2"/>
+      <rect x="140" y="110" width="40" height="16" rx="2"/>
+    </g>
+    <!-- A -->
+    <g fill="url(#titleGrad)">
+      <rect x="200" y="70" width="16" height="80" rx="2"/>
+      <rect x="264" y="70" width="16" height="80" rx="2"/>
+      <rect x="200" y="70" width="80" height="16" rx="2"/>
+      <rect x="200" y="110" width="80" height="16" rx="2"/>
+    </g>
+    <!-- L -->
+    <g fill="url(#titleGrad)">
+      <rect x="300" y="70" width="16" height="80" rx="2"/>
+      <rect x="300" y="134" width="70" height="16" rx="2"/>
+    </g>
+    <!-- A -->
+    <g fill="url(#titleGrad)">
+      <rect x="390" y="70" width="16" height="80" rx="2"/>
+      <rect x="454" y="70" width="16" height="80" rx="2"/>
+      <rect x="390" y="70" width="80" height="16" rx="2"/>
+      <rect x="390" y="110" width="80" height="16" rx="2"/>
+    </g>
+    <!-- G -->
+    <g fill="url(#titleGrad)">
+      <rect x="490" y="70" width="80" height="16" rx="2"/>
+      <rect x="490" y="70" width="16" height="80" rx="2"/>
+      <rect x="490" y="134" width="80" height="16" rx="2"/>
+      <rect x="554" y="110" width="16" height="40" rx="2"/>
+      <rect x="530" y="110" width="40" height="16" rx="2"/>
+    </g>
+    <!-- A -->
+    <g fill="url(#titleGrad)">
+      <rect x="590" y="70" width="16" height="80" rx="2"/>
+      <rect x="654" y="70" width="16" height="80" rx="2"/>
+      <rect x="590" y="70" width="80" height="16" rx="2"/>
+      <rect x="590" y="110" width="80" height="16" rx="2"/>
+    </g>
+  </g>
+
+  <!-- Subtitle -->
+  <text x="400" y="195" text-anchor="middle" font-family="'Courier New', monospace" font-size="18" fill="#5599ff" letter-spacing="12" filter="url(#glow)">CHALLENGING STAGE</text>
+
+  <!-- Decorative line -->
+  <line x1="120" y1="215" x2="680" y2="215" stroke="#ff0044" stroke-width="1" opacity="0.6"/>
+  <line x1="140" y1="219" x2="660" y2="219" stroke="#ff0044" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- ===== ALIEN FORMATION ===== -->
+
+  <!-- Row 1: Boss Galaga (top row) — 4 units -->
+  <g filter="url(#strongGlow)">
+    <!-- Boss 1 -->
+    <g transform="translate(260, 270)">
+      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
+      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
+      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
+      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
+      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
+    </g>
+    <!-- Boss 2 -->
+    <g transform="translate(340, 270)">
+      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
+      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
+      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
+      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
+      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
+    </g>
+    <!-- Boss 3 -->
+    <g transform="translate(420, 270)">
+      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
+      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
+      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
+      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
+      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
+    </g>
+    <!-- Boss 4 -->
+    <g transform="translate(500, 270)">
+      <rect x="0" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="56" y="0" width="8" height="8" fill="#00cc44"/>
+      <rect x="8" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="48" y="8" width="8" height="8" fill="#00cc44"/>
+      <rect x="16" y="8" width="32" height="8" fill="#44ff66"/>
+      <rect x="8" y="16" width="48" height="8" fill="#44ff66"/>
+      <rect x="0" y="24" width="64" height="8" fill="#00cc44"/>
+      <rect x="16" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="40" y="24" width="8" height="8" fill="#fff" opacity="0.9"/>
+      <rect x="8" y="32" width="48" height="8" fill="#44ff66"/>
+      <rect x="16" y="40" width="32" height="8" fill="#00cc44"/>
+    </g>
+  </g>
+
+  <!-- Row 2: Butterfly aliens (8 units) -->
+  <g filter="url(#glow)">
+    <g id="butterfly">
+      <rect x="8" y="0" width="8" height="8" fill="#ff4444"/>
+      <rect x="24" y="0" width="8" height="8" fill="#ff4444"/>
+      <rect x="0" y="8" width="8" height="8" fill="#ff4444"/>
+      <rect x="8" y="8" width="8" height="8" fill="#ff8844"/>
+      <rect x="16" y="8" width="8" height="8" fill="#ff4444"/>
+      <rect x="24" y="8" width="8" height="8" fill="#ff8844"/>
+      <rect x="32" y="8" width="8" height="8" fill="#ff4444"/>
+      <rect x="0" y="16" width="40" height="8" fill="#ff4444"/>
+      <rect x="8" y="16" width="8" height="8" fill="#ffcc00"/>
+      <rect x="24" y="16" width="8" height="8" fill="#ffcc00"/>
+      <rect x="8" y="24" width="24" height="8" fill="#ff8844"/>
+      <rect x="0" y="32" width="8" height="8" fill="#ff4444"/>
+      <rect x="32" y="32" width="8" height="8" fill="#ff4444"/>
+    </g>
+  </g>
+  <!-- Butterfly row instances -->
+  <use href="#butterfly" x="170" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="220" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="270" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="320" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="370" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="420" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="470" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="520" y="340" filter="url(#glow)"/>
+  <use href="#butterfly" x="570" y="340" filter="url(#glow)"/>
+
+  <!-- Row 3: Second butterfly row -->
+  <use href="#butterfly" x="170" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="220" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="270" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="320" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="370" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="420" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="470" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="520" y="395" filter="url(#glow)"/>
+  <use href="#butterfly" x="570" y="395" filter="url(#glow)"/>
+
+  <!-- Row 4 & 5: Bee/moth aliens -->
+  <g id="bee">
+    <rect x="16" y="0" width="8" height="8" fill="#5588ff"/>
+    <rect x="8" y="8" width="24" height="8" fill="#5588ff"/>
+    <rect x="0" y="16" width="40" height="8" fill="#3366dd"/>
+    <rect x="8" y="16" width="8" height="8" fill="#88bbff"/>
+    <rect x="24" y="16" width="8" height="8" fill="#88bbff"/>
+    <rect x="8" y="24" width="24" height="8" fill="#5588ff"/>
+    <rect x="0" y="24" width="8" height="8" fill="#3366dd"/>
+    <rect x="32" y="24" width="8" height="8" fill="#3366dd"/>
+  </g>
+  <use href="#bee" x="150" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="200" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="250" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="300" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="350" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="400" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="450" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="500" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="550" y="450" filter="url(#glow)"/>
+  <use href="#bee" x="600" y="450" filter="url(#glow)"/>
+
+  <use href="#bee" x="150" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="200" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="250" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="300" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="350" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="400" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="450" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="500" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="550" y="500" filter="url(#glow)"/>
+  <use href="#bee" x="600" y="500" filter="url(#glow)"/>
+
+  <!-- ===== PLAYER SHIP ===== -->
+  <g transform="translate(370, 850)" filter="url(#strongGlow)">
+    <rect x="24" y="0" width="8" height="8" fill="#ffffff"/>
+    <rect x="16" y="8" width="24" height="8" fill="#ffffff"/>
+    <rect x="16" y="16" width="24" height="8" fill="#00ccff"/>
+    <rect x="8" y="24" width="40" height="8" fill="#00ccff"/>
+    <rect x="0" y="32" width="56" height="8" fill="#0088cc"/>
+    <rect x="0" y="40" width="8" height="8" fill="#0088cc"/>
+    <rect x="24" y="40" width="8" height="8" fill="#0088cc"/>
+    <rect x="48" y="40" width="8" height="8" fill="#0088cc"/>
+  </g>
+
+  <!-- Laser beam from player -->
+  <rect x="397" y="580" width="3" height="270" fill="#00ffff" opacity="0.8" filter="url(#strongGlow)"/>
+
+  <!-- Explosion effect on a hit alien -->
+  <g transform="translate(389, 560)" filter="url(#strongGlow)">
+    <rect x="8" y="0" width="8" height="8" fill="#ffff00" opacity="0.9"/>
+    <rect x="0" y="8" width="8" height="8" fill="#ff8800" opacity="0.8"/>
+    <rect x="16" y="8" width="8" height="8" fill="#ff4400" opacity="0.7"/>
+    <rect x="8" y="16" width="8" height="8" fill="#ffcc00" opacity="0.9"/>
+    <rect x="-8" y="16" width="8" height="8" fill="#ff6600" opacity="0.5"/>
+    <rect x="24" y="0" width="8" height="8" fill="#ff6600" opacity="0.5"/>
+  </g>
+
+  <!-- ===== SCORE DISPLAY ===== -->
+  <text x="120" y="42" font-family="'Courier New', monospace" font-size="16" fill="#ffffff" letter-spacing="2">1UP</text>
+  <text x="110" y="62" font-family="'Courier New', monospace" font-size="16" fill="#ff3333" letter-spacing="2" filter="url(#glow)">38,400</text>
+
+  <text x="370" y="42" text-anchor="middle" font-family="'Courier New', monospace" font-size="16" fill="#ffffff" letter-spacing="2">HIGH SCORE</text>
+  <text x="370" y="62" text-anchor="middle" font-family="'Courier New', monospace" font-size="16" fill="#ff3333" letter-spacing="2" filter="url(#glow)">999,999</text>
+
+  <!-- ===== BOTTOM INFO ===== -->
+  <!-- Lives display -->
+  <g transform="translate(60, 950)">
+    <!-- Mini ship 1 -->
+    <rect x="8" y="0" width="4" height="4" fill="#00ccff"/>
+    <rect x="4" y="4" width="12" height="4" fill="#0088cc"/>
+    <rect x="0" y="8" width="20" height="4" fill="#0066aa"/>
+    <!-- Mini ship 2 -->
+    <rect x="38" y="0" width="4" height="4" fill="#00ccff"/>
+    <rect x="34" y="4" width="12" height="4" fill="#0088cc"/>
+    <rect x="30" y="8" width="20" height="4" fill="#0066aa"/>
+  </g>
+
+  <!-- Stage flags -->
+  <text x="400" y="960" text-anchor="middle" font-family="'Courier New', monospace" font-size="14" fill="#5599ff" letter-spacing="6">STAGE 03</text>
+
+  <!-- Bottom decorative line -->
+  <line x1="60" y1="985" x2="740" y2="985" stroke="#224488" stroke-width="1" opacity="0.4"/>
+
+  <!-- Footer text -->
+  <text x="400" y="1020" text-anchor="middle" font-family="'Courier New', monospace" font-size="12" fill="#445588" letter-spacing="4">© 1981 NAMCO LTD.</text>
+  <text x="400" y="1050" text-anchor="middle" font-family="'Courier New', monospace" font-size="11" fill="#334466" letter-spacing="3">INSERT COIN</text>
+
+  <!-- CRT vignette overlay -->
+  <rect width="800" height="1100" fill="url(#vignette)" pointer-events="none"/>
+</svg>

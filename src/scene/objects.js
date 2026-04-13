@@ -591,6 +591,42 @@ function buildPoster(x, y, z, frameColor, accentColor, title, idx) {
   return plane;
 }
 
+function buildImagePoster(x, y, z, imageSrc, title, idx) {
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.8, 1.1),
+    new THREE.MeshBasicMaterial({ color: 0x0a0018 }) // placeholder until loaded
+  );
+  plane.position.set(x, y, z);
+  plane.userData = {
+    clickable: true,
+    action: 'openPanel',
+    panelId: 'poster-' + idx,
+    panelTitle: title
+  };
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 550;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0a0018';
+    ctx.fillRect(0, 0, 400, 550);
+    // Draw the image centered and scaled to fit
+    const scale = Math.min(380 / img.width, 530 / img.height);
+    const w = img.width * scale;
+    const h = img.height * scale;
+    ctx.drawImage(img, (400 - w) / 2, (550 - h) / 2, w, h);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    plane.material = new THREE.MeshBasicMaterial({ map: tex });
+  };
+  img.src = imageSrc;
+
+  return plane;
+}
+
 function buildNeonSign() {
   const group = new THREE.Group();
   group.position.set(1.8, 2.85, -2.97);
@@ -1338,7 +1374,7 @@ export function createObjects(scene) {
   const musicNotes  = createMusicNotes(scene);
 
   const posters = [
-    buildPoster(-2.5, 2.0, -2.99, 0xe84393, 0xf2a6c1, 'GALAGA',         0),
+    buildImagePoster(-2.5, 2.0, -2.99, (import.meta.env.BASE_URL || '/') + 'galaga-poster.svg', 'GALAGA', 0),
     buildPoster(-1.4, 2.0, -2.99, 0xa8d8ea, 0xe84393, 'PAC-MAN',        1),
     buildPoster(-0.3, 2.0, -2.99, 0xf2a6c1, 0xa8d8ea, 'SPACE INVADERS', 2)
   ];
