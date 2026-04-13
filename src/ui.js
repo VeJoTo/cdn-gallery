@@ -275,6 +275,21 @@ export function createUI(camera, renderer) {
   bookClose.addEventListener('click', closeBook);
   bookOverlay.addEventListener('click', (e) => { if (e.target === bookOverlay) closeBook(); });
 
+  // ── PDF Report viewer ───────────────────────────
+  const reportOverlay = document.getElementById('report-overlay');
+  const reportClose   = document.getElementById('report-close');
+
+  function openReport() {
+    reportOverlay.classList.remove('hidden');
+  }
+
+  function closeReport() {
+    reportOverlay.classList.add('hidden');
+  }
+
+  reportClose.addEventListener('click', closeReport);
+  reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
+
   // ── Rabbit hole scrollytelling ──────────────────
   const rhOverlay     = document.getElementById('rabbit-hole-overlay');
   const rhClimbBack   = document.getElementById('rh-climb-back');
@@ -327,6 +342,7 @@ export function createUI(camera, renderer) {
       closeInventory();
       closeBook();
       closeRabbitHole();
+      closeReport();
     }
   });
 
@@ -375,6 +391,7 @@ export function createUI(camera, renderer) {
     openInventory,
     openBook,
     openRabbitHole,
+    openReport,
     updateHints
   };
 }

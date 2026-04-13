@@ -692,3 +692,42 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 #rh-climb-back:hover { background: #f8f1e0; color: #0d2137; }
+
+/* ── PDF Report viewer ──────────────────────────── */
+#report-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,33,55,0.95);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#report-overlay.hidden { display: none; }
+
+#report-iframe {
+  width: min(900px, 90vw);
+  height: min(700px, 85vh);
+  border: 2px solid #a8d8ea;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(168,216,234,0.3);
+}
+
+.report-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  background: #0d2137;
+  border: 2px solid #f8f1e0;
+  color: #f8f1e0;
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.report-close-btn:hover { background: #e84393; border-color: #e84393; }

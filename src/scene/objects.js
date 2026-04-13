@@ -106,6 +106,44 @@ function buildTable() {
     group.add(card);
   }
 
+  // CDN Annual Report book on the table
+  const reportCover = new THREE.Mesh(
+    new THREE.BoxGeometry(0.35, 0.04, 0.5),
+    new THREE.MeshLambertMaterial({ color: 0x0d2137 })
+  );
+  reportCover.position.set(0, 0.51, 0);
+  reportCover.castShadow = true;
+  group.add(reportCover);
+
+  // White pages visible from the side
+  const pages = new THREE.Mesh(
+    new THREE.BoxGeometry(0.33, 0.03, 0.48),
+    new THREE.MeshLambertMaterial({ color: 0xf8f1e0 })
+  );
+  pages.position.set(0, 0.5, 0);
+  group.add(pages);
+
+  // Title text on the cover
+  const coverCanvas = document.createElement('canvas');
+  coverCanvas.width = 256;
+  coverCanvas.height = 128;
+  const cctx = coverCanvas.getContext('2d');
+  cctx.fillStyle = '#0d2137';
+  cctx.fillRect(0, 0, 256, 128);
+  cctx.fillStyle = '#f8f1e0';
+  cctx.font = 'bold 20px sans-serif';
+  cctx.textAlign = 'center';
+  cctx.fillText('CDN Annual', 128, 48);
+  cctx.fillText('Report 2025', 128, 76);
+  const coverTex = new THREE.CanvasTexture(coverCanvas);
+  const coverLabel = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.34, 0.17),
+    new THREE.MeshBasicMaterial({ map: coverTex })
+  );
+  coverLabel.rotation.x = -Math.PI / 2;
+  coverLabel.position.set(0, 0.531, 0);
+  group.add(coverLabel);
+
   return group;
 }
 
@@ -538,15 +576,15 @@ function buildNeonSign() {
   group.position.set(1.8, 2.85, -2.97);
 
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 192;
+  canvas.width = 640;
+  canvas.height = 240;
   const ctx = canvas.getContext('2d');
 
   // Transparent background
-  ctx.clearRect(0, 0, 512, 192);
+  ctx.clearRect(0, 0, 640, 240);
 
   // Neon hot pink glow text
-  ctx.font = 'bold 64px sans-serif';
+  ctx.font = 'bold 80px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
@@ -554,14 +592,14 @@ function buildNeonSign() {
   ctx.shadowColor = '#e84393';
   ctx.shadowBlur = 20;
   ctx.fillStyle = '#e84393';
-  ctx.fillText('GAME', 256, 60);
-  ctx.fillText('ROOM', 256, 140);
+  ctx.fillText('GAME', 320, 75);
+  ctx.fillText('ROOM', 320, 175);
 
   // Bright core
   ctx.shadowBlur = 8;
   ctx.fillStyle = '#f2a6c1';
-  ctx.fillText('GAME', 256, 60);
-  ctx.fillText('ROOM', 256, 140);
+  ctx.fillText('GAME', 320, 75);
+  ctx.fillText('ROOM', 320, 175);
 
   const tex = new THREE.CanvasTexture(canvas);
   const mat = new THREE.MeshBasicMaterial({
@@ -570,7 +608,7 @@ function buildNeonSign() {
     side: THREE.DoubleSide
   });
 
-  const plane = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.56), mat);
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.82), mat);
   group.add(plane);
 
   return group;
@@ -983,7 +1021,7 @@ export function createObjects(scene) {
   arcadeRight.userData = { clickable: true, hotspot: 'arcade-right' };
 
   // Make decorative objects clickable — each opens the panel drawer with placeholder content
-  table.userData     = { clickable: true, action: 'openPanel', panelId: 'table',     panelTitle: 'Card Games & Social Play' };
+  table.userData     = { clickable: true, hotspot: 'table', action: 'openReport', panelTitle: 'CDN Annual Report' };
   beanBag1.userData  = { clickable: true, action: 'openPanel', panelId: 'beanbag-1', panelTitle: 'Casual Seating' };
   beanBag2.userData  = { clickable: true, action: 'openPanel', panelId: 'beanbag-2', panelTitle: 'Casual Seating' };
   chair.userData     = { clickable: true, action: 'openPanel', panelId: 'chair',     panelTitle: 'Pro Gaming Station' };

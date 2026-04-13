@@ -10,7 +10,7 @@ export function createRoom(scene) {
   const tileSize = 64;
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
-      fctx.fillStyle = (row + col) % 2 === 0 ? '#1a1040' : '#0d2137';
+      fctx.fillStyle = (row + col) % 2 === 0 ? '#f8f1e0' : '#0d2137';
       fctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
     }
   }
@@ -20,8 +20,39 @@ export function createRoom(scene) {
     roughness: 0.6,
     side: THREE.FrontSide
   });
-  const wallMat  = new THREE.MeshStandardMaterial({
-    color: 0x0d2137,
+  // Brick-textured walls
+  const wallCanvas = document.createElement('canvas');
+  wallCanvas.width = 256;
+  wallCanvas.height = 256;
+  const wctx = wallCanvas.getContext('2d');
+  // Base wall color
+  wctx.fillStyle = '#0d2137';
+  wctx.fillRect(0, 0, 256, 256);
+  // Mortar lines (slightly lighter)
+  wctx.strokeStyle = '#162a42';
+  wctx.lineWidth = 2;
+  const brickH = 20;
+  const brickW = 50;
+  for (let row = 0; row < 256 / brickH; row++) {
+    const y = row * brickH;
+    wctx.beginPath();
+    wctx.moveTo(0, y);
+    wctx.lineTo(256, y);
+    wctx.stroke();
+    const offset = (row % 2) * (brickW / 2);
+    for (let x = offset; x < 256; x += brickW) {
+      wctx.beginPath();
+      wctx.moveTo(x, y);
+      wctx.lineTo(x, y + brickH);
+      wctx.stroke();
+    }
+  }
+  const wallTex = new THREE.CanvasTexture(wallCanvas);
+  wallTex.wrapS = THREE.RepeatWrapping;
+  wallTex.wrapT = THREE.RepeatWrapping;
+  wallTex.repeat.set(3, 2);
+  const wallMat = new THREE.MeshStandardMaterial({
+    map: wallTex,
     emissive: 0x1a1040,
     emissiveIntensity: 0.45,
     roughness: 0.85,
@@ -68,7 +99,7 @@ export function createRoom(scene) {
   scene.add(ceil);
 
   // ── Lighting ────────────────────────────────────
-  const ambient = new THREE.AmbientLight(0xf2a6c1, 0.8);
+  const ambient = new THREE.AmbientLight(0xe84393, 0.8);
   scene.add(ambient);
 
   // Hemisphere light: hot pink from above, dark navy from below

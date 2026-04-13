@@ -124,6 +124,7 @@ setupClickHandler(renderer, camera, clickableObjects, nav, ui);
 const hoverRaycaster = new THREE.Raycaster();
 const hoverMouse     = new THREE.Vector2();
 
+let hoveredBookGroup = null;
 renderer.domElement.addEventListener('mousemove', (event) => {
   const rect = renderer.domElement.getBoundingClientRect();
   hoverMouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
@@ -132,6 +133,24 @@ renderer.domElement.addEventListener('mousemove', (event) => {
   hoverRaycaster.setFromCamera(hoverMouse, camera);
   const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
   renderer.domElement.style.cursor = hits.length ? 'pointer' : 'default';
+
+  // Book hover glow: scale up the pedestal book when hovered
+  let isHoveringBook = false;
+  if (hits.length) {
+    let obj = hits[0].object;
+    while (obj && !obj.userData.clickable) obj = obj.parent;
+    if (obj && obj.userData.action === 'openBook' && obj.userData.bookGroup) {
+      isHoveringBook = true;
+      hoveredBookGroup = obj.userData.bookGroup;
+    }
+  }
+  if (hoveredBookGroup) {
+    const targetScale = isHoveringBook ? 1.3 : 1.0;
+    hoveredBookGroup.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.15);
+    if (!isHoveringBook && hoveredBookGroup.scale.x < 1.02) {
+      hoveredBookGroup = null;
+    }
+  }
 });
 
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
