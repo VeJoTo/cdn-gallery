@@ -116,6 +116,8 @@ nav.goTo = (id) => {
   const hideArcades = id === 'wall-left';
   arcadeLeft.visible  = !hideArcades;
   arcadeRight.visible = !hideArcades;
+  // Show TV sound button only when zoomed into TV
+  soundBtn.style.display = id === 'tv' ? 'block' : 'none';
 };
 
 setupClickHandler(renderer, camera, clickableObjects, nav, ui);
@@ -154,11 +156,17 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 });
 
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
+document.getElementById('reset-btn').addEventListener('click', () => {
+  nav.goTo('overview');
+  controls.target.set(0, 1, 0);
+  controls.update();
+});
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
 // TV sound toggle
 const soundBtn = document.getElementById('sound-btn');
+soundBtn.style.display = 'none'; // hidden by default, shown when zoomed to TV
 let tvMuted = true;
 soundBtn.addEventListener('click', () => {
   tvMuted = !tvMuted;
@@ -169,6 +177,26 @@ soundBtn.addEventListener('click', () => {
   );
   soundBtn.textContent = tvMuted ? '🔇 Sound' : '🔊 Sound';
   soundBtn.classList.toggle('unmuted', !tvMuted);
+});
+
+// Background music (hidden YouTube iframe)
+const musicBtn = document.getElementById('music-btn');
+let musicPlaying = false;
+const musicIframe = document.createElement('iframe');
+musicIframe.allow = 'autoplay; encrypted-media';
+musicIframe.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px';
+musicIframe.src = `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+document.body.appendChild(musicIframe);
+
+musicBtn.addEventListener('click', () => {
+  musicPlaying = !musicPlaying;
+  const cmd = musicPlaying ? 'playVideo' : 'pauseVideo';
+  musicIframe.contentWindow.postMessage(
+    JSON.stringify({ event: 'command', func: cmd, args: '' }),
+    '*'
+  );
+  musicBtn.textContent = musicPlaying ? '🎵 Playing' : '🎵 Music';
+  musicBtn.classList.toggle('playing', musicPlaying);
 });
 
 addUpdateCallback(() => ui.updateHints());

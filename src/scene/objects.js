@@ -1017,6 +1017,62 @@ export function createObjects(scene) {
     buildPoster(-0.3, 2.0, -2.99, 0xf2a6c1, 0xa8d8ea, 'SPACE INVADERS', 2)
   ];
 
+  // AI Cinema poster on the right wall
+  const aiCanvas = document.createElement('canvas');
+  aiCanvas.width = 400;
+  aiCanvas.height = 520;
+  const actx = aiCanvas.getContext('2d');
+  // Dark background
+  actx.fillStyle = '#0d2137';
+  actx.fillRect(0, 0, 400, 520);
+  // Eye circle (simplified)
+  actx.fillStyle = '#a8d8ea';
+  actx.beginPath();
+  actx.arc(200, 220, 100, 0, Math.PI * 2);
+  actx.fill();
+  // Iris
+  actx.fillStyle = '#4a7a9a';
+  actx.beginPath();
+  actx.arc(200, 220, 50, 0, Math.PI * 2);
+  actx.fill();
+  // Pupil
+  actx.fillStyle = '#0d2137';
+  actx.beginPath();
+  actx.arc(200, 220, 22, 0, Math.PI * 2);
+  actx.fill();
+  // Highlight
+  actx.fillStyle = '#ffffff';
+  actx.beginPath();
+  actx.arc(215, 205, 10, 0, Math.PI * 2);
+  actx.fill();
+  // Text
+  actx.fillStyle = '#f8f1e0';
+  actx.font = 'bold 42px sans-serif';
+  actx.textAlign = 'center';
+  actx.fillText('AN EYE FOR', 200, 400);
+  actx.fillStyle = '#e84393';
+  actx.fillText('AI CINEMA', 200, 450);
+  // Small subtitle
+  actx.fillStyle = '#a8d8ea';
+  actx.font = '16px sans-serif';
+  actx.fillText('CDN Event Series', 200, 490);
+
+  const aiTex = new THREE.CanvasTexture(aiCanvas);
+  const aiPoster = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.0, 1.3),
+    new THREE.MeshBasicMaterial({ map: aiTex })
+  );
+  // Right wall, facing left
+  aiPoster.position.set(3.48, 2.0, 0);
+  aiPoster.rotation.y = -Math.PI / 2;
+  aiPoster.userData = {
+    clickable: true,
+    action: 'openPanel',
+    panelId: 'ai-cinema',
+    panelTitle: 'An Eye for AI Cinema'
+  };
+  scene.add(aiPoster);
+
   arcadeLeft.userData  = { clickable: true, hotspot: 'arcade-left' };
   arcadeRight.userData = { clickable: true, hotspot: 'arcade-right' };
 
@@ -1052,6 +1108,6 @@ export function createObjects(scene) {
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
     tv, globe,
-    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole, globe]
+    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole, globe, aiPoster]
   };
 }

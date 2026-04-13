@@ -103,11 +103,11 @@ export function createRoom(scene) {
   scene.add(ambient);
 
   // Hemisphere light: hot pink from above, dark navy from below
-  const hemi = new THREE.HemisphereLight(0xe84393, 0x0d2137, 0.8);
+  const hemi = new THREE.HemisphereLight(0xe84393, 0x2a1520, 0.8);
   hemi.position.set(0, 4, 0);
   scene.add(hemi);
 
-  const dirLight = new THREE.DirectionalLight(0xf8f1e0, 0.6);
+  const dirLight = new THREE.DirectionalLight(0xffcc88, 0.8);
   dirLight.position.set(2, 8, 6);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near = 0.5;

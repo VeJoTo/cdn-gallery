@@ -15,6 +15,8 @@
 
   <div id="breadcrumb"></div>
   <button id="back-btn" class="hidden">← Back</button>
+  <button id="reset-btn">⌂ Reset View</button>
+  <button id="music-btn" title="Toggle background music">🎵 Music</button>
   <button id="sound-btn" title="Toggle TV sound">🔇 Sound</button>
   <button id="guide-btn">Guide</button>
   <button id="inventory-btn">Inventory</button>
@@ -104,8 +106,15 @@
   </div>
 
   <div id="report-overlay" class="hidden">
-    <button id="report-close" class="report-close-btn">×</button>
-    <iframe id="report-iframe" src="/cdn-report.pdf"></iframe>
+    <div id="report-header">
+      <h2>📄 CDN Annual Report 2025</h2>
+      <p>Centre for Digital Narrative — University of Bergen</p>
+    </div>
+    <div id="report-frame-wrapper">
+      <button id="report-close" class="report-close-btn">×</button>
+      <iframe id="report-iframe" src="/cdn-report.pdf"></iframe>
+    </div>
+    <p id="report-hint">Use scroll or the built-in controls to navigate pages</p>
   </div>
 
   <script type="module" src="/src/main.js"></script>

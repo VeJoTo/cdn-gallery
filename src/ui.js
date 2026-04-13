@@ -99,6 +99,19 @@ export function createUI(camera, renderer) {
         <p>This screen shows a video from the Centre for Digital Narrative. Use the YouTube controls to unmute and watch with sound.</p>
         <p>The CDN produces video content showcasing research, events, and creative digital narratives.</p>
       `;
+    } else if (panelId === 'ai-cinema') {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>An Eye for AI Cinema is a CDN event series exploring the intersection of artificial intelligence and filmmaking.</p>
+        <p>How is AI changing the way we create, edit, and experience cinema? From deepfakes to generative storytelling, this series examines the frontiers of computational creativity in film.</p>
+        <div style="background:rgba(13,33,55,0.5);border:1px solid #a8d8ea;border-radius:8px;padding:16px;margin:16px 0">
+          <p style="font-size:13px;margin-bottom:10px">Hosted by the Centre for Digital Narrative at the University of Bergen.</p>
+          <a href="https://www4.uib.no/en/research/research-centres/center-for-digital-narrative/events/an-eye-for-ai-cinema" target="_blank" rel="noopener"
+             style="display:inline-block;padding:8px 16px;background:#e84393;color:#0d2137;border-radius:4px;text-decoration:none;font-size:13px;font-weight:bold">
+            View Event Details →
+          </a>
+        </div>
+      `;
     } else {
       content = `
         <h2>${safeTitle}</h2>
