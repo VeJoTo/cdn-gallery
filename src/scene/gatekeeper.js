@@ -5,69 +5,78 @@ export function createGatekeeper(scene) {
   const group = new THREE.Group();
   group.position.set(0, 2.0, -2.2);
 
-  // Head
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.32, 16, 12),
-    new THREE.MeshLambertMaterial({ color: 0xf5d0a9 })
-  );
-  group.add(head);
+  // ── Load portrait and remove white background ──
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = '/gatekeeper.jpg';
 
-  // Beard
-  const beard = new THREE.Mesh(
-    new THREE.ConeGeometry(0.22, 0.45, 8),
-    new THREE.MeshLambertMaterial({ color: 0xe8e0d0 })
+  const portraitPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.0, 1.3),
+    // Temporary transparent material until image loads
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
   );
-  beard.position.y = -0.34;
-  group.add(beard);
+  portraitPlane.position.y = -0.1;
+  group.add(portraitPlane);
 
-  // Hat brim
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    // Remove near-white background pixels
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r > 235 && g > 235 && b > 235) {
+        data[i + 3] = 0; // set alpha to 0
+      } else if (r > 220 && g > 220 && b > 220) {
+        // Semi-transparent for near-white edge pixels (anti-aliasing)
+        data[i + 3] = Math.round(255 * (1 - (r + g + b - 660) / (765 - 660)));
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    portraitPlane.material = new THREE.MeshBasicMaterial({
+      map: tex,
+      transparent: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide
+    });
+  };
+
+  // ── Wizard hat (3D geometry, sits on top of the portrait) ──
+  const hatMat = new THREE.MeshLambertMaterial({ color: 0x050d14 });
+
   const brim = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.42, 0.42, 0.06, 12),
-    new THREE.MeshLambertMaterial({ color: 0x2a1a6e })
+    new THREE.CylinderGeometry(0.35, 0.35, 0.05, 12),
+    hatMat
   );
-  brim.position.y = 0.3;
+  brim.position.y = 0.52;
   group.add(brim);
 
-  // Hat cone
-  const hat = new THREE.Mesh(
-    new THREE.ConeGeometry(0.22, 0.7, 12),
-    new THREE.MeshLambertMaterial({ color: 0x2a1a6e })
+  const hatCone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.2, 0.7, 12),
+    hatMat
   );
-  hat.position.y = 0.68;
-  group.add(hat);
+  hatCone.position.y = 0.9;
+  hatCone.rotation.z = 0.06; // slight tilt
+  group.add(hatCone);
 
-  // Eyes
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x1a1a2e });
-  for (const ex of [-0.11, 0.11]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), eyeMat);
-    eye.position.set(ex, 0.06, 0.28);
-    group.add(eye);
-  }
-
-  // Spectacles (two torus rings)
-  const glassMat = new THREE.MeshBasicMaterial({ color: 0x888866 });
-  for (const gx of [-0.11, 0.11]) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.012, 6, 16), glassMat);
-    ring.position.set(gx, 0.06, 0.26);
-    group.add(ring);
-  }
-
-  // Spectacles bridge
-  const bridge = new THREE.Mesh(
-    new THREE.BoxGeometry(0.1, 0.01, 0.01),
-    glassMat
-  );
-  bridge.position.set(0, 0.06, 0.26);
-  group.add(bridge);
-
-  // Stars on hat (3 small emissive spheres)
+  // Gold stars on hat
   const starMat = new THREE.MeshStandardMaterial({
-    color: 0xffdd44,
-    emissive: 0xffdd44,
-    emissiveIntensity: 0.8
+    color: 0xffd166,
+    emissive: 0xffd166,
+    emissiveIntensity: 1.0
   });
   const starPositions = [
-    [0.08, 0.58, 0.18], [-0.1, 0.72, 0.15], [0.04, 0.9, 0.12]
+    [0.08, 0.72, 0.16], [-0.1, 0.86, 0.14], [0.04, 1.05, 0.08]
   ];
   for (const [sx, sy, sz] of starPositions) {
     const star = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 4), starMat);
@@ -75,10 +84,11 @@ export function createGatekeeper(scene) {
     group.add(star);
   }
 
+  // ── Clickable ──
   group.userData = { clickable: true, action: 'openGatekeeper' };
   scene.add(group);
 
-  // Bobbing animation
+  // ── Bobbing animation ──
   let time = 0;
   const baseY = group.position.y;
 

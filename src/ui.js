@@ -6,6 +6,46 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+export const BOOK_PAGES = [
+  {
+    left:  '<h2>The Codex of Digital Narratives</h2><p>In the beginning, stories were carved into stone, etched in clay, whispered around fires.</p>',
+    right: '<p>Then came the printing press, and tales spread on paper wings across continents.</p>'
+  },
+  {
+    left:  '<p>Now, narratives unfurl across screens, weaving through pixels and code.</p><p>Every link, every choice, every algorithm shapes the tale.</p>',
+    right: '<p>The Centre for Digital Narrative studies these new storytelling realms — where reader becomes co-author, where stories adapt to their audience.</p>'
+  },
+  {
+    left:  '<p>Hypertext, interactive fiction, generative AI, virtual worlds, augmented reality…</p><p>The form keeps shifting, but the human need to tell and hear stories endures.</p>',
+    right: '<p>Welcome, traveller, to this gallery of digital tales.</p><p class="book-end">— Fin —</p>'
+  }
+];
+
+const KEYWORD_RESPONSES = [
+  { keys: ['xp', 'level', 'experience'], reply: 'Earn XP by exploring rooms and reading panels. Each discovery counts!' },
+  { keys: ['cdn', 'centre', 'narrative'], reply: 'CDN is the Centre for Digital Narrative at UiB — we study how digital tech shapes stories.' },
+  { keys: ['arcade', 'game'],             reply: 'The arcades hold interactive CDN research. Click them to fly in!' },
+  { keys: ['book', 'tome', 'lore', 'codex'], reply: 'Ah, the Codex! Visit the magical pedestal in the corner to read its secrets.' },
+  { keys: ['globe', 'world', 'map'],      reply: 'The desk globe shows CDN\'s international research connections.' },
+  { keys: ['hi', 'hello', 'hey'],         reply: 'Hello, curious visitor! Ask me anything about this gallery.' }
+];
+
+export function answer(question) {
+  const q = question.toLowerCase();
+  for (const { keys, reply } of KEYWORD_RESPONSES) {
+    if (keys.some(k => q.includes(k))) return reply;
+  }
+  return "I'm still learning about that one. Try asking about XP, CDN, the arcades, or the magical book!";
+}
+
+export function getNextPageIndex(current) {
+  return Math.min(current + 1, BOOK_PAGES.length - 1);
+}
+
+export function getPrevPageIndex(current) {
+  return Math.max(current - 1, 0);
+}
+
 export function createUI(camera, renderer) {
   const breadcrumb       = document.getElementById('breadcrumb');
   const backBtn          = document.getElementById('back-btn');
@@ -36,14 +76,52 @@ export function createUI(camera, renderer) {
 
   // ── Panel drawer ─────────────────────────────────
   function openPanelDrawer(panelId, title) {
-    // panelId reserved for real content lookup when placeholder is replaced
     const safeTitle = escapeHtml(title);
-    drawerContent.innerHTML = `
-      <h2>${safeTitle}</h2>
-      <p>This panel presents CDN research on <strong>${safeTitle}</strong>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-      <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.</p>
-      <p>Explore the interactive elements in this room to learn more about this area of CDN research.</p>
-    `;
+    let content = '';
+
+    if (panelId === 'globe') {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>The CDN globe showcases international research connections. Explore one of our featured works:</p>
+        <div style="background:rgba(13,33,55,0.5);border:1px solid #a8d8ea;border-radius:8px;padding:16px;margin:16px 0">
+          <h3 style="color:#e84393;font-size:16px;margin-bottom:8px">Fin du Monde</h3>
+          <p style="font-size:13px">An interactive digital narrative exploring themes of endings and new beginnings, part of the CDN collection.</p>
+          <a href="https://collection.cdn.uib.no/2024/05/10/fin-du-monde/" target="_blank" rel="noopener"
+             style="display:inline-block;margin-top:10px;padding:8px 16px;background:#e84393;color:#0d2137;border-radius:4px;text-decoration:none;font-size:13px;font-weight:bold">
+            Visit CDN Collection →
+          </a>
+        </div>
+        <p>CDN — the Centre for Digital Narrative at UiB — connects researchers across the globe studying digital storytelling.</p>
+      `;
+    } else if (panelId === 'tv') {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>This screen shows a video from the Centre for Digital Narrative. Use the YouTube controls to unmute and watch with sound.</p>
+        <p>The CDN produces video content showcasing research, events, and creative digital narratives.</p>
+      `;
+    } else if (panelId === 'ai-cinema') {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>An Eye for AI Cinema is a CDN event series exploring the intersection of artificial intelligence and filmmaking.</p>
+        <p>How is AI changing the way we create, edit, and experience cinema? From deepfakes to generative storytelling, this series examines the frontiers of computational creativity in film.</p>
+        <div style="background:rgba(13,33,55,0.5);border:1px solid #a8d8ea;border-radius:8px;padding:16px;margin:16px 0">
+          <p style="font-size:13px;margin-bottom:10px">Hosted by the Centre for Digital Narrative at the University of Bergen.</p>
+          <a href="https://www4.uib.no/en/research/research-centres/center-for-digital-narrative/events/an-eye-for-ai-cinema" target="_blank" rel="noopener"
+             style="display:inline-block;padding:8px 16px;background:#e84393;color:#0d2137;border-radius:4px;text-decoration:none;font-size:13px;font-weight:bold">
+            View Event Details →
+          </a>
+        </div>
+      `;
+    } else {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p>This panel presents CDN research on <strong>${safeTitle}</strong>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.</p>
+        <p>Explore the interactive elements in this room to learn more about this area of CDN research.</p>
+      `;
+    }
+
+    drawerContent.innerHTML = content;
     panelDrawer.classList.remove('hidden');
     requestAnimationFrame(() => panelDrawer.classList.add('open'));
   }
@@ -55,31 +133,40 @@ export function createUI(camera, renderer) {
 
   drawerClose.addEventListener('click', closePanelDrawer);
 
-  // ── Gatekeeper chat ──────────────────────────────
-  const GATEKEEPER_RESPONSES = {
-    "What's in this room?":
-      "Great question! This gaming room holds CDN research presented as interactive exhibits. Try clicking the arcade cabinets — they hold secrets!",
-    "How do I earn XP?":
-      "Explore the room, read the wall panels, and interact with exhibits. Each discovery earns you XP. Unlock new rooms as you level up!",
-    "Tell me about CDN":
-      "CDN — the Centre for Digital Narrative at UiB — studies how digital technologies shape the stories we tell. Pretty fascinating, right?"
-  };
+  // ── Gatekeeper chat (speech bubble + free-form input) ──
+  const SUGGESTED_QUESTIONS = [
+    "What's in this room?",
+    "How do I earn XP?",
+    "Tell me about CDN"
+  ];
+
+  const chatInput = document.getElementById('chat-input');
+  const chatSend  = document.getElementById('chat-send');
+
+  function appendChatMessage(text, role) {
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function sendChatMessage(text) {
+    if (!text.trim()) return;
+    appendChatMessage(text, 'user');
+    appendChatMessage(answer(text), 'gatekeeper');
+  }
 
   function openGatekeeperChat() {
-    chatMessages.innerHTML = `
-      <div class="chat-msg gatekeeper">Hello, curious visitor! I'm your guide. What would you like to know?</div>
-    `;
-    chatChips.innerHTML = Object.keys(GATEKEEPER_RESPONSES).map(q =>
-      `<button class="chat-chip" data-q="${q}">${q}</button>`
+    chatMessages.innerHTML = '';
+    appendChatMessage("Hey Kids! Welcome to the CDN gallery! What are you curious about?", 'gatekeeper');
+
+    chatChips.innerHTML = SUGGESTED_QUESTIONS.map(q =>
+      `<button class="chat-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`
     ).join('');
 
     chatChips.querySelectorAll('.chat-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const q = chip.dataset.q;
-        chatMessages.innerHTML += `<div class="chat-msg user">${q}</div>`;
-        chatMessages.innerHTML += `<div class="chat-msg gatekeeper">${GATEKEEPER_RESPONSES[q]}</div>`;
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      });
+      chip.addEventListener('click', () => sendChatMessage(chip.dataset.q));
     });
 
     gatekeeperChat.classList.remove('hidden');
@@ -92,37 +179,68 @@ export function createUI(camera, renderer) {
   }
 
   chatClose.addEventListener('click', closeGatekeeperChat);
+  chatSend.addEventListener('click', () => {
+    sendChatMessage(chatInput.value);
+    chatInput.value = '';
+  });
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      sendChatMessage(chatInput.value);
+      chatInput.value = '';
+    }
+  });
 
   // ── Inventory overlay ────────────────────────────
   function openInventory() {
     inventoryContent.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:20px">Inventory</h2>
-      <div style="margin-bottom:16px">
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(240,236,224,.5);margin-bottom:6px">Level</div>
-        <div style="font-size:28px;font-weight:bold">Level 1</div>
-      </div>
-      <div style="margin-bottom:20px">
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(240,236,224,.5);margin-bottom:6px">XP Progress</div>
-        <div style="background:rgba(255,255,255,.1);border-radius:4px;height:10px;width:100%">
-          <div style="background:#ccaa55;width:30%;height:100%;border-radius:4px"></div>
-        </div>
-        <div style="font-size:12px;color:rgba(240,236,224,.5);margin-top:4px">150 / 500 XP</div>
-      </div>
-      <div>
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(240,236,224,.5);margin-bottom:10px">Achievements</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${[
-            { icon: '🏛', name: 'First Steps', desc: 'Entered the gallery',  earned: true  },
-            { icon: '🎮', name: 'Player One',  desc: 'Found an arcade',      earned: true  },
-            { icon: '🗝', name: 'Keymaster',   desc: 'Unlock Level 3',       earned: false },
-            { icon: '📚', name: 'Scholar',     desc: 'Read 5 panels',        earned: false }
-          ].map(a => `
-            <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px;opacity:${a.earned ? 1 : 0.4}">
-              <div style="font-size:22px">${a.icon}</div>
-              <div style="font-size:13px;font-weight:bold;margin-top:4px">${a.name}</div>
-              <div style="font-size:11px;color:rgba(240,236,224,.6)">${a.desc}</div>
+      <div class="scrapbook">
+        <div class="scrapbook-page scrapbook-left">
+          <h2 class="scrapbook-title">The Game Room</h2>
+          <div class="polaroid">
+            <div class="polaroid-img" style="background:#1a1a3e;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:32px">🎮</span>
             </div>
-          `).join('')}
+            <div class="polaroid-caption">My exploration so far</div>
+          </div>
+          <div class="sticky-note">
+            <h3>Tasks</h3>
+            <ul>
+              <li>Explore the game room</li>
+              <li>Read the wall panels</li>
+              <li>Visit the rabbit hole</li>
+              <li>Talk to the Guide</li>
+            </ul>
+          </div>
+          <div class="scrapbook-doodle" style="position:absolute;bottom:20px;right:20px;font-size:24px;transform:rotate(-8deg);opacity:0.5">✨</div>
+        </div>
+        <div class="scrapbook-spine"></div>
+        <div class="scrapbook-page scrapbook-right">
+          <h2 class="scrapbook-title">Discoveries</h2>
+          <div class="discovery-grid">
+            <div class="discovery-item found">
+              <div class="discovery-thumb">🏛</div>
+              <div class="discovery-label">Game Room</div>
+            </div>
+            <div class="discovery-item found">
+              <div class="discovery-thumb">📺</div>
+              <div class="discovery-label">TV Archive</div>
+            </div>
+            <div class="discovery-item">
+              <div class="discovery-thumb">?</div>
+              <div class="discovery-label">???</div>
+            </div>
+            <div class="discovery-item">
+              <div class="discovery-thumb">?</div>
+              <div class="discovery-label">???</div>
+            </div>
+          </div>
+          <div class="scrapbook-page-num">1 / 20</div>
+          <div class="scrapbook-tabs">
+            <button class="scrapbook-tab">🏆 Achievements</button>
+            <button class="scrapbook-tab">👤 Profile</button>
+            <button class="scrapbook-tab">📚 Resources</button>
+            <button class="scrapbook-tab">🌐 CDN Website</button>
+          </div>
         </div>
       </div>
     `;
@@ -138,22 +256,120 @@ export function createUI(camera, renderer) {
     if (e.target === inventoryOverlay) closeInventory();
   });
 
+  // ── Book overlay ─────────────────────────────────
+  const bookOverlay  = document.getElementById('book-overlay');
+  const bookPageL    = document.getElementById('book-page-left');
+  const bookPageR    = document.getElementById('book-page-right');
+  const bookPrev     = document.getElementById('book-prev');
+  const bookNext     = document.getElementById('book-next');
+  const bookClose    = document.getElementById('book-close');
+
+  let bookPageIndex = 0;
+
+  function renderBookPage() {
+    bookPageL.innerHTML = BOOK_PAGES[bookPageIndex].left;
+    bookPageR.innerHTML = BOOK_PAGES[bookPageIndex].right;
+    bookPrev.disabled = bookPageIndex === 0;
+    bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
+  }
+
+  function openBook() {
+    bookPageIndex = 0;
+    renderBookPage();
+    bookOverlay.classList.remove('hidden');
+  }
+
+  function closeBook() {
+    bookOverlay.classList.add('hidden');
+  }
+
+  bookPrev.addEventListener('click',  () => { bookPageIndex = getPrevPageIndex(bookPageIndex); renderBookPage(); });
+  bookNext.addEventListener('click',  () => { bookPageIndex = getNextPageIndex(bookPageIndex); renderBookPage(); });
+  bookClose.addEventListener('click', closeBook);
+  bookOverlay.addEventListener('click', (e) => { if (e.target === bookOverlay) closeBook(); });
+
+  // ── PDF Report viewer ───────────────────────────
+  const reportOverlay = document.getElementById('report-overlay');
+  const reportClose   = document.getElementById('report-close');
+
+  function openReport() {
+    reportOverlay.classList.remove('hidden');
+  }
+
+  function closeReport() {
+    reportOverlay.classList.add('hidden');
+  }
+
+  reportClose.addEventListener('click', closeReport);
+  reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
+
+  // ── Rabbit hole scrollytelling ──────────────────
+  const rhOverlay     = document.getElementById('rabbit-hole-overlay');
+  const rhClimbBack   = document.getElementById('rh-climb-back');
+  const rhAchievement = document.getElementById('rh-achievement');
+  const rhSections    = document.querySelectorAll('.rh-section');
+  let rhAchievementUnlocked = false;
+
+  function openRabbitHole() {
+    rhOverlay.classList.remove('hidden');
+    rhOverlay.scrollTop = 0;
+    // Reset section visibility
+    rhSections.forEach(s => s.classList.remove('visible'));
+    // Start observing sections for scroll-based reveal
+    setTimeout(checkRHSections, 100);
+  }
+
+  function closeRabbitHole() {
+    rhOverlay.classList.add('hidden');
+  }
+
+  function checkRHSections() {
+    const scrollY = rhOverlay.scrollTop;
+    const viewH = rhOverlay.clientHeight;
+
+    rhSections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      const overlayRect = rhOverlay.getBoundingClientRect();
+      const sectionTop = rect.top - overlayRect.top;
+      if (sectionTop < viewH * 0.8) {
+        section.classList.add('visible');
+      }
+    });
+
+    // Check if user scrolled to the final section
+    const lastSection = rhSections[rhSections.length - 1];
+    if (lastSection && lastSection.classList.contains('visible') && !rhAchievementUnlocked) {
+      rhAchievementUnlocked = true;
+      rhAchievement.classList.remove('hidden');
+    }
+  }
+
+  rhOverlay.addEventListener('scroll', checkRHSections);
+  rhClimbBack.addEventListener('click', closeRabbitHole);
+
   // ── Global Escape key ────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closePanelDrawer();
       closeGatekeeperChat();
       closeInventory();
+      closeBook();
+      closeRabbitHole();
+      closeReport();
     }
   });
 
   // ── Hotspot hints (screen-space projection) ──────
-  const HINT_HOTSPOTS = ['arcade-left', 'arcade-right', 'wall-left', 'wall-right'];
+  const HINT_HOTSPOTS = ['arcade-left', 'arcade-right', 'desk', 'table', 'globe', 'pedestal', 'rabbit-hole', 'tv'];
   const hintWorldPositions = {
-    'arcade-left':  new THREE.Vector3(-2.5, 0.1, 0.2),
-    'arcade-right': new THREE.Vector3(2.5,  0.1, 0.2),
-    'wall-left':    new THREE.Vector3(-3.4, 1.75, 0),
-    'wall-right':   new THREE.Vector3(3.4,  1.75, 0)
+    'arcade-left':  new THREE.Vector3(-3.15, 1.3, 0.8),
+    'arcade-right': new THREE.Vector3(-3.15, 1.3, -0.5),
+    'desk':         new THREE.Vector3(1.8, 1.0, -2.6),
+    'table':        new THREE.Vector3(0, 0.5, 1.5),
+    'globe':        new THREE.Vector3(0.2, 0.85, -2.4),
+    'pedestal':     new THREE.Vector3(-2.8, 1.2, 2.6),
+    'rabbit-hole':  new THREE.Vector3(-0.8, 0.3, -2.4),
+    'tv':           new THREE.Vector3(3.4, 2.85, 0)
   };
 
   const hintEls = {};
@@ -190,6 +406,9 @@ export function createUI(camera, renderer) {
     openPanelDrawer,
     openGatekeeperChat,
     openInventory,
+    openBook,
+    openRabbitHole,
+    openReport,
     updateHints
   };
 }

@@ -2428,9 +2428,103 @@ git commit -m "chore: final cleanup after neon arcade restyle"
 
 ---
 
+## Task 15: Brighten room with neon ceiling-edge strips and stronger ambient
+
+**Files:**
+- Modify: `src/scene/room.js`
+
+User feedback after Task 1 landed: "the room is super dark now add a lot of neon lighting" + reference image of an isometric arcade with bright cyan/pink LED strips wrapping the ceiling perimeter and a strong purple-pink ambient glow.
+
+This task brightens the scene by (a) adding three emissive ceiling-edge strips along the top of the left/right/back walls (one cyan, one purple, one pink), (b) adding three colored fill point lights near the strips, and (c) bumping the ambient light to a stronger purple tint.
+
+- [ ] **Step 1: Bump the ambient light**
+
+In `src/scene/room.js`, find:
+
+```js
+const ambient = new THREE.AmbientLight(0x1a3a5c, 0.2);
+```
+
+Replace with:
+
+```js
+const ambient = new THREE.AmbientLight(0x4a3a8c, 0.55);
+```
+
+- [ ] **Step 2: Add ceiling-edge neon strips**
+
+After the existing floor strip block (the `rightStrip` is the last `scene.add` before the function ends), append:
+
+```js
+  // ── Ceiling-edge neon strips (LED tape along top of walls) ──
+  const ceilingY = 3.45;
+
+  // Left wall top edge — cyan, runs along z (room depth = 6)
+  const sideStripGeom = new THREE.BoxGeometry(6, 0.04, 0.08);
+
+  const leftCeilMat = new THREE.MeshStandardMaterial({
+    color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.6
+  });
+  const leftCeilStrip = new THREE.Mesh(sideStripGeom, leftCeilMat);
+  leftCeilStrip.rotation.y = Math.PI / 2;
+  leftCeilStrip.position.set(-3.45, ceilingY, 0);
+  scene.add(leftCeilStrip);
+
+  // Right wall top edge — purple, runs along z
+  const rightCeilMat = new THREE.MeshStandardMaterial({
+    color: 0x9b00ff, emissive: 0x9b00ff, emissiveIntensity: 1.6
+  });
+  const rightCeilStrip = new THREE.Mesh(sideStripGeom, rightCeilMat);
+  rightCeilStrip.rotation.y = -Math.PI / 2;
+  rightCeilStrip.position.set(3.45, ceilingY, 0);
+  scene.add(rightCeilStrip);
+
+  // Back wall top edge — pink, runs along x (room width = 7)
+  const backStripGeom = new THREE.BoxGeometry(7, 0.04, 0.08);
+  const backCeilMat = new THREE.MeshStandardMaterial({
+    color: 0xff006e, emissive: 0xff006e, emissiveIntensity: 1.6
+  });
+  const backCeilStrip = new THREE.Mesh(backStripGeom, backCeilMat);
+  backCeilStrip.position.set(0, ceilingY, -2.96);
+  scene.add(backCeilStrip);
+```
+
+- [ ] **Step 3: Add coloured fill point lights near each ceiling strip**
+
+After the ceiling strips, append:
+
+```js
+  // ── Coloured fill lights near each ceiling strip ──
+  const cyanFill = new THREE.PointLight(0x00e5ff, 1.2, 10);
+  cyanFill.position.set(-3.0, 3.2, 0);
+  scene.add(cyanFill);
+
+  const purpleFill = new THREE.PointLight(0x9b00ff, 1.2, 10);
+  purpleFill.position.set(3.0, 3.2, 0);
+  scene.add(purpleFill);
+
+  const pinkFill = new THREE.PointLight(0xff006e, 1.2, 10);
+  pinkFill.position.set(0, 3.2, -2.5);
+  scene.add(pinkFill);
+```
+
+- [ ] **Step 4: Run tests**
+
+Run: `npm test`
+Expected: 6/6 navigation tests still pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/scene/room.js
+git commit -m "feat: brighten room with ceiling-edge neon strips and fill lights"
+```
+
+---
+
 ## Completion
 
-All 14 tasks complete. The gallery now has:
+All tasks complete. The gallery now has:
 - Full neon-arcade-on-ocean-night styling
 - 9 new decor objects (desk + monitors + globe, chair, bookshelf, fridge, lamp, posters, sign, rug, pedestal + book)
 - 2 new clickable hotspots (`desk`, `pedestal`)

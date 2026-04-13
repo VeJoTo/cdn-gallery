@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CDN 3D Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles/main.css" />
 </head>
 <body>
@@ -11,6 +15,16 @@
 
   <div id="breadcrumb"></div>
   <button id="back-btn" class="hidden">← Back</button>
+  <button id="reset-btn">⌂ Reset View</button>
+  <div id="music-toggle" title="Toggle background music">
+    <label class="toggle-switch">
+      <input type="checkbox" id="music-checkbox" />
+      <span class="toggle-slider"></span>
+    </label>
+    <span id="music-label">🎵 Music</span>
+  </div>
+  <button id="sound-btn" title="Toggle TV sound">🔇 Sound</button>
+  <button id="guide-btn">Guide</button>
   <button id="inventory-btn">Inventory</button>
   <div id="hotspot-hints"></div>
 
@@ -20,14 +34,93 @@
   </div>
 
   <div id="gatekeeper-chat" class="hidden">
-    <button id="chat-close">×</button>
-    <div id="chat-messages"></div>
-    <div id="chat-chips"></div>
+    <img id="guide-portrait" src="/guide.png" alt="The Guide" />
+    <div id="guide-dialog">
+      <button id="chat-close">×</button>
+      <div id="chat-header">
+        <div>
+          <div id="chat-header-name">The Guide</div>
+          <div id="chat-header-subtitle">Your gallery companion</div>
+        </div>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-chips"></div>
+      <div id="chat-input-row">
+        <input id="chat-input" type="text" placeholder="Ask me anything…" autocomplete="off" />
+        <button id="chat-send">Send</button>
+      </div>
+    </div>
   </div>
 
   <div id="inventory-overlay" class="hidden">
     <button id="inventory-close">×</button>
     <div id="inventory-content"></div>
+  </div>
+
+  <div id="book-overlay" class="hidden">
+    <div id="book-container">
+      <button id="book-close" class="book-close">×</button>
+      <div id="book-page-left" class="book-page"></div>
+      <div id="book-page-right" class="book-page"></div>
+      <button id="book-prev" class="book-nav">‹</button>
+      <button id="book-next" class="book-nav">›</button>
+    </div>
+  </div>
+
+  <div id="rabbit-hole-overlay" class="hidden">
+    <div id="rabbit-hole-content">
+      <div class="rh-rabbit">🐰</div>
+      <h1 class="rh-title">Down the Rabbit Hole</h1>
+      <p class="rh-subtitle">A deep dive into CDN research</p>
+
+      <section class="rh-section">
+        <div class="rh-rabbit">🐰</div>
+        <h2>Chapter 1: The Digital Narrative</h2>
+        <p>Digital narratives are stories that leverage computational media to create meaning. Unlike traditional linear narratives, they can be interactive, procedural, and responsive to their audience.</p>
+        <p>The Centre for Digital Narrative at the University of Bergen studies how these new forms of storytelling shape culture, identity, and knowledge.</p>
+      </section>
+
+      <section class="rh-section">
+        <h2>Chapter 2: Interactive Fiction</h2>
+        <p>From Zork to Twine, interactive fiction has evolved from text adventures into a rich medium for artistic expression. Readers become co-authors, making choices that shape the narrative.</p>
+        <p>CDN researchers explore how choice architecture in interactive fiction affects reader engagement and emotional investment.</p>
+      </section>
+
+      <section class="rh-section">
+        <h2>Chapter 3: Generative Storytelling</h2>
+        <p>With the rise of large language models, stories can now be generated collaboratively between humans and machines. This raises fundamental questions about authorship, creativity, and narrative agency.</p>
+        <p>CDN's research examines the boundary between human and machine storytelling — where does the author end and the algorithm begin?</p>
+      </section>
+
+      <section class="rh-section">
+        <h2>Chapter 4: Virtual Worlds as Narrative Spaces</h2>
+        <p>From MMORPGs to VR experiences, virtual worlds are narrative environments where stories emerge from player interaction, environmental design, and social dynamics.</p>
+        <p>This gallery itself is an experiment in spatial storytelling — how does navigating a 3D space change the way you engage with research?</p>
+      </section>
+
+      <section class="rh-section rh-final">
+        <div class="rh-rabbit rh-rabbit-big">🐰</div>
+        <h2>You've reached the bottom!</h2>
+        <p>Congratulations, explorer. You've gone deep into the rabbit hole of digital narrative research.</p>
+        <div id="rh-achievement" class="hidden">
+          <div class="rh-achievement-icon">🏆</div>
+          <div class="rh-achievement-text">Achievement Unlocked: <strong>Down the Rabbit Hole</strong></div>
+        </div>
+        <button id="rh-climb-back">↑ Climb Back Up</button>
+      </section>
+    </div>
+  </div>
+
+  <div id="report-overlay" class="hidden">
+    <div id="report-header">
+      <h2>📄 CDN Annual Report 2025</h2>
+      <p>Centre for Digital Narrative — University of Bergen</p>
+    </div>
+    <div id="report-frame-wrapper">
+      <button id="report-close" class="report-close-btn">×</button>
+      <iframe id="report-iframe" src="/cdn-report.pdf"></iframe>
+    </div>
+    <p id="report-hint">Use scroll or the built-in controls to navigate pages</p>
   </div>
 
   <script type="module" src="/src/main.js"></script>
