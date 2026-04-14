@@ -51,8 +51,12 @@ window.addEventListener('resize', () => {
 export const controls = new PointerLockControls(camera, document.body);
 
 // Click to lock pointer (but not if clicking UI elements)
+// Lock pointer on click — both the canvas and the overlay
 renderer.domElement.addEventListener('click', () => {
   if (!controls.isLocked) controls.lock();
+});
+document.getElementById('fp-overlay').addEventListener('click', () => {
+  controls.lock();
 });
 
 // Show/hide a crosshair or instruction when locked/unlocked
