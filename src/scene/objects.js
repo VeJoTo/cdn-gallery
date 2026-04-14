@@ -298,32 +298,84 @@ function buildDesk() {
     panelTitle: 'Digital Storytelling Research'
   };
 
-  // ── Slim wireless keyboard ──
-  const kbMat = new THREE.MeshStandardMaterial({ color: 0x111828, metalness: 0.5, roughness: 0.3 });
-  const keyboard = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.01, 0.15),
-    kbMat
+  // ── Holographic keyboard ──
+  // Glass-like base plate
+  const kbBaseMat = new THREE.MeshStandardMaterial({
+    color: 0x0d1520, metalness: 0.7, roughness: 0.1, transparent: true, opacity: 0.8
+  });
+  const kbBase = new THREE.Mesh(
+    new THREE.BoxGeometry(0.55, 0.008, 0.18),
+    kbBaseMat
   );
-  keyboard.position.set(0, 0.89, 0.05);
-  group.add(keyboard);
+  kbBase.position.set(0, 0.89, 0.05);
+  group.add(kbBase);
 
-  // Keyboard edge glow
-  const kbGlow = new THREE.Mesh(
-    new THREE.BoxGeometry(0.52, 0.003, 0.005),
+  // Glowing key grid (rows of small emissive squares)
+  const keyMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.8
+  });
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 12; col++) {
+      const key = new THREE.Mesh(
+        new THREE.BoxGeometry(0.032, 0.004, 0.028),
+        keyMat
+      );
+      key.position.set(
+        -0.21 + col * 0.038,
+        0.896,
+        -0.02 + row * 0.038
+      );
+      group.add(key);
+    }
+  }
+
+  // Spacebar
+  const spacebar = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18, 0.004, 0.028),
+    keyMat
+  );
+  spacebar.position.set(0, 0.896, 0.13);
+  group.add(spacebar);
+
+  // Keyboard perimeter glow frame
+  const kbFrameMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5
+  });
+  const kbFrames = [
+    { w: 0.56, h: 0.003, d: 0.003, x: 0, z: -0.06 },  // back
+    { w: 0.56, h: 0.003, d: 0.003, x: 0, z: 0.15 },   // front
+    { w: 0.003, h: 0.003, d: 0.21, x: -0.278, z: 0.045 }, // left
+    { w: 0.003, h: 0.003, d: 0.21, x: 0.278, z: 0.045 },  // right
+  ];
+  for (const f of kbFrames) {
+    const strip = new THREE.Mesh(
+      new THREE.BoxGeometry(f.w, f.h, f.d),
+      kbFrameMat
+    );
+    strip.position.set(f.x, 0.895, f.z);
+    group.add(strip);
+  }
+
+  // ── Futuristic wireless mouse ──
+  const mouseMat = new THREE.MeshStandardMaterial({
+    color: 0x0d1520, metalness: 0.6, roughness: 0.15
+  });
+  const mouse = new THREE.Mesh(
+    new THREE.BoxGeometry(0.05, 0.022, 0.08),
+    mouseMat
+  );
+  mouse.position.set(0.4, 0.895, 0.05);
+  group.add(mouse);
+
+  // Mouse glow strip down the center
+  const mouseGlow = new THREE.Mesh(
+    new THREE.BoxGeometry(0.004, 0.005, 0.06),
     new THREE.MeshStandardMaterial({
-      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
     })
   );
-  kbGlow.position.set(0, 0.896, 0.12);
-  group.add(kbGlow);
-
-  // ── Wireless mouse (sleek rounded shape) ──
-  const mouse = new THREE.Mesh(
-    new THREE.BoxGeometry(0.05, 0.02, 0.08),
-    kbMat
-  );
-  mouse.position.set(0.4, 0.89, 0.05);
-  group.add(mouse);
+  mouseGlow.position.set(0.4, 0.908, 0.05);
+  group.add(mouseGlow);
 
   // Mouse scroll wheel (tiny cyan strip)
   const scroll = new THREE.Mesh(
