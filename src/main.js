@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
@@ -35,8 +35,8 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, 1.6, 2.5);
-camera.lookAt(0, 1.6, 0);
+camera.position.set(0, 4.5, 7);
+camera.lookAt(0, 1, 0);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -47,91 +47,61 @@ window.addEventListener('resize', () => {
   cssRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ── First-person controls ──
-export const controls = new PointerLockControls(camera, document.body);
+// ── OrbitControls (free cursor, drag to rotate, A/D to rotate) ──
+export const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.minDistance = 1.5;
+controls.maxDistance = 12;
+controls.minPolarAngle = 0.2;
+controls.maxPolarAngle = Math.PI / 2 - 0.05;
+controls.target.set(0, 1, 0);
 
+// Hide the first-person overlay and crosshair (not used anymore)
 const fpOverlay = document.getElementById('fp-overlay');
 const crosshair = document.getElementById('crosshair');
+if (fpOverlay) fpOverlay.classList.add('hidden');
+if (crosshair) crosshair.classList.add('hidden');
 
-// Lock pointer on any click on the page
-document.addEventListener('click', (e) => {
-  // Don't lock if clicking UI buttons (they have their own handlers)
-  if (e.target.closest('button, input, label, a, #radio-widget, #gatekeeper-chat, #inventory-overlay, #book-overlay, #rabbit-hole-overlay, #report-overlay, #spotify-player, #guide-dialog')) return;
-  if (!controls.isLocked) {
-    controls.lock();
-  }
-});
-
-let hasEnteredOnce = false;
-controls.addEventListener('lock', () => {
-  hasEnteredOnce = true;
-  fpOverlay.classList.add('hidden');
-  crosshair.classList.remove('hidden');
-  // Close any open panels/overlays when entering first-person
-  const drawer = document.getElementById('panel-drawer');
-  if (drawer) { drawer.classList.remove('open'); drawer.classList.add('hidden'); }
-  const sb = document.getElementById('stepback-btn');
-  if (sb) sb.classList.add('hidden');
-});
-controls.addEventListener('unlock', () => {
-  // Only show the intro overlay on the very first visit
-  if (!hasEnteredOnce) fpOverlay.classList.remove('hidden');
-  crosshair.classList.add('hidden');
-});
-
-// WASD movement
-const moveState = { forward: false, backward: false, left: false, right: false, sprint: false };
-const velocity = new THREE.Vector3();
-const direction = new THREE.Vector3();
-const MOVE_SPEED = 10.0;
+// A/D keys rotate the camera around the room
+const ROTATE_SPEED = 1.5;
+const ZOOM_SPEED = 3.0;
+const moveState = { left: false, right: false, forward: false, backward: false };
 
 document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
   switch (e.code) {
-    case 'KeyW': case 'ArrowUp':    moveState.forward = true; break;
-    case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
     case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
     case 'KeyD': case 'ArrowRight': moveState.right = true; break;
-    case 'ShiftLeft': case 'ShiftRight': moveState.sprint = true; break;
+    case 'KeyW': case 'ArrowUp':    moveState.forward = true; break;
+    case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
   }
 });
 
 document.addEventListener('keyup', (e) => {
   switch (e.code) {
-    case 'KeyW': case 'ArrowUp':    moveState.forward = false; break;
-    case 'KeyS': case 'ArrowDown':  moveState.backward = false; break;
     case 'KeyA': case 'ArrowLeft':  moveState.left = false; break;
     case 'KeyD': case 'ArrowRight': moveState.right = false; break;
-    case 'ShiftLeft': case 'ShiftRight': moveState.sprint = false; break;
+    case 'KeyW': case 'ArrowUp':    moveState.forward = false; break;
+    case 'KeyS': case 'ArrowDown':  moveState.backward = false; break;
   }
 });
 
-// Room boundaries (keep player inside)
-const ROOM_BOUNDS = { minX: -3.2, maxX: 3.2, minZ: -2.7, maxZ: 2.7 };
-const EYE_HEIGHT = 1.6;
+function updateRotation(delta) {
+  // A/D rotate
+  if (moveState.left)  controls.autoRotateSpeed = -ROTATE_SPEED * 20;
+  else if (moveState.right) controls.autoRotateSpeed = ROTATE_SPEED * 20;
+  else controls.autoRotateSpeed = 0;
+  controls.autoRotate = moveState.left || moveState.right;
 
-function updateMovement(delta) {
-  if (!controls.isLocked) return;
-
-  // Damping
-  velocity.x -= velocity.x * 8.0 * delta;
-  velocity.z -= velocity.z * 8.0 * delta;
-
-  direction.z = Number(moveState.forward) - Number(moveState.backward);
-  direction.x = Number(moveState.right) - Number(moveState.left);
-  direction.normalize();
-
-  const speed = moveState.sprint ? MOVE_SPEED * 1.8 : MOVE_SPEED;
-
-  if (moveState.forward || moveState.backward) velocity.z -= direction.z * speed * delta;
-  if (moveState.left || moveState.right) velocity.x -= direction.x * speed * delta;
-
-  controls.moveRight(-velocity.x * delta);
-  controls.moveForward(-velocity.z * delta);
-
-  // Clamp to room bounds
-  camera.position.x = Math.max(ROOM_BOUNDS.minX, Math.min(ROOM_BOUNDS.maxX, camera.position.x));
-  camera.position.z = Math.max(ROOM_BOUNDS.minZ, Math.min(ROOM_BOUNDS.maxZ, camera.position.z));
-  camera.position.y = EYE_HEIGHT;
+  // W/S zoom in/out (move camera along the view direction)
+  if (moveState.forward || moveState.backward) {
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    const sign = moveState.forward ? 1 : -1;
+    camera.position.addScaledVector(dir, sign * ZOOM_SPEED * delta);
+  }
 }
 
 // ── Render loop ───────────────────────────────────
@@ -146,7 +116,8 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   for (const fn of updateCallbacks) fn(delta);
-  updateMovement(delta);
+  updateRotation(delta);
+  controls.update();
   updateHoverHighlight();
   renderer.render(scene, camera);
   cssRenderer.render(cssScene, camera);
@@ -221,13 +192,7 @@ let lastHoveredIntensity = null;
 const hoverLabel = document.getElementById('hover-label');
 
 function updateHoverHighlight() {
-  if (!controls.isLocked) {
-    if (hoverLabel) hoverLabel.classList.add('hidden');
-    return;
-  }
-
-  hoverMouse.x = 0;
-  hoverMouse.y = 0;
+  // With free cursor, hover is handled by the mousemove listener below
 
   hoverRaycaster.setFromCamera(hoverMouse, camera);
   const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
@@ -302,9 +267,9 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   nav.goBack();
-  camera.position.set(0, 1.6, 2.5);
-  camera.lookAt(0, 1.6, 0);
-  if (controls.isLocked) controls.unlock();
+  camera.position.set(0, 4.5, 7);
+  controls.target.set(0, 1, 0);
+  controls.update();
   document.getElementById('stepback-btn').classList.add('hidden');
 });
 

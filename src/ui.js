@@ -63,13 +63,10 @@ export function getPrevPageIndex(current) {
 export function createUI(camera, renderer, controls) {
   // Helper: unlock pointer when opening overlays, re-lock when closing
   function unlockForOverlay() {
-    if (controls && controls.isLocked) controls.unlock();
+    // Free cursor — no pointer lock to manage
   }
   function relockAfterOverlay() {
-    if (controls && !controls.isLocked) {
-      setTimeout(() => controls.lock(), 100);
-    }
-    // Hide step-back button and close panel drawer when returning to first-person
+    // Hide step-back button and close panel drawer
     const sb = document.getElementById('stepback-btn');
     if (sb) sb.classList.add('hidden');
     panelDrawer.classList.remove('open');
