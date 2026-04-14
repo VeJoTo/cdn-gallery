@@ -1583,7 +1583,7 @@ export function createObjects(scene) {
   const beanBag2    = buildBeanBag(0.8, 1.2);
   // Ghost easter egg near bean bags
   const ghostGroup = new THREE.Group();
-  ghostGroup.position.set(0, 0, 2.6);
+  ghostGroup.position.set(-3.0, 1.05, -2.8);
   const ghostBody = new THREE.Mesh(
     new THREE.CylinderGeometry(0.08, 0.08, 0.12, 8),
     new THREE.MeshLambertMaterial({ color: 0x00d4ff })
