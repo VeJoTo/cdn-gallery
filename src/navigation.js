@@ -1,5 +1,6 @@
 // src/navigation.js
 import * as THREE from 'three';
+import gsap from 'gsap';
 
 export const HOTSPOTS = {
   overview:       { position: { x: 0, y: 1.6, z: 2.5 }, target: { x: 0, y: 1.6, z: 0 }, label: 'Overview' },
@@ -46,11 +47,60 @@ export function createNavigationState() {
 }
 
 export function createNavigationSystem(camera, state, ui, controls) {
-  return {
-    goTo(id) {
-      // No-op in first person mode — user walks around freely
-    }
+  const proxy = {
+    px: camera.position.x,
+    py: camera.position.y,
+    pz: camera.position.z,
+    tx: 0, ty: 1.6, tz: 0
   };
+  let savedPosition = null;
+
+  function applyProxy() {
+    camera.position.set(proxy.px, proxy.py, proxy.pz);
+    camera.lookAt(proxy.tx, proxy.ty, proxy.tz);
+  }
+
+  function goTo(id) {
+    if (!state.startTransition(id)) return;
+    const h = HOTSPOTS[id];
+    if (!h) { state.endTransition(); return; }
+
+    // Save current position so user can return
+    if (!savedPosition) {
+      savedPosition = camera.position.clone();
+    }
+
+    // Unlock pointer during transition
+    if (controls && controls.isLocked) controls.unlock();
+
+    proxy.px = camera.position.x;
+    proxy.py = camera.position.y;
+    proxy.pz = camera.position.z;
+
+    gsap.to(proxy, {
+      px: h.position.x, py: h.position.y, pz: h.position.z,
+      tx: h.target.x,   ty: h.target.y,   tz: h.target.z,
+      duration: 0.6,
+      ease: 'power2.inOut',
+      onUpdate: applyProxy,
+      onComplete: () => {
+        state.endTransition();
+        ui.updateHUD(id);
+      }
+    });
+  }
+
+  function goBack() {
+    if (savedPosition) {
+      camera.position.copy(savedPosition);
+      camera.lookAt(0, 1.6, 0);
+      savedPosition = null;
+      state.endTransition();
+      ui.updateHUD('overview');
+    }
+  }
+
+  return { goTo, goBack };
 }
 
 export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState) {
@@ -88,10 +138,14 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     while (obj && !obj.userData.clickable) obj = obj.parent;
     if (!obj) return;
 
-    const { action, panelId, panelTitle } = obj.userData;
+    const { hotspot, action, panelId, panelTitle } = obj.userData;
 
-    // Direct actions — no camera movement
-    if (action === 'openPanel' || action === 'openPoster') ui.openPanelDrawer(panelId, panelTitle);
+    // Zoom in if there's a hotspot
+    if (hotspot) nav.goTo(hotspot);
+
+    // Fire actions directly
+    if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
+    if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openBook')        ui.openBook();
     if (action === 'enterRabbitHole') ui.openRabbitHole();
     if (action === 'openReport')      ui.openReport();

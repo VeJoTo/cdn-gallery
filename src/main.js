@@ -219,10 +219,27 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
+  nav.goBack();
   camera.position.set(0, 1.6, 2.5);
   camera.lookAt(0, 1.6, 0);
   if (controls.isLocked) controls.unlock();
+  document.getElementById('stepback-btn').classList.add('hidden');
 });
+
+// Step back from zoom-in
+const stepbackBtn = document.getElementById('stepback-btn');
+stepbackBtn.addEventListener('click', () => {
+  nav.goBack();
+  stepbackBtn.classList.add('hidden');
+});
+
+// Show step-back button when zooming into a hotspot
+const _origGoTo = nav.goTo;
+nav.goTo = (id) => {
+  _origGoTo(id);
+  stepbackBtn.classList.remove('hidden');
+};
+
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
 
