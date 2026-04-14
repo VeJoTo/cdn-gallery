@@ -15,6 +15,48 @@ body {
   cursor: default;
 }
 
+/* ── First-person overlay ──────────────────────── */
+#fp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,15,26,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  cursor: pointer;
+}
+#fp-overlay.hidden { display: none; }
+
+#fp-instructions {
+  text-align: center;
+  color: #e0e8f0;
+}
+
+#fp-instructions h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  color: #00d4ff;
+}
+
+#fp-instructions p {
+  font-size: 14px;
+  color: rgba(224,232,240,0.7);
+}
+
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(0,212,255,0.5);
+  font-size: 24px;
+  font-weight: 100;
+  pointer-events: none;
+  z-index: 25;
+}
+#crosshair.hidden { display: none; }
+
 /* ── HUD ────────────────────────────────────────── */
 #breadcrumb {
   position: fixed;

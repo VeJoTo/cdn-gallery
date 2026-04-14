@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 
 export const HOTSPOTS = {
-  overview:       { position: { x: 0,    y: 4.5, z: 7  }, target: { x: 0,    y: 1,   z: 0 }, label: 'Overview' },
+  overview:       { position: { x: 0, y: 1.6, z: 2.5 }, target: { x: 0, y: 1.6, z: 0 }, label: 'Overview' },
   'arcade-left':  { position: { x: -1.8, y: 1.8, z: 0.8  }, target: { x: -3.15, y: 1.3, z: 0.8  }, label: 'Arcade 1' },
   'arcade-right': { position: { x: -1.8, y: 1.8, z: -0.5 }, target: { x: -3.15, y: 1.3, z: -0.5 }, label: 'Arcade 2' },
   'wall-left':    { position: { x: -1,   y: 2,   z: 0  }, target: { x: -3.5, y: 1.5, z: 0 }, label: 'Left Wall' },
@@ -58,7 +58,7 @@ export function createNavigationSystem(camera, state, ui, controls) {
   function applyProxy() {
     camera.position.set(proxy.px, proxy.py, proxy.pz);
     camera.lookAt(proxy.tx, proxy.ty, proxy.tz);
-    if (controls) {
+    if (controls && controls.target) {
       controls.target.set(proxy.tx, proxy.ty, proxy.tz);
     }
   }
@@ -99,9 +99,15 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     const dy = event.clientY - downY;
     if (Math.sqrt(dx * dx + dy * dy) > 5) return;
 
-    const rect = renderer.domElement.getBoundingClientRect();
-    mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
-    mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+    // When pointer is locked, raycast from center of screen
+    if (document.pointerLockElement) {
+      mouse.x = 0;
+      mouse.y = 0;
+    } else {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
+      mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+    }
 
     raycaster.setFromCamera(mouse, camera);
     const hits = raycaster.intersectObjects(clickableObjects, true);

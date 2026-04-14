@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
@@ -35,8 +35,8 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, 4.5, 7);
-camera.lookAt(0, 1, 0);
+camera.position.set(0, 1.6, 2.5);
+camera.lookAt(0, 1.6, 0);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -47,16 +47,74 @@ window.addEventListener('resize', () => {
   cssRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ── OrbitControls (free rotation/zoom in addition to hotspot navigation) ──
-export const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.enablePan = false;       // panning would let users wander off into the void
-controls.minDistance = 1.5;
-controls.maxDistance = 15;
-controls.minPolarAngle = 0.2;     // don't go straight down through the floor
-controls.maxPolarAngle = Math.PI / 2 - 0.05; // don't go below the floor
-controls.target.set(0, 1, 0);
+// ── First-person controls ──
+export const controls = new PointerLockControls(camera, document.body);
+
+// Click to lock pointer (but not if clicking UI elements)
+renderer.domElement.addEventListener('click', () => {
+  if (!controls.isLocked) controls.lock();
+});
+
+// Show/hide a crosshair or instruction when locked/unlocked
+controls.addEventListener('lock', () => {
+  document.getElementById('fp-overlay').classList.add('hidden');
+  document.getElementById('crosshair').classList.remove('hidden');
+});
+controls.addEventListener('unlock', () => {
+  document.getElementById('fp-overlay').classList.remove('hidden');
+  document.getElementById('crosshair').classList.add('hidden');
+});
+
+// WASD movement
+const moveState = { forward: false, backward: false, left: false, right: false };
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+const MOVE_SPEED = 4.0;
+
+document.addEventListener('keydown', (e) => {
+  switch (e.code) {
+    case 'KeyW': case 'ArrowUp':    moveState.forward = true; break;
+    case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
+    case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
+    case 'KeyD': case 'ArrowRight': moveState.right = true; break;
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  switch (e.code) {
+    case 'KeyW': case 'ArrowUp':    moveState.forward = false; break;
+    case 'KeyS': case 'ArrowDown':  moveState.backward = false; break;
+    case 'KeyA': case 'ArrowLeft':  moveState.left = false; break;
+    case 'KeyD': case 'ArrowRight': moveState.right = false; break;
+  }
+});
+
+// Room boundaries (keep player inside)
+const ROOM_BOUNDS = { minX: -3.2, maxX: 3.2, minZ: -2.7, maxZ: 2.7 };
+const EYE_HEIGHT = 1.6;
+
+function updateMovement(delta) {
+  if (!controls.isLocked) return;
+
+  // Damping
+  velocity.x -= velocity.x * 8.0 * delta;
+  velocity.z -= velocity.z * 8.0 * delta;
+
+  direction.z = Number(moveState.forward) - Number(moveState.backward);
+  direction.x = Number(moveState.right) - Number(moveState.left);
+  direction.normalize();
+
+  if (moveState.forward || moveState.backward) velocity.z -= direction.z * MOVE_SPEED * delta;
+  if (moveState.left || moveState.right) velocity.x -= direction.x * MOVE_SPEED * delta;
+
+  controls.moveRight(-velocity.x * delta);
+  controls.moveForward(-velocity.z * delta);
+
+  // Clamp to room bounds
+  camera.position.x = Math.max(ROOM_BOUNDS.minX, Math.min(ROOM_BOUNDS.maxX, camera.position.x));
+  camera.position.z = Math.max(ROOM_BOUNDS.minZ, Math.min(ROOM_BOUNDS.maxZ, camera.position.z));
+  camera.position.y = EYE_HEIGHT;
+}
 
 // ── Render loop ───────────────────────────────────
 const clock = new THREE.Clock();
@@ -70,7 +128,7 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   for (const fn of updateCallbacks) fn(delta);
-  controls.update();
+  updateMovement(delta);
   renderer.render(scene, camera);
   cssRenderer.render(cssScene, camera);
 }
@@ -167,9 +225,9 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 
 document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
 document.getElementById('reset-btn').addEventListener('click', () => {
-  nav.goTo('overview');
-  controls.target.set(0, 1, 0);
-  controls.update();
+  camera.position.set(0, 1.6, 2.5);
+  camera.lookAt(0, 1.6, 0);
+  if (controls.isLocked) controls.unlock();
 });
 standupBtn.addEventListener('click', () => {
   nav.goTo('overview');
