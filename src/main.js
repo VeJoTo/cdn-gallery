@@ -78,7 +78,7 @@ controls.addEventListener('unlock', () => {
 const moveState = { forward: false, backward: false, left: false, right: false, sprint: false };
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
-const MOVE_SPEED = 6.0;
+const MOVE_SPEED = 10.0;
 
 document.addEventListener('keydown', (e) => {
   switch (e.code) {
