@@ -154,6 +154,8 @@ addUpdateCallback(sceneUpdate);
 const tvVideoIframe = document.createElement('iframe');
 tvVideoIframe.src = `https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+tvVideoIframe.style.width = '1280px';
+tvVideoIframe.style.height = '720px';
 
 const tvCSS3D = new CSS3DObject(tvVideoIframe);
 // Screen mesh in buildTV is at local (0, 0, 0.071) inside the TV group.
@@ -168,6 +170,22 @@ tvCSS3D.rotation.y = -Math.PI / 2;
 const tvScale = 1.92 / 1280;
 tvCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvCSS3D);
+
+// ── Right monitor: Fin du Monde interactive project via CSS3DRenderer ──
+const fdmIframe = document.createElement('iframe');
+fdmIframe.src = 'https://collection.cdn.uib.no/files/fin-du-monde/index.html';
+fdmIframe.style.width = '640px';
+fdmIframe.style.height = '486px';
+fdmIframe.style.border = '0';
+
+const fdmCSS3D = new CSS3DObject(fdmIframe);
+// Right monitor screen world position: desk(1.8, 0, -2.6) + local(0.513, 1.18, -0.158)
+fdmCSS3D.position.set(2.313, 1.18, -2.758);
+fdmCSS3D.rotation.y = -0.15;
+// Screen is 0.5 × 0.38 world units; iframe is 640 × 486 px
+const fdmScale = 0.5 / 640;
+fdmCSS3D.scale.set(fdmScale, fdmScale, fdmScale);
+cssScene.add(fdmCSS3D);
 
 const clickableObjects = [
   ...arcadeLeft.children, ...arcadeRight.children,
