@@ -69,9 +69,11 @@ export function createUI(camera, renderer, controls) {
     if (controls && !controls.isLocked) {
       setTimeout(() => controls.lock(), 100);
     }
-    // Hide the step-back button since we're returning to first-person
+    // Hide step-back button and close panel drawer when returning to first-person
     const sb = document.getElementById('stepback-btn');
     if (sb) sb.classList.add('hidden');
+    panelDrawer.classList.remove('open');
+    setTimeout(() => panelDrawer.classList.add('hidden'), 350);
   }
   const breadcrumb       = document.getElementById('breadcrumb');
   const panelDrawer      = document.getElementById('panel-drawer');

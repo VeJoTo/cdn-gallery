@@ -308,6 +308,10 @@ const stepbackBtn = document.getElementById('stepback-btn');
 stepbackBtn.addEventListener('click', () => {
   nav.goBack();
   stepbackBtn.classList.add('hidden');
+  // Close any open panel drawer
+  const drawer = document.getElementById('panel-drawer');
+  drawer.classList.remove('open');
+  setTimeout(() => drawer.classList.add('hidden'), 350);
 });
 
 // Show step-back button when zooming into a hotspot
