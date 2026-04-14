@@ -66,7 +66,7 @@ if (crosshair) crosshair.classList.add('hidden');
 
 // A/D keys rotate the camera around the room
 const ROTATE_SPEED = 1.5;
-const ZOOM_SPEED = 3.0;
+const ZOOM_SPEED = 5.0;
 const moveState = { left: false, right: false, forward: false, backward: false };
 
 document.addEventListener('keydown', (e) => {
@@ -89,18 +89,43 @@ document.addEventListener('keyup', (e) => {
 });
 
 function updateRotation(delta) {
-  // A/D rotate
-  if (moveState.left)  controls.autoRotateSpeed = -ROTATE_SPEED * 20;
-  else if (moveState.right) controls.autoRotateSpeed = ROTATE_SPEED * 20;
-  else controls.autoRotateSpeed = 0;
-  controls.autoRotate = moveState.left || moveState.right;
+  // A/D handled below as strafe
+  controls.autoRotate = false;
 
-  // W/S zoom in/out (move camera along the view direction)
+  // W/S walk forward/back — move BOTH camera and orbit target together
   if (moveState.forward || moveState.backward) {
     const dir = new THREE.Vector3();
     camera.getWorldDirection(dir);
+    dir.y = 0; // keep movement horizontal
+    dir.normalize();
     const sign = moveState.forward ? 1 : -1;
-    camera.position.addScaledVector(dir, sign * ZOOM_SPEED * delta);
+    const move = dir.multiplyScalar(sign * ZOOM_SPEED * delta);
+    camera.position.add(move);
+    controls.target.add(move);
+
+    // Clamp to room bounds
+    camera.position.x = Math.max(-3.0, Math.min(3.0, camera.position.x));
+    camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
+    controls.target.x = Math.max(-3.0, Math.min(3.0, controls.target.x));
+    controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
+  }
+
+  // A/D also move the camera + target sideways (strafe)
+  if (moveState.left || moveState.right) {
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    dir.y = 0;
+    dir.normalize();
+    const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
+    const sign = moveState.right ? 1 : -1;
+    const move = right.multiplyScalar(sign * ZOOM_SPEED * 0.7 * delta);
+    camera.position.add(move);
+    controls.target.add(move);
+
+    camera.position.x = Math.max(-3.0, Math.min(3.0, camera.position.x));
+    camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
+    controls.target.x = Math.max(-3.0, Math.min(3.0, controls.target.x));
+    controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
   }
 }
 
