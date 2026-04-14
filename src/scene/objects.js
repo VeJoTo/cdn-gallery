@@ -804,13 +804,13 @@ function buildNeonSign() {
   ctx.shadowColor = '#00d4ff';
   ctx.shadowBlur = 20;
   ctx.fillStyle = '#00d4ff';
-  ctx.fillText('GAME', 320, 75);
+  ctx.fillText('AI', 320, 75);
   ctx.fillText('ROOM', 320, 175);
 
   // Bright core
   ctx.shadowBlur = 8;
   ctx.fillStyle = '#66e8ff';
-  ctx.fillText('GAME', 320, 75);
+  ctx.fillText('AI', 320, 75);
   ctx.fillText('ROOM', 320, 175);
 
   const tex = new THREE.CanvasTexture(canvas);
