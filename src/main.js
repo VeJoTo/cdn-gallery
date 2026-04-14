@@ -67,6 +67,11 @@ controls.addEventListener('lock', () => {
   hasEnteredOnce = true;
   fpOverlay.classList.add('hidden');
   crosshair.classList.remove('hidden');
+  // Close any open panels/overlays when entering first-person
+  const drawer = document.getElementById('panel-drawer');
+  if (drawer) { drawer.classList.remove('open'); drawer.classList.add('hidden'); }
+  const sb = document.getElementById('stepback-btn');
+  if (sb) sb.classList.add('hidden');
 });
 controls.addEventListener('unlock', () => {
   // Only show the intro overlay on the very first visit
