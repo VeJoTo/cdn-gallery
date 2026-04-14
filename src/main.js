@@ -35,8 +35,8 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, 4.5, 7);
-camera.lookAt(0, 1, 0);
+camera.position.set(0, 1.6, 2);
+camera.lookAt(0, 1.6, 0);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -52,11 +52,11 @@ export const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = false;
-controls.minDistance = 1.5;
-controls.maxDistance = 12;
-controls.minPolarAngle = 0.2;
-controls.maxPolarAngle = Math.PI / 2 - 0.05;
-controls.target.set(0, 1, 0);
+controls.minDistance = 0.5;
+controls.maxDistance = 4;
+controls.minPolarAngle = Math.PI / 3;
+controls.maxPolarAngle = Math.PI / 2;
+controls.target.set(0, 1.6, 0);
 
 // Hide the first-person overlay and crosshair (not used anymore)
 const fpOverlay = document.getElementById('fp-overlay');
@@ -267,8 +267,8 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   nav.goBack();
-  camera.position.set(0, 4.5, 7);
-  controls.target.set(0, 1, 0);
+  camera.position.set(0, 1.6, 2);
+  controls.target.set(0, 1.6, 0);
   controls.update();
   document.getElementById('stepback-btn').classList.add('hidden');
 });

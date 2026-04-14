@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 
 export const HOTSPOTS = {
-  overview:       { position: { x: 0, y: 4.5, z: 7 }, target: { x: 0, y: 1, z: 0 }, label: 'Overview' },
+  overview:       { position: { x: 0, y: 1.6, z: 2 }, target: { x: 0, y: 1.6, z: 0 }, label: 'Overview' },
   'arcade-left':  { position: { x: -1.8, y: 1.8, z: 0.8  }, target: { x: -3.15, y: 1.3, z: 0.8  }, label: 'Arcade 1' },
   'arcade-right': { position: { x: -1.8, y: 1.8, z: -0.5 }, target: { x: -3.15, y: 1.3, z: -0.5 }, label: 'Arcade 2' },
   'wall-left':    { position: { x: -1,   y: 2,   z: 0  }, target: { x: -3.5, y: 1.5, z: 0 }, label: 'Left Wall' },
@@ -100,8 +100,8 @@ export function createNavigationSystem(camera, state, ui, controls) {
     if (activeTween) { activeTween.kill(); activeTween = null; }
     if (savedPosition) {
       camera.position.copy(savedPosition);
-      camera.lookAt(0, 1, 0);
-      if (controls && controls.target) controls.target.set(0, 1, 0);
+      camera.lookAt(0, 1.6, 0);
+      if (controls && controls.target) controls.target.set(0, 1.6, 0);
       savedPosition = null;
       state.endTransition();
       ui.updateHUD('overview');
