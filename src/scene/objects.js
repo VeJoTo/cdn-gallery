@@ -198,9 +198,9 @@ function buildDesk() {
     }
   }
 
-  // CRT monitors — dark sci-fi bodies
-  const beigeMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
-  const innerBezelMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+  // ── Sleek ultrawide monitors on thin stands ──
+  const monitorFrameMat = new THREE.MeshStandardMaterial({ color: 0x0a0f1a, metalness: 0.6, roughness: 0.3 });
+  const monitorBackMat = new THREE.MeshStandardMaterial({ color: 0x111828, metalness: 0.4, roughness: 0.4 });
 
   const monitorDefs = [
     { x: -0.55, rotY:  0.15, color: 0x00d4ff },
@@ -208,42 +208,74 @@ function buildDesk() {
   ];
   const leftMonitorRefs = [];
   for (const { x, rotY, color } of monitorDefs) {
-    // Beige outer body — chunky CRT cube
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(0.62, 0.5, 0.5),
-      beigeMat
+    // Thin stand pole
+    const standPole = new THREE.Mesh(
+      new THREE.BoxGeometry(0.02, 0.25, 0.02),
+      monitorFrameMat
     );
-    body.position.set(x, 1.18, -0.4);
-    body.rotation.y = rotY;
-    group.add(body);
+    standPole.position.set(x, 0.99, -0.3);
+    standPole.rotation.y = rotY;
+    group.add(standPole);
 
-    // Inner black bezel
+    // Stand base (small flat disc)
+    const standBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.1, 0.015, 12),
+      monitorFrameMat
+    );
+    standBase.position.set(x, 0.875, -0.3);
+    group.add(standBase);
+
+    // Ultra-thin panel body
+    const panel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.7, 0.42, 0.02),
+      monitorBackMat
+    );
+    panel.position.set(x, 1.22, -0.32);
+    panel.rotation.y = rotY;
+    group.add(panel);
+
+    // Thin bezel frame (slightly larger than screen)
     const bezel = new THREE.Mesh(
-      new THREE.BoxGeometry(0.55, 0.42, 0.04),
-      innerBezelMat
+      new THREE.BoxGeometry(0.72, 0.44, 0.005),
+      monitorFrameMat
     );
     bezel.position.set(
-      x + Math.sin(rotY) * 0.23,
-      1.18,
-      -0.4 + Math.cos(rotY) * 0.23
+      x + Math.sin(rotY) * 0.012,
+      1.22,
+      -0.32 + Math.cos(rotY) * 0.012
     );
     bezel.rotation.y = rotY;
     group.add(bezel);
 
-    // Glowing CRT screen
+    // Glowing screen
     const screen = new THREE.Mesh(
-      new THREE.BoxGeometry(0.5, 0.38, 0.02),
+      new THREE.BoxGeometry(0.66, 0.38, 0.003),
       new THREE.MeshStandardMaterial({
-        color, emissive: color, emissiveIntensity: 1.0
+        color, emissive: color, emissiveIntensity: 0.8
       })
     );
     screen.position.set(
-      x + Math.sin(rotY) * 0.245,
-      1.18,
-      -0.4 + Math.cos(rotY) * 0.245
+      x + Math.sin(rotY) * 0.015,
+      1.22,
+      -0.32 + Math.cos(rotY) * 0.015
     );
     screen.rotation.y = rotY;
     group.add(screen);
+
+    // Subtle cyan LED strip along the bottom of each monitor
+    const ledStrip = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.008, 0.005),
+      new THREE.MeshStandardMaterial({
+        color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5
+      })
+    );
+    ledStrip.position.set(
+      x + Math.sin(rotY) * 0.013,
+      1.005,
+      -0.32 + Math.cos(rotY) * 0.013
+    );
+    ledStrip.rotation.y = rotY;
+    group.add(ledStrip);
 
     if (x < 0) leftMonitorRefs.push(screen);
     if (x > 0) {
@@ -266,55 +298,65 @@ function buildDesk() {
     panelTitle: 'Digital Storytelling Research'
   };
 
-  // Dark keyboard
+  // ── Slim wireless keyboard ──
+  const kbMat = new THREE.MeshStandardMaterial({ color: 0x111828, metalness: 0.5, roughness: 0.3 });
   const keyboard = new THREE.Mesh(
-    new THREE.BoxGeometry(0.55, 0.025, 0.18),
-    new THREE.MeshLambertMaterial({ color: 0x111828 })
+    new THREE.BoxGeometry(0.5, 0.01, 0.15),
+    kbMat
   );
-  keyboard.position.set(0, 0.895, 0.05);
+  keyboard.position.set(0, 0.89, 0.05);
   group.add(keyboard);
 
-  // Tiny neon power LED on the keyboard (cyan)
-  const kbLed = new THREE.Mesh(
-    new THREE.BoxGeometry(0.015, 0.005, 0.015),
+  // Keyboard edge glow
+  const kbGlow = new THREE.Mesh(
+    new THREE.BoxGeometry(0.52, 0.003, 0.005),
     new THREE.MeshStandardMaterial({
-      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
     })
   );
-  kbLed.position.set(0.25, 0.91, 0.02);
-  group.add(kbLed);
+  kbGlow.position.set(0, 0.896, 0.12);
+  group.add(kbGlow);
 
-  // Dark mouse with cord
+  // ── Wireless mouse (sleek rounded shape) ──
   const mouse = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.025, 0.09),
-    new THREE.MeshLambertMaterial({ color: 0x111828 })
+    new THREE.BoxGeometry(0.05, 0.02, 0.08),
+    kbMat
   );
-  mouse.position.set(0.4, 0.895, 0.05);
+  mouse.position.set(0.4, 0.89, 0.05);
   group.add(mouse);
 
-  // Mouse cord stub
-  const cord = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.005, 0.005, 0.18, 6),
-    new THREE.MeshLambertMaterial({ color: 0x1a1a1a })
+  // Mouse scroll wheel (tiny cyan strip)
+  const scroll = new THREE.Mesh(
+    new THREE.BoxGeometry(0.008, 0.005, 0.02),
+    new THREE.MeshStandardMaterial({
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.8
+    })
   );
-  cord.position.set(0.4, 0.9, -0.04);
-  cord.rotation.x = Math.PI / 2;
-  group.add(cord);
+  scroll.position.set(0.4, 0.902, 0.04);
+  group.add(scroll);
 
-  // Stack of two VHS tapes on the right edge of the desk
-  const vhsMat1 = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
-  const vhsMat2 = new THREE.MeshLambertMaterial({ color: 0x6b4423 });
-  const vhs1 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.13), vhsMat1);
-  vhs1.position.set(0.95, 0.905, -0.1);
-  group.add(vhs1);
-  const vhs2 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.13), vhsMat2);
-  vhs2.position.set(0.95, 0.945, -0.1);
-  group.add(vhs2);
+  // No VHS/floppy — replaced with a small holographic data pad
+  const dataPad = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18, 0.008, 0.12),
+    new THREE.MeshStandardMaterial({
+      color: 0x0d1520, metalness: 0.6, roughness: 0.2
+    })
+  );
+  dataPad.position.set(0.9, 0.89, -0.1);
+  group.add(dataPad);
+  const dataPadScreen = new THREE.Mesh(
+    new THREE.BoxGeometry(0.15, 0.002, 0.09),
+    new THREE.MeshStandardMaterial({
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.5
+    })
+  );
+  dataPadScreen.position.set(0.9, 0.894, -0.1);
+  group.add(dataPadScreen);
 
-  // A floppy disk leaning against the keyboard
+  // Removed floppy — keep the floppy label variable reference to avoid errors
   const floppy = new THREE.Mesh(
-    new THREE.BoxGeometry(0.13, 0.005, 0.13),
-    new THREE.MeshLambertMaterial({ color: 0x222222 })
+    new THREE.BoxGeometry(0.001, 0.001, 0.001),
+    new THREE.MeshBasicMaterial({ visible: false })
   );
   floppy.position.set(-0.4, 0.895, 0.18);
   group.add(floppy);
