@@ -142,6 +142,7 @@ function animate() {
   const delta = clock.getDelta();
   for (const fn of updateCallbacks) fn(delta);
   updateMovement(delta);
+  updateHoverHighlight();
   renderer.render(scene, camera);
   cssRenderer.render(cssScene, camera);
 }
@@ -209,32 +210,69 @@ setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
 const hoverRaycaster = new THREE.Raycaster();
 const hoverMouse     = new THREE.Vector2();
 
-let hoveredBookGroup = null;
+// Hover highlight: glow objects the crosshair points at
+let lastHovered = null;
+let lastHoveredEmissive = null;
+let lastHoveredIntensity = null;
+
+function updateHoverHighlight() {
+  // In first-person, always raycast from center
+  if (controls.isLocked) {
+    hoverMouse.x = 0;
+    hoverMouse.y = 0;
+  }
+
+  hoverRaycaster.setFromCamera(hoverMouse, camera);
+  const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
+
+  // Find the clickable parent
+  let hitObj = null;
+  let hitMesh = null;
+  if (hits.length) {
+    hitMesh = hits[0].object;
+    let obj = hitMesh;
+    while (obj && !obj.userData.clickable) obj = obj.parent;
+    hitObj = obj;
+  }
+
+  // Unhighlight previous
+  if (lastHovered && lastHovered !== hitMesh) {
+    if (lastHovered.material && lastHoveredEmissive !== null) {
+      lastHovered.material.emissive?.setHex(lastHoveredEmissive);
+      if (lastHoveredIntensity !== null) lastHovered.material.emissiveIntensity = lastHoveredIntensity;
+    }
+    lastHovered = null;
+    lastHoveredEmissive = null;
+    lastHoveredIntensity = null;
+  }
+
+  // Highlight current
+  if (hitObj && hitMesh && hitMesh.material && hitMesh.material.emissive) {
+    if (lastHovered !== hitMesh) {
+      lastHoveredEmissive = hitMesh.material.emissive.getHex();
+      lastHoveredIntensity = hitMesh.material.emissiveIntensity;
+      lastHovered = hitMesh;
+    }
+    hitMesh.material.emissive.setHex(0x00d4ff);
+    hitMesh.material.emissiveIntensity = Math.max(lastHoveredIntensity + 0.8, 2.0);
+  }
+
+  // Update crosshair color
+  if (crosshair) {
+    crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
+    crosshair.style.fontSize = hitObj ? '28px' : '24px';
+  }
+}
+
+// Also handle mouse hover when pointer is NOT locked (for cursor)
 renderer.domElement.addEventListener('mousemove', (event) => {
   const rect = renderer.domElement.getBoundingClientRect();
   hoverMouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
   hoverMouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
-
-  hoverRaycaster.setFromCamera(hoverMouse, camera);
-  const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
-  renderer.domElement.style.cursor = hits.length ? 'pointer' : 'default';
-
-  // Book hover glow: scale up the pedestal book when hovered
-  let isHoveringBook = false;
-  if (hits.length) {
-    let obj = hits[0].object;
-    while (obj && !obj.userData.clickable) obj = obj.parent;
-    if (obj && obj.userData.action === 'openBook' && obj.userData.bookGroup) {
-      isHoveringBook = true;
-      hoveredBookGroup = obj.userData.bookGroup;
-    }
-  }
-  if (hoveredBookGroup) {
-    const targetScale = isHoveringBook ? 1.3 : 1.0;
-    hoveredBookGroup.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.15);
-    if (!isHoveringBook && hoveredBookGroup.scale.x < 1.02) {
-      hoveredBookGroup = null;
-    }
+  if (!controls.isLocked) {
+    hoverRaycaster.setFromCamera(hoverMouse, camera);
+    const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
+    renderer.domElement.style.cursor = hits.length ? 'pointer' : 'default';
   }
 });
 
