@@ -584,7 +584,8 @@ function buildPoster(x, y, z, frameColor, accentColor, title, idx) {
   plane.position.set(x, y, z);
   plane.userData = {
     clickable: true,
-    action: 'openPanel',
+    hotspot: 'poster-' + idx,
+    action: 'openPoster',
     panelId: 'poster-' + idx,
     panelTitle: title
   };
@@ -599,7 +600,8 @@ function buildImagePoster(x, y, z, imageSrc, title, idx) {
   plane.position.set(x, y, z);
   plane.userData = {
     clickable: true,
-    action: 'openPanel',
+    hotspot: 'poster-' + idx,
+    action: 'openPoster',
     panelId: 'poster-' + idx,
     panelTitle: title
   };
@@ -1457,7 +1459,8 @@ export function createObjects(scene) {
   aiPoster.rotation.y = -Math.PI / 2;
   aiPoster.userData = {
     clickable: true,
-    action: 'openPanel',
+    hotspot: 'poster-ai-cinema',
+    action: 'openPoster',
     panelId: 'ai-cinema',
     panelTitle: 'An Eye for AI Cinema'
   };

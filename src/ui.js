@@ -360,16 +360,20 @@ export function createUI(camera, renderer) {
   });
 
   // ── Hotspot hints (screen-space projection) ──────
-  const HINT_HOTSPOTS = ['arcade-left', 'arcade-right', 'desk', 'table', 'globe', 'pedestal', 'rabbit-hole', 'tv'];
+  const HINT_HOTSPOTS = ['arcade-left', 'arcade-right', 'desk', 'table', 'globe', 'pedestal', 'rabbit-hole', 'tv', 'poster-0', 'poster-1', 'poster-2', 'poster-ai-cinema'];
   const hintWorldPositions = {
-    'arcade-left':  new THREE.Vector3(-3.15, 1.3, 0.8),
-    'arcade-right': new THREE.Vector3(-3.15, 1.3, -0.5),
-    'desk':         new THREE.Vector3(1.8, 1.0, -2.6),
-    'table':        new THREE.Vector3(0, 0.5, 1.5),
-    'globe':        new THREE.Vector3(0.2, 0.85, -2.4),
-    'pedestal':     new THREE.Vector3(-2.8, 1.2, 2.6),
-    'rabbit-hole':  new THREE.Vector3(-0.8, 0.3, -2.4),
-    'tv':           new THREE.Vector3(3.4, 2.85, 0)
+    'arcade-left':      new THREE.Vector3(-3.15, 1.3, 0.8),
+    'arcade-right':     new THREE.Vector3(-3.15, 1.3, -0.5),
+    'desk':             new THREE.Vector3(1.8, 1.0, -2.6),
+    'table':            new THREE.Vector3(0, 0.5, 1.5),
+    'globe':            new THREE.Vector3(0.2, 0.85, -2.4),
+    'pedestal':         new THREE.Vector3(-2.8, 1.2, 2.6),
+    'rabbit-hole':      new THREE.Vector3(-0.8, 0.3, -2.4),
+    'tv':               new THREE.Vector3(3.4, 2.85, 0),
+    'poster-0':         new THREE.Vector3(-2.5, 2.0, -2.9),
+    'poster-1':         new THREE.Vector3(-1.4, 2.0, -2.9),
+    'poster-2':         new THREE.Vector3(-0.3, 2.0, -2.9),
+    'poster-ai-cinema': new THREE.Vector3(3.42, 1.5, 2.2)
   };
 
   const hintEls = {};

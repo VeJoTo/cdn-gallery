@@ -12,8 +12,12 @@ export const HOTSPOTS = {
   globe:          { position: { x: 0.6,  y: 1.2, z: -1.5 }, target: { x: 0.2,  y: 0.85, z: -2.4 }, label: 'Globe' },
   pedestal:       { position: { x: -2.0, y: 1.4, z: 1.6  }, target: { x: -2.8, y: 1.2, z: 2.6  }, label: 'Magic Tome' },
   'rabbit-hole':  { position: { x: -0.2, y: 1.2, z: -1.5 }, target: { x: -0.8, y: 0.2, z: -2.4 }, label: 'Rabbit Hole' },
-  tv:             { position: { x: 2.0,  y: 2.8, z: 0   }, target: { x: 3.49, y: 2.85, z: 0  }, label: 'TV' },
-  exit:           { position: { x: 0,    y: 2,   z: 5  }, target: { x: 0,    y: 1,   z: 3 }, label: 'Exit' },
+  tv:                 { position: { x: 2.0,  y: 2.8, z: 0    }, target: { x: 3.49, y: 2.85, z: 0    }, label: 'TV' },
+  'poster-0':         { position: { x: -2.5, y: 2.0, z: -1.5 }, target: { x: -2.5, y: 2.0,  z: -2.90 }, label: 'Galaga' },
+  'poster-1':         { position: { x: -1.4, y: 2.0, z: -1.5 }, target: { x: -1.4, y: 2.0,  z: -2.90 }, label: 'Pac-Man' },
+  'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
+  'poster-ai-cinema': { position: { x: 2.0,  y: 1.5, z: 2.2  }, target: { x: 3.42, y: 1.5,  z: 2.2   }, label: 'AI Cinema' },
+  exit:               { position: { x: 0,    y: 2,   z: 5    }, target: { x: 0,    y: 1,    z: 3     }, label: 'Exit' },
   table:          { position: { x: 0.5,  y: 1.2, z: 0.8 }, target: { x: 0,    y: 0.5, z: 1.5 }, label: 'Table' },
   'desk-left-monitor':  { position: { x: 1.0, y: 1.4, z: -1.8 }, target: { x: 1.25, y: 1.18, z: -3.0 }, label: 'Left Monitor' },
   'desk-right-monitor': { position: { x: 2.6, y: 1.4, z: -1.8 }, target: { x: 2.35, y: 1.18, z: -3.0 }, label: 'Right Monitor' },
@@ -115,5 +119,6 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     if (action === 'openBook')        ui.openBook();
     if (action === 'enterRabbitHole') ui.openRabbitHole();
     if (action === 'openReport' && navState.current === 'table') ui.openReport();
+    if (action === 'openPoster' && navState.current === hotspot) ui.openPanelDrawer(panelId, panelTitle);
   });
 }
