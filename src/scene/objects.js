@@ -828,28 +828,108 @@ function buildNeonSign() {
 
 function buildRug() {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
+  canvas.width = 512;
+  canvas.height = 384;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#1b3a4b';
-  ctx.fillRect(0, 0, 256, 256);
 
-  const rings = [
-    { r: 110, color: '#ff006e' },
-    { r: 85,  color: '#00e5ff' },
-    { r: 60,  color: '#9b00ff' },
-    { r: 35,  color: '#ffd166' }
-  ];
-  for (const { r, color } of rings) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 6;
+  // Dark base
+  ctx.fillStyle = '#080c14';
+  ctx.fillRect(0, 0, 512, 384);
+
+  // Circuit traces
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 4;
+
+  // Horizontal traces
+  const hLines = [48, 96, 144, 192, 240, 288, 336];
+  for (const y of hLines) {
     ctx.beginPath();
-    ctx.arc(128, 128, r, 0, Math.PI * 2);
+    let x = Math.random() * 40;
+    ctx.moveTo(x, y);
+    while (x < 512) {
+      const seg = 30 + Math.random() * 60;
+      x += seg;
+      ctx.lineTo(Math.min(x, 512), y);
+      // Random branch up or down
+      if (Math.random() > 0.6 && x < 480) {
+        const dy = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 20);
+        ctx.lineTo(x, y + dy);
+        ctx.lineTo(x + 15, y + dy);
+        x += 15;
+        ctx.lineTo(x, y);
+      }
+    }
     ctx.stroke();
   }
 
+  // Vertical traces
+  const vLines = [64, 160, 256, 352, 448];
+  for (const x of vLines) {
+    ctx.beginPath();
+    let y = Math.random() * 40;
+    ctx.moveTo(x, y);
+    while (y < 384) {
+      const seg = 25 + Math.random() * 50;
+      y += seg;
+      ctx.lineTo(x, Math.min(y, 384));
+      if (Math.random() > 0.65 && y < 360) {
+        const dx = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 18);
+        ctx.lineTo(x + dx, y);
+        ctx.lineTo(x + dx, y + 12);
+        y += 12;
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.stroke();
+  }
+
+  // Circuit nodes at intersections
+  ctx.fillStyle = '#00d4ff';
+  ctx.shadowBlur = 6;
+  for (const y of hLines) {
+    for (const x of vLines) {
+      if (Math.random() > 0.4) {
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // Larger hub nodes
+  ctx.shadowBlur = 10;
+  const hubs = [[128, 144], [384, 96], [256, 240], [96, 288], [420, 336]];
+  for (const [hx, hy] of hubs) {
+    ctx.beginPath();
+    ctx.arc(hx, hy, 6, 0, Math.PI * 2);
+    ctx.fill();
+    // Ring around hub
+    ctx.strokeStyle = 'rgba(0,212,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(hx, hy, 14, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = 1.5;
+  }
+
+  // Subtle border
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = 'rgba(0,212,255,0.3)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(8, 8, 496, 368);
+
+  ctx.shadowBlur = 0;
+
   const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 });
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex,
+    emissive: 0x00d4ff,
+    emissiveIntensity: 0.15,
+    roughness: 0.7
+  });
   const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.5), mat);
   rug.rotation.x = -Math.PI / 2;
   rug.position.set(0, 0.005, 0.5);
