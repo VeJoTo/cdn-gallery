@@ -220,6 +220,7 @@ export function createRoom(scene) {
   );
   aiWallPlane.position.set(0, 1.75, 2.97);
   aiWallPlane.rotation.y = Math.PI;
+  aiWallPlane.raycast = () => {}; // Don't block raycasts to the portal behind
   scene.add(aiWallPlane);
 
   // Ceiling
