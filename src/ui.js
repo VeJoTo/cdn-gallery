@@ -149,6 +149,18 @@ export function createUI(camera, renderer, controls) {
         <p>CDN researcher Anne Sigrid Refsum studied what happens when LLMs retell Norwegian folktales — they mix motifs from different traditions, add modern moral lessons, and lose cultural specificity.</p>
         <p>Read the full research in the magical book on the pedestal.</p>
       `;
+    } else if (panelId === 'portal') {
+      content = `
+        <h2>Portal</h2>
+        <p style="font-size:16px;color:#00d4ff;margin-bottom:16px">🚀 New rooms are being constructed...</p>
+        <p>This portal will lead to new AI research rooms in future updates. Each room will explore a different aspect of digital narrative and AI creativity.</p>
+        <div style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:8px;padding:16px;margin:16px 0">
+          <p style="font-size:14px;margin-bottom:8px"><strong>Coming Soon:</strong></p>
+          <p style="font-size:13px">🌿 The Garden Room — Digital ecology &amp; environmental storytelling</p>
+          <p style="font-size:13px">🎵 The Music Studio — Sound design &amp; audio narratives</p>
+          <p style="font-size:13px">📚 The Library — Archives of digital literature</p>
+        </div>
+      `;
     } else {
       content = `
         <h2>${safeTitle}</h2>

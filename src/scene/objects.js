@@ -1621,6 +1621,124 @@ function createMusicNotes(scene) {
   return { update, setActive };
 }
 
+function buildPortal() {
+  const group = new THREE.Group();
+  group.position.set(0, 1.7, 2.95);
+
+  // Dark vortex center
+  const vortex = new THREE.Mesh(
+    new THREE.CircleGeometry(0.6, 32),
+    new THREE.MeshBasicMaterial({ color: 0x000008 })
+  );
+  group.add(vortex);
+
+  // Inner glow disc
+  const innerGlow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.55, 32),
+    new THREE.MeshStandardMaterial({
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.15,
+      transparent: true, opacity: 0.4
+    })
+  );
+  innerGlow.position.z = 0.001;
+  group.add(innerGlow);
+
+  // Concentric rings (different sizes, will spin at different speeds)
+  const ringDefs = [
+    { radius: 0.65, tube: 0.015, speed: 0.3 },
+    { radius: 0.75, tube: 0.01,  speed: -0.5 },
+    { radius: 0.85, tube: 0.02,  speed: 0.2 },
+    { radius: 0.95, tube: 0.008, speed: -0.4 },
+    { radius: 1.05, tube: 0.025, speed: 0.15 },
+  ];
+
+  const ringMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
+  });
+
+  const rings = [];
+  for (const def of ringDefs) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(def.radius, def.tube, 8, 64),
+      ringMat.clone()
+    );
+    ring.userData.spinSpeed = def.speed;
+    group.add(ring);
+    rings.push(ring);
+  }
+
+  // Segmented outer ring (like panels/segments)
+  const segmentCount = 16;
+  const segMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.8
+  });
+  for (let i = 0; i < segmentCount; i++) {
+    const angle = (i / segmentCount) * Math.PI * 2;
+    const gap = 0.04;
+    const segAngle = (Math.PI * 2 / segmentCount) - gap;
+    const seg = new THREE.Mesh(
+      new THREE.TorusGeometry(1.15, 0.04, 4, 8, segAngle),
+      segMat
+    );
+    seg.rotation.z = angle;
+    group.add(seg);
+  }
+
+  // Corner accent nodes (4 diamonds around the portal)
+  const nodeMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5
+  });
+  const nodePositions = [
+    [0, 1.3], [0, -1.3], [1.3, 0], [-1.3, 0]
+  ];
+  for (const [nx, ny] of nodePositions) {
+    const node = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.04, 0),
+      nodeMat
+    );
+    node.position.set(nx, ny, 0.01);
+    node.rotation.z = Math.PI / 4;
+    group.add(node);
+  }
+
+  // "PORTAL" label above
+  const labelCanvas = document.createElement('canvas');
+  labelCanvas.width = 256;
+  labelCanvas.height = 48;
+  const lctx = labelCanvas.getContext('2d');
+  lctx.clearRect(0, 0, 256, 48);
+  lctx.shadowColor = '#00d4ff';
+  lctx.shadowBlur = 8;
+  lctx.font = 'bold 24px sans-serif';
+  lctx.fillStyle = '#00d4ff';
+  lctx.textAlign = 'center';
+  lctx.fillText('▸ ENTER PORTAL ◂', 128, 32);
+  const labelTex = new THREE.CanvasTexture(labelCanvas);
+  const label = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.8, 0.15),
+    new THREE.MeshBasicMaterial({ map: labelTex, transparent: true })
+  );
+  label.position.set(0, 1.35, 0.01);
+  group.add(label);
+
+  // Point light from the portal center
+  const portalLight = new THREE.PointLight(0x00d4ff, 1.5, 4);
+  portalLight.position.z = 0.5;
+  group.add(portalLight);
+
+  // Store rings for animation
+  group.userData = {
+    clickable: true,
+    action: 'openPanel',
+    panelId: 'portal',
+    panelTitle: 'Portal — Coming Soon',
+    rings,
+    innerGlow
+  };
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(0, 0x00d4ff);
   const arcadeRight = buildArcadeCabinet(0, 0x00d4ff);
@@ -1716,6 +1834,7 @@ export function createObjects(scene) {
     }
   }
 
+  const portal      = buildPortal();
   const desk        = buildDesk();
   const chair       = buildGamingChair();
   const bookshelf   = buildBookshelf();
@@ -1811,7 +1930,7 @@ export function createObjects(scene) {
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge, floorLamp,
     neonSign, rug, pedestal, rabbitHole, tv, globe, ...posters,
-    wallTagging, radio
+    wallTagging, radio, portal
   );
 
   // ── Animation: spin globe + bob book ──
@@ -1830,11 +1949,22 @@ export function createObjects(scene) {
       holoDiamond.position.y = 0.82 + Math.sin(elapsed * 2) * 0.03;
     }
     if (musicNotes) musicNotes.update(delta, elapsed);
+
+    // Spin portal rings
+    if (portal && portal.userData.rings) {
+      for (const ring of portal.userData.rings) {
+        ring.rotation.z += ring.userData.spinSpeed * delta;
+      }
+      // Pulse the inner glow
+      if (portal.userData.innerGlow) {
+        portal.userData.innerGlow.material.emissiveIntensity = 0.15 + Math.sin(elapsed * 2) * 0.1;
+      }
+    }
   }
 
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
     tv, globe, musicNotes,
-    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole, globe, aiPoster]
+    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole, globe, aiPoster, portal]
   };
 }
