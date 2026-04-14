@@ -108,12 +108,13 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
   const mouse     = new THREE.Vector2();
   let downX = 0, downY = 0;
 
-  renderer.domElement.addEventListener('mousedown', (e) => {
+  // Listen on document so events fire even when pointer is locked to document.body
+  document.addEventListener('mousedown', (e) => {
     downX = e.clientX;
     downY = e.clientY;
   });
 
-  renderer.domElement.addEventListener('mouseup', (event) => {
+  document.addEventListener('mouseup', (event) => {
     // Ignore if the mouse moved more than 5px (that's a drag, not a click)
     const dx = event.clientX - downX;
     const dy = event.clientY - downY;
