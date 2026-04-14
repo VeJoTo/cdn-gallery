@@ -237,38 +237,49 @@ function updateHoverHighlight() {
     hitObj = obj;
   }
 
-  // Unhighlight previous
-  if (lastHovered && lastHovered !== hitMesh) {
-    if (lastHovered.material && lastHovered.material.emissive && lastHoveredIntensity !== null) {
-      lastHovered.material.emissiveIntensity = lastHoveredIntensity;
-    }
+  // Unhighlight previous group
+  if (lastHovered && lastHovered !== hitObj) {
+    lastHovered.traverse(child => {
+      if (child.isMesh && child.material) {
+        if (child.userData._origColor !== undefined) {
+          child.material.color.setHex(child.userData._origColor);
+          delete child.userData._origColor;
+        }
+        if (child.userData._origEmissiveI !== undefined) {
+          child.material.emissiveIntensity = child.userData._origEmissiveI;
+          delete child.userData._origEmissiveI;
+        }
+      }
+    });
     lastHovered = null;
-    lastHoveredIntensity = null;
   }
 
-  // Highlight current — subtle glow boost
-  if (hitObj && hitMesh && hitMesh.material && hitMesh.material.emissive) {
-    if (lastHovered !== hitMesh) {
-      lastHoveredIntensity = hitMesh.material.emissiveIntensity;
-      lastHovered = hitMesh;
-    }
-    hitMesh.material.emissiveIntensity = (lastHoveredIntensity || 0) + 0.4;
+  // Highlight current — glow the entire clickable group
+  if (hitObj && lastHovered !== hitObj) {
+    lastHovered = hitObj;
+    hitObj.traverse(child => {
+      if (child.isMesh && child.material) {
+        if (child.material.emissive) {
+          child.userData._origEmissiveI = child.material.emissiveIntensity;
+          child.material.emissiveIntensity = (child.userData._origEmissiveI || 0) + 0.5;
+        } else {
+          // For non-emissive materials, lighten the color
+          child.userData._origColor = child.material.color.getHex();
+          const c = child.material.color;
+          child.material.color.setRGB(
+            Math.min(c.r + 0.12, 1),
+            Math.min(c.g + 0.12, 1),
+            Math.min(c.b + 0.15, 1)
+          );
+        }
+      }
+    });
   }
 
-  // Crosshair + label
+  // Crosshair only
   if (crosshair) {
     crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
     crosshair.style.fontSize = hitObj ? '28px' : '24px';
-  }
-
-  if (hoverLabel) {
-    if (hitObj) {
-      const name = hitObj.userData.panelTitle || hitObj.userData.hotspot || 'Interact';
-      hoverLabel.textContent = '[ ' + name + ' ]';
-      hoverLabel.classList.remove('hidden');
-    } else {
-      hoverLabel.classList.add('hidden');
-    }
   }
 }
 
