@@ -213,7 +213,7 @@ function buildDesk() {
       new THREE.BoxGeometry(0.02, 0.25, 0.02),
       monitorFrameMat
     );
-    standPole.position.set(x, 0.99, -0.3);
+    standPole.position.set(x, 0.99, -0.36);
     standPole.rotation.y = rotY;
     group.add(standPole);
 
