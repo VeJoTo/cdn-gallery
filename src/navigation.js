@@ -104,6 +104,10 @@ export function createNavigationSystem(camera, state, ui, controls) {
       savedPosition = null;
       state.endTransition();
       ui.updateHUD('overview');
+      // Re-lock pointer to resume first-person mode
+      if (controls && !controls.isLocked) {
+        setTimeout(() => controls.lock(), 100);
+      }
     }
   }
 
