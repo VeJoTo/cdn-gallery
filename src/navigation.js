@@ -18,11 +18,11 @@ export const HOTSPOTS = {
   'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
   'poster-ai-cinema': { position: { x: 2.0,  y: 1.5, z: 2.2  }, target: { x: 3.42, y: 1.5,  z: 2.2   }, label: 'AI Cinema' },
   exit:               { position: { x: 0,    y: 2,   z: 5    }, target: { x: 0,    y: 1,    z: 3     }, label: 'Exit' },
-  table:          { position: { x: 0.5,  y: 1.2, z: 0.8 }, target: { x: 0,    y: 0.5, z: 1.5 }, label: 'Table' },
+  table:          { position: { x: 0.5,  y: 1.2, z: -0.2 }, target: { x: 0,    y: 0.5, z: 0.5 }, label: 'Table' },
   'desk-left-monitor':  { position: { x: 1.0, y: 1.4, z: -1.8 }, target: { x: 1.25, y: 1.18, z: -3.0 }, label: 'Left Monitor' },
   'desk-right-monitor': { position: { x: 2.6, y: 1.4, z: -1.8 }, target: { x: 2.35, y: 1.18, z: -3.0 }, label: 'Right Monitor' },
-  'seat-beanbag-left':  { position: { x: -0.8, y: 0.5, z: 2.2 }, target: { x: 0, y: 1.0, z: 0 }, label: 'Relaxing...' },
-  'seat-beanbag-right': { position: { x: 0.8, y: 0.5, z: 2.2 }, target: { x: 0, y: 1.0, z: 0 }, label: 'Relaxing...' },
+  'seat-beanbag-left':  { position: { x: -0.8, y: 0.5, z: 1.2 }, target: { x: 0, y: 0.5, z: 0.5 }, label: 'Relaxing...' },
+  'seat-beanbag-right': { position: { x: 0.8, y: 0.5, z: 1.2 }, target: { x: 0, y: 0.5, z: 0.5 }, label: 'Relaxing...' },
   'seat-chair':         { position: { x: 1.8, y: 1.3, z: -2.0 }, target: { x: 1.8, y: 1.2, z: -2.8 }, label: 'Seated at desk' }
 };
 

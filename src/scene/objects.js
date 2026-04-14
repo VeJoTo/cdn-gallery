@@ -80,7 +80,7 @@ function buildArcadeCabinet(xPos, screenColor) {
 
 function buildTable() {
   const group = new THREE.Group();
-  group.position.set(0, 0, 1.5);
+  group.position.set(0, 0, 0.5);
 
   const top = new THREE.Mesh(
     new THREE.BoxGeometry(1.4, 0.08, 0.8),
@@ -1429,7 +1429,7 @@ function buildWallTagging() {
 function buildRadio() {
   const group = new THREE.Group();
   // On the table, slightly to the side
-  group.position.set(-0.4, 0.49, 1.5);
+  group.position.set(-0.4, 0.49, 0.5);
 
   const bodyMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
 
@@ -1579,8 +1579,8 @@ export function createObjects(scene) {
   arcadeRight.position.set(-3.15, 0, -0.5);
   arcadeRight.rotation.y = Math.PI / 2;
   const table       = buildTable();
-  const beanBag1    = buildBeanBag(-0.8, 2.2);
-  const beanBag2    = buildBeanBag(0.8, 2.2);
+  const beanBag1    = buildBeanBag(-0.8, 1.2);
+  const beanBag2    = buildBeanBag(0.8, 1.2);
   // Ghost easter egg near bean bags
   const ghostGroup = new THREE.Group();
   ghostGroup.position.set(0, 0, 2.6);

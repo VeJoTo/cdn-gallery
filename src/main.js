@@ -176,15 +176,15 @@ cssScene.add(tvCSS3D);
 const fdmIframe = document.createElement('iframe');
 fdmIframe.src = 'https://collection.cdn.uib.no/files/fin-du-monde/index.html';
 fdmIframe.style.width = '640px';
-fdmIframe.style.height = '486px';
+fdmIframe.style.height = '370px';
 fdmIframe.style.border = '0';
 
 const fdmCSS3D = new CSS3DObject(fdmIframe);
 // Right monitor screen world position: desk(1.8, 0, -2.6) + local(0.513, 1.18, -0.158)
 fdmCSS3D.position.set(2.348, 1.22, -2.905);
 fdmCSS3D.rotation.y = -0.15;
-// Screen is 0.66 × 0.38 world units; iframe is 640 × 486 px
-const fdmScale = 0.66 / 640;
+// Screen is 0.66 × 0.38 world units; iframe is 640 × 370 px — scale to fit height
+const fdmScale = 0.38 / 370;
 fdmCSS3D.scale.set(fdmScale, fdmScale, fdmScale);
 cssScene.add(fdmCSS3D);
 
