@@ -1402,9 +1402,9 @@ export function createObjects(scene) {
   const musicNotes  = createMusicNotes(scene);
 
   const posters = [
-    buildImagePoster(-2.5, 2.0, -2.99, (import.meta.env.BASE_URL || '/') + 'galaga-poster.svg', 'GALAGA', 0),
-    buildImagePoster(-1.4, 2.0, -2.99, (import.meta.env.BASE_URL || '/') + 'pacman-poster.svg', 'PAC-MAN', 1),
-    buildImagePoster(-0.3, 2.0, -2.99, (import.meta.env.BASE_URL || '/') + 'space-invaders-poster.svg', 'SPACE INVADERS', 2)
+    buildImagePoster(-2.5, 2.0, -2.90, (import.meta.env.BASE_URL || '/') + 'galaga-poster.svg', 'GALAGA', 0),
+    buildImagePoster(-1.4, 2.0, -2.90, (import.meta.env.BASE_URL || '/') + 'pacman-poster.svg', 'PAC-MAN', 1),
+    buildImagePoster(-0.3, 2.0, -2.90, (import.meta.env.BASE_URL || '/') + 'space-invaders-poster.svg', 'SPACE INVADERS', 2)
   ];
 
   // AI Cinema poster on the right wall
