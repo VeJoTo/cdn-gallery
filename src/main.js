@@ -53,15 +53,14 @@ export const controls = new PointerLockControls(camera, document.body);
 const fpOverlay = document.getElementById('fp-overlay');
 const crosshair = document.getElementById('crosshair');
 
-// Lock pointer on click — works from both overlay and canvas
-function lockPointer() {
+// Lock pointer on any click on the page
+document.addEventListener('click', (e) => {
+  // Don't lock if clicking UI buttons (they have their own handlers)
+  if (e.target.closest('button, input, label, a, #radio-widget, #gatekeeper-chat, #inventory-overlay, #book-overlay, #rabbit-hole-overlay, #report-overlay, #spotify-player, #guide-dialog')) return;
   if (!controls.isLocked) {
-    renderer.domElement.requestPointerLock();
+    controls.lock();
   }
-}
-
-fpOverlay.addEventListener('click', lockPointer);
-renderer.domElement.addEventListener('click', lockPointer);
+});
 
 controls.addEventListener('lock', () => {
   fpOverlay.classList.add('hidden');
