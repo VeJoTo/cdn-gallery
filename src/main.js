@@ -253,8 +253,8 @@ function updateHoverHighlight() {
       lastHoveredIntensity = hitMesh.material.emissiveIntensity;
       lastHovered = hitMesh;
     }
-    hitMesh.material.emissive.setHex(0x00d4ff);
-    hitMesh.material.emissiveIntensity = Math.max(lastHoveredIntensity + 0.8, 2.0);
+    // Keep original color, just boost the glow slightly
+    hitMesh.material.emissiveIntensity = (lastHoveredIntensity || 0) + 0.3;
   }
 
   // Update crosshair color
