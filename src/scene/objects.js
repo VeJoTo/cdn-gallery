@@ -250,9 +250,9 @@ function buildDesk() {
       screen.userData = {
         clickable: true,
         hotspot: 'desk-right-monitor',
-        action: 'openPanel',
-        panelId: 'desk-code',
-        panelTitle: 'Code & Development'
+        action: 'openFinDuMonde',
+        panelId: 'fin-du-monde',
+        panelTitle: 'Fin du Monde'
       };
     }
   }

@@ -161,5 +161,6 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     if (action === 'openBook')        ui.openBook();
     if (action === 'enterRabbitHole') ui.openRabbitHole();
     if (action === 'openReport')      ui.openReport();
+    if (action === 'openFinDuMonde')  ui.openFinDuMonde();
   });
 }

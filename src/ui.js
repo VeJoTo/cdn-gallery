@@ -320,6 +320,21 @@ export function createUI(camera, renderer) {
   reportClose.addEventListener('click', closeReport);
   reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
 
+  // ── Fin du Monde overlay ────────────────────────
+  const fdmOverlay = document.getElementById('findumonde-overlay');
+  const fdmClose   = document.getElementById('findumonde-close');
+
+  function openFinDuMonde() {
+    fdmOverlay.classList.remove('hidden');
+  }
+
+  function closeFinDuMonde() {
+    fdmOverlay.classList.add('hidden');
+  }
+
+  fdmClose.addEventListener('click', closeFinDuMonde);
+  fdmOverlay.addEventListener('click', (e) => { if (e.target === fdmOverlay) closeFinDuMonde(); });
+
   // ── Rabbit hole scrollytelling ──────────────────
   const rhOverlay     = document.getElementById('rabbit-hole-overlay');
   const rhClimbBack   = document.getElementById('rh-climb-back');
@@ -373,6 +388,7 @@ export function createUI(camera, renderer) {
       closeBook();
       closeRabbitHole();
       closeReport();
+      closeFinDuMonde();
     }
   });
 
@@ -388,6 +404,7 @@ export function createUI(camera, renderer) {
     openBook,
     openRabbitHole,
     openReport,
+    openFinDuMonde,
     updateHints
   };
 }

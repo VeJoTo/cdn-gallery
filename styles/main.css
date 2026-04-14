@@ -1111,6 +1111,70 @@ body {
 }
 .report-close-btn:hover { background: #00d4ff; border-color: #00d4ff; }
 
+/* ── Fin du Monde overlay ───────────────────────── */
+#findumonde-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,15,26,0.95);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#findumonde-overlay.hidden { display: none; }
+
+#findumonde-content {
+  position: relative;
+  width: min(740px, 90vw);
+  background: #111828;
+  border: 1px solid #00d4ff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 0 30px rgba(0,212,255,0.2);
+  text-align: center;
+}
+
+#findumonde-title {
+  font-size: 28px;
+  color: #00d4ff;
+  margin-bottom: 6px;
+}
+
+#findumonde-subtitle {
+  font-size: 14px;
+  color: rgba(224,232,240,0.6);
+  margin-bottom: 20px;
+}
+
+#findumonde-video {
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+#findumonde-video iframe {
+  display: block;
+}
+
+#findumonde-link {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #00d4ff;
+  color: #0a0f1a;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 16px;
+  transition: background 0.2s;
+}
+#findumonde-link:hover { background: #00ff88; }
+
+#findumonde-desc {
+  font-size: 13px;
+  color: rgba(224,232,240,0.5);
+}
+
 #report-hint {
   margin-top: 16px;
   font-size: 13px;
