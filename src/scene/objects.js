@@ -8,7 +8,7 @@ function buildArcadeCabinet(xPos, screenColor) {
   // Body
   const body = new THREE.Mesh(
     new THREE.BoxGeometry(0.8, 2.0, 0.6),
-    new THREE.MeshLambertMaterial({ color: 0x1a2540 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   body.position.y = 1.0;
   body.castShadow = true;
@@ -59,8 +59,8 @@ function buildArcadeCabinet(xPos, screenColor) {
   jStick.position.set(-0.15, 1.03, 0.3);
   group.add(jStick);
 
-  // Buttons (3): orchid, cyan, cream
-  const buttonColors = [0xc77dba, 0x4dd4e6, 0xddd0c0];
+  // Buttons (3): cyan, green-teal, cool white
+  const buttonColors = [0x00d4ff, 0x00ff88, 0xe0e8f0];
   for (let i = 0; i < 3; i++) {
     const btn = new THREE.Mesh(
       new THREE.CylinderGeometry(0.04, 0.04, 0.04, 8),
@@ -84,13 +84,13 @@ function buildTable() {
 
   const top = new THREE.Mesh(
     new THREE.BoxGeometry(1.4, 0.08, 0.8),
-    new THREE.MeshLambertMaterial({ color: 0x0d2137 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   top.position.y = 0.44;
   top.castShadow = true;
   group.add(top);
 
-  const legMat = new THREE.MeshLambertMaterial({ color: 0x0a1530 });
+  const legMat = new THREE.MeshLambertMaterial({ color: 0x0a0f1a });
   const legPositions = [[-0.6, -0.3], [0.6, -0.3], [-0.6, 0.3], [0.6, 0.3]];
   for (const [lx, lz] of legPositions) {
     const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.44, 0.06), legMat);
@@ -109,7 +109,7 @@ function buildTable() {
   // CDN Annual Report book on the table
   const reportCover = new THREE.Mesh(
     new THREE.BoxGeometry(0.35, 0.04, 0.5),
-    new THREE.MeshLambertMaterial({ color: 0x0d2137 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   reportCover.position.set(0, 0.51, 0);
   reportCover.castShadow = true;
@@ -118,7 +118,7 @@ function buildTable() {
   // White pages visible from the side
   const pages = new THREE.Mesh(
     new THREE.BoxGeometry(0.33, 0.03, 0.48),
-    new THREE.MeshLambertMaterial({ color: 0xddd0c0 })
+    new THREE.MeshLambertMaterial({ color: 0xe0e8f0 })
   );
   pages.position.set(0, 0.5, 0);
   group.add(pages);
@@ -128,7 +128,7 @@ function buildTable() {
   coverCanvas.width = 256;
   coverCanvas.height = 128;
   const cctx = coverCanvas.getContext('2d');
-  cctx.fillStyle = '#0d2137';
+  cctx.fillStyle = '#111828';
   cctx.fillRect(0, 0, 256, 128);
   cctx.fillStyle = '#f8f1e0';
   cctx.font = 'bold 20px sans-serif';
@@ -162,7 +162,7 @@ function buildBeanBag(x, z) {
 
   const cushion = new THREE.Mesh(
     new THREE.SphereGeometry(0.3, 10, 8),
-    new THREE.MeshLambertMaterial({ color: 0xc77dba })
+    new THREE.MeshLambertMaterial({ color: 0x00d4ff })
   );
   cushion.scale.y = 0.45;
   cushion.position.y = 0.46;
@@ -179,7 +179,7 @@ function buildDesk() {
   // Desk top
   const top = new THREE.Mesh(
     new THREE.BoxGeometry(2.4, 0.06, 0.9),
-    new THREE.MeshLambertMaterial({ color: 0x0d2137 })
+    new THREE.MeshLambertMaterial({ color: 0x0d1520 })
   );
   top.position.y = 0.85;
   top.castShadow = true;
@@ -187,7 +187,7 @@ function buildDesk() {
   group.add(top);
 
   // Desk legs
-  const legMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
+  const legMat = new THREE.MeshLambertMaterial({ color: 0x0a0f1a });
   const legXs = [-1.15, 1.15];
   const legZs = [-0.4, 0.4];
   for (const lx of legXs) {
@@ -198,13 +198,13 @@ function buildDesk() {
     }
   }
 
-  // CRT monitors — chunky beige boxes
-  const beigeMat = new THREE.MeshLambertMaterial({ color: 0xd4c8a8 });
+  // CRT monitors — dark sci-fi bodies
+  const beigeMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
   const innerBezelMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
 
   const monitorDefs = [
-    { x: -0.55, rotY:  0.15, color: 0xf2a6c1 },
-    { x:  0.55, rotY: -0.15, color: 0xa8d8ea }
+    { x: -0.55, rotY:  0.15, color: 0x00d4ff },
+    { x:  0.55, rotY: -0.15, color: 0x00d4ff }
   ];
   const leftMonitorRefs = [];
   for (const { x, rotY, color } of monitorDefs) {
@@ -266,10 +266,10 @@ function buildDesk() {
     panelTitle: 'Digital Storytelling Research'
   };
 
-  // Beige keyboard
+  // Dark keyboard
   const keyboard = new THREE.Mesh(
     new THREE.BoxGeometry(0.55, 0.025, 0.18),
-    new THREE.MeshLambertMaterial({ color: 0xe8dcc4 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   keyboard.position.set(0, 0.895, 0.05);
   group.add(keyboard);
@@ -278,16 +278,16 @@ function buildDesk() {
   const kbLed = new THREE.Mesh(
     new THREE.BoxGeometry(0.015, 0.005, 0.015),
     new THREE.MeshStandardMaterial({
-      color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 1.0
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
     })
   );
   kbLed.position.set(0.25, 0.91, 0.02);
   group.add(kbLed);
 
-  // Beige mouse with cord
+  // Dark mouse with cord
   const mouse = new THREE.Mesh(
     new THREE.BoxGeometry(0.06, 0.025, 0.09),
-    new THREE.MeshLambertMaterial({ color: 0xe8dcc4 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   mouse.position.set(0.4, 0.895, 0.05);
   group.add(mouse);
@@ -336,7 +336,7 @@ function buildGamingChair() {
   group.position.set(1.8, 0, -1.7);
   group.rotation.y = Math.PI;
 
-  const frameMat = new THREE.MeshLambertMaterial({ color: 0x0d2137 });
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
   const blackMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
 
   // Seat
@@ -351,11 +351,11 @@ function buildGamingChair() {
   back.castShadow = true;
   group.add(back);
 
-  // Headrest neon stripe (orchid)
+  // Headrest neon stripe (cyan)
   const headrest = new THREE.Mesh(
     new THREE.BoxGeometry(0.5, 0.12, 0.085),
     new THREE.MeshStandardMaterial({
-      color: 0xc77dba, emissive: 0xc77dba, emissiveIntensity: 0.7
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.7
     })
   );
   headrest.position.set(0, 1.28, -0.205);
@@ -365,7 +365,7 @@ function buildGamingChair() {
   const accent = new THREE.Mesh(
     new THREE.BoxGeometry(0.06, 0.85, 0.085),
     new THREE.MeshStandardMaterial({
-      color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 0.7
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.7
     })
   );
   accent.position.set(0, 0.92, -0.205);
@@ -404,8 +404,8 @@ function buildBookshelf() {
   group.position.set(-3.4, 0, -2.5);
   group.rotation.y = Math.PI / 2;
 
-  const frameMat = new THREE.MeshLambertMaterial({ color: 0x0d2137 });
-  const shelfMat = new THREE.MeshLambertMaterial({ color: 0x0a1a28 });
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
+  const shelfMat = new THREE.MeshLambertMaterial({ color: 0x0d1520 });
 
   // Frame
   const frame = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 0.3), frameMat);
@@ -423,7 +423,7 @@ function buildBookshelf() {
   }
 
   // Books — 4 colours rotated through, ~10 per shelf
-  const bookColours = [0xd65878, 0x4dd4e6, 0xc77dba, 0xddd0c0, 0x0d2137];
+  const bookColours = [0x00d4ff, 0x00ff88, 0x00d4ff, 0xe0e8f0, 0x111828];
   for (const sy of shelfYs) {
     let xOffset = -0.5;
     for (let i = 0; i < 10; i++) {
@@ -438,11 +438,11 @@ function buildBookshelf() {
     }
   }
 
-  // Small screen wedged between books (cyberpunk detail)
+  // Small screen wedged between books (sci-fi detail)
   const miniScreen = new THREE.Mesh(
     new THREE.BoxGeometry(0.12, 0.18, 0.01),
     new THREE.MeshStandardMaterial({
-      color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 0.8
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.8
     })
   );
   miniScreen.position.set(0.4, 1.55, 0.16);
@@ -450,7 +450,7 @@ function buildBookshelf() {
 
   // Pac-Man easter egg on top of bookshelf
   const pacShape = new THREE.SphereGeometry(0.08, 16, 12, 0.3, Math.PI * 2 - 0.6);
-  const pacman = new THREE.Mesh(pacShape, new THREE.MeshLambertMaterial({ color: 0xddd0c0 }));
+  const pacman = new THREE.Mesh(pacShape, new THREE.MeshLambertMaterial({ color: 0xe0e8f0 }));
   pacman.position.set(0.3, 1.72, 0);
   pacman.rotation.y = Math.PI / 2;
   group.add(pacman);
@@ -464,7 +464,7 @@ function buildMiniFridge() {
 
   const body = new THREE.Mesh(
     new THREE.BoxGeometry(0.7, 1.0, 0.6),
-    new THREE.MeshLambertMaterial({ color: 0x1e2264 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   body.position.y = 0.5;
   body.castShadow = true;
@@ -483,7 +483,7 @@ function buildMiniFridge() {
   const handle = new THREE.Mesh(
     new THREE.BoxGeometry(0.04, 0.2, 0.04),
     new THREE.MeshStandardMaterial({
-      color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 0.6
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.6
     })
   );
   handle.position.set(0.3, 0.7, 0.31);
@@ -493,7 +493,7 @@ function buildMiniFridge() {
   const topStrip = new THREE.Mesh(
     new THREE.BoxGeometry(0.7, 0.02, 0.6),
     new THREE.MeshStandardMaterial({
-      color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 1.0
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
     })
   );
   topStrip.position.y = 1.01;
@@ -525,13 +525,13 @@ function buildFloorLamp() {
   const tube = new THREE.Mesh(
     new THREE.CylinderGeometry(0.06, 0.06, 0.5, 12),
     new THREE.MeshStandardMaterial({
-      color: 0xc77dba, emissive: 0xc77dba, emissiveIntensity: 1.2
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
     })
   );
   tube.position.y = 1.7;
   group.add(tube);
 
-  const halo = new THREE.PointLight(0xc77dba, 0.5, 4);
+  const halo = new THREE.PointLight(0x00d4ff, 0.5, 4);
   halo.position.y = 1.7;
   group.add(halo);
 
@@ -641,21 +641,21 @@ function buildNeonSign() {
   // Transparent background
   ctx.clearRect(0, 0, 640, 240);
 
-  // Neon rose glow text
+  // Neon cyan glow text
   ctx.font = 'bold 80px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // Glow layers (multiple strokes for neon effect)
-  ctx.shadowColor = '#d65878';
+  ctx.shadowColor = '#00d4ff';
   ctx.shadowBlur = 20;
-  ctx.fillStyle = '#d65878';
+  ctx.fillStyle = '#00d4ff';
   ctx.fillText('GAME', 320, 75);
   ctx.fillText('ROOM', 320, 175);
 
   // Bright core
   ctx.shadowBlur = 8;
-  ctx.fillStyle = '#c77dba';
+  ctx.fillStyle = '#66e8ff';
   ctx.fillText('GAME', 320, 75);
   ctx.fillText('ROOM', 320, 175);
 
@@ -710,7 +710,7 @@ function buildPedestal() {
   // Column
   const column = new THREE.Mesh(
     new THREE.CylinderGeometry(0.18, 0.22, 1.0, 12),
-    new THREE.MeshLambertMaterial({ color: 0x0d2137 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   column.position.y = 0.5;
   column.castShadow = true;
@@ -728,7 +728,7 @@ function buildPedestal() {
   const glowRing = new THREE.Mesh(
     new THREE.TorusGeometry(0.22, 0.012, 8, 24),
     new THREE.MeshStandardMaterial({
-      color: 0x5a1d6e, emissive: 0x5a1d6e, emissiveIntensity: 1.4
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.4
     })
   );
   glowRing.position.y = 1.04;
@@ -736,7 +736,7 @@ function buildPedestal() {
   group.add(glowRing);
 
   // Pedestal point light
-  const halo = new THREE.PointLight(0x5a1d6e, 0.6, 2.5);
+  const halo = new THREE.PointLight(0x00d4ff, 0.6, 2.5);
   halo.position.y = 1.2;
   group.add(halo);
 
@@ -760,7 +760,7 @@ function buildPedestal() {
 
   const spine = new THREE.Mesh(
     new THREE.BoxGeometry(0.01, 0.012, 0.22),
-    new THREE.MeshLambertMaterial({ color: 0x0d2137 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   spine.position.set(0, 0.035, 0);
   bookGroup.add(spine);
@@ -803,7 +803,7 @@ function buildRabbitHole() {
   const ring = new THREE.Mesh(
     new THREE.TorusGeometry(0.48, 0.025, 8, 32),
     new THREE.MeshStandardMaterial({
-      color: 0x5a1d6e, emissive: 0x5a1d6e, emissiveIntensity: 1.8
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.8
     })
   );
   ring.rotation.x = -Math.PI / 2;
@@ -828,7 +828,7 @@ function buildRabbitHole() {
   }
 
   // Point light from within
-  const glow = new THREE.PointLight(0x5a1d6e, 1.0, 3);
+  const glow = new THREE.PointLight(0x00d4ff, 1.0, 3);
   glow.position.y = -0.3;
   group.add(glow);
 
@@ -840,8 +840,8 @@ function buildRabbitHole() {
   lctx.clearRect(0, 0, 512, 128);
   lctx.font = 'bold 40px sans-serif';
   lctx.textAlign = 'center';
-  lctx.fillStyle = '#ddd0c0';
-  lctx.shadowColor = '#d65878';
+  lctx.fillStyle = '#e0e8f0';
+  lctx.shadowColor = '#00d4ff';
   lctx.shadowBlur = 10;
   lctx.fillText('🐰 Rabbit Hole ↓', 256, 72);
 
@@ -903,9 +903,9 @@ function buildTV() {
   screen.position.z = 0.071;
   group.add(screen);
 
-  // Neon emissive border strips (kept for the arcade vibe)
+  // Neon emissive border strips
   const glowMat = new THREE.MeshStandardMaterial({
-    color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 1.0
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
   });
   const stripT = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
   stripT.position.set(0,  0.585, 0.072);
@@ -951,7 +951,7 @@ function buildGlobe() {
   group.position.set(0.2, 0, -2.4);
 
   // Pedestal base
-  const baseMat = new THREE.MeshLambertMaterial({ color: 0x0d2137 });
+  const baseMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
   const base = new THREE.Mesh(
     new THREE.CylinderGeometry(0.2, 0.24, 0.06, 12),
     baseMat
@@ -985,8 +985,8 @@ function buildGlobe() {
   // Ocean
   gctx.fillStyle = '#1a3a5c';
   gctx.fillRect(0, 0, 512, 256);
-  // Continents in cream color
-  gctx.fillStyle = '#ddd0c0';
+  // Continents in cool white
+  gctx.fillStyle = '#e0e8f0';
   // North America
   gctx.beginPath(); gctx.moveTo(100,40); gctx.quadraticCurveTo(130,35,140,60); gctx.quadraticCurveTo(150,90,130,110); gctx.quadraticCurveTo(110,120,95,100); gctx.quadraticCurveTo(80,70,100,40); gctx.fill();
   // South America
@@ -1033,18 +1033,18 @@ function buildWallTagging() {
   // Transparent background (the wall shows through)
   ctx.clearRect(0, 0, 1024, 512);
 
-  // "CDN" — large rose tag
+  // "CDN" — large cyan tag
   ctx.save();
   ctx.translate(180, 180);
   ctx.rotate(-0.08);
   ctx.font = 'bold italic 120px sans-serif';
-  ctx.fillStyle = '#d65878';
-  ctx.strokeStyle = '#0d2137';
+  ctx.fillStyle = '#00d4ff';
+  ctx.strokeStyle = '#0a0f1a';
   ctx.lineWidth = 4;
   ctx.strokeText('CDN', 0, 0);
   ctx.fillText('CDN', 0, 0);
   // Drip effect
-  ctx.fillStyle = '#d65878';
+  ctx.fillStyle = '#00d4ff';
   ctx.fillRect(45, 5, 3, 30);
   ctx.fillRect(155, 5, 3, 25);
   ctx.fillRect(265, 5, 3, 35);
@@ -1055,50 +1055,50 @@ function buildWallTagging() {
   ctx.translate(500, 100);
   ctx.rotate(0.05);
   ctx.font = 'bold 28px sans-serif';
-  ctx.fillStyle = '#4dd4e6';
+  ctx.fillStyle = '#00d4ff';
   ctx.fillText('DIGITAL', 0, 0);
   ctx.fillText('NARRATIVE', 0, 36);
   ctx.restore();
 
-  // "UiB" with circle — cream
+  // "UiB" with circle — cool white
   ctx.save();
   ctx.translate(780, 200);
   ctx.beginPath();
   ctx.arc(30, -10, 45, 0, Math.PI * 2);
-  ctx.strokeStyle = '#ddd0c0';
+  ctx.strokeStyle = '#e0e8f0';
   ctx.lineWidth = 3;
   ctx.stroke();
   ctx.font = 'bold 40px sans-serif';
-  ctx.fillStyle = '#ddd0c0';
+  ctx.fillStyle = '#e0e8f0';
   ctx.textAlign = 'center';
   ctx.fillText('UiB', 30, 5);
   ctx.restore();
 
-  // "PLAY" — blocky, orchid
+  // "PLAY" — blocky, green-teal
   ctx.save();
   ctx.translate(100, 380);
   ctx.rotate(0.12);
   ctx.font = 'bold 64px sans-serif';
-  ctx.fillStyle = '#c77dba';
-  ctx.strokeStyle = '#0d2137';
+  ctx.fillStyle = '#00ff88';
+  ctx.strokeStyle = '#0a0f1a';
   ctx.lineWidth = 3;
   ctx.strokeText('PLAY', 0, 0);
   ctx.fillText('PLAY', 0, 0);
   ctx.restore();
 
   // Stars
-  ctx.fillStyle = '#ddd0c0';
+  ctx.fillStyle = '#e0e8f0';
   ctx.font = '36px sans-serif';
   ctx.fillText('★', 450, 300);
   ctx.fillText('★', 700, 380);
-  ctx.fillStyle = '#d65878';
+  ctx.fillStyle = '#e0e8f0';
   ctx.fillText('★', 620, 140);
 
   // Arrow
   ctx.save();
   ctx.translate(500, 400);
   ctx.rotate(-0.1);
-  ctx.strokeStyle = '#4dd4e6';
+  ctx.strokeStyle = '#00ff88';
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -1112,7 +1112,7 @@ function buildWallTagging() {
   // Heart
   ctx.save();
   ctx.translate(830, 350);
-  ctx.fillStyle = '#d65878';
+  ctx.fillStyle = '#00d4ff';
   ctx.beginPath();
   ctx.moveTo(0, -10);
   ctx.bezierCurveTo(-20, -35, -50, -10, 0, 20);
@@ -1123,7 +1123,7 @@ function buildWallTagging() {
 
   // Squiggly underline under CDN
   ctx.save();
-  ctx.strokeStyle = '#c77dba';
+  ctx.strokeStyle = '#00d4ff';
   ctx.lineWidth = 3;
   ctx.beginPath();
   for (let x = 100; x < 420; x += 10) {
@@ -1155,7 +1155,7 @@ function buildRadio() {
   // On the table, slightly to the side
   group.position.set(-0.4, 0.49, 1.5);
 
-  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1e2264 });
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
 
   // Main body (retro boombox shape)
   const body = new THREE.Mesh(
@@ -1181,7 +1181,7 @@ function buildRadio() {
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(0.055, 0.005, 6, 16),
       new THREE.MeshStandardMaterial({
-        color: 0x5a1d6e, emissive: 0x5a1d6e, emissiveIntensity: 0.5
+        color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.5
       })
     );
     ring.rotation.x = Math.PI / 2;
@@ -1193,7 +1193,7 @@ function buildRadio() {
   const display = new THREE.Mesh(
     new THREE.BoxGeometry(0.1, 0.04, 0.01),
     new THREE.MeshStandardMaterial({
-      color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 1.0
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
     })
   );
   display.position.set(0, 0.16, 0.08);
@@ -1212,7 +1212,7 @@ function buildRadio() {
   const tip = new THREE.Mesh(
     new THREE.SphereGeometry(0.012, 6, 4),
     new THREE.MeshStandardMaterial({
-      color: 0xc77dba, emissive: 0xc77dba, emissiveIntensity: 1.5
+      color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 1.5
     })
   );
   tip.position.set(0.15 + Math.sin(0.3) * 0.25, 0.3 + Math.cos(0.3) * 0.25, 0);
@@ -1224,7 +1224,7 @@ function buildRadio() {
 function createMusicNotes(scene) {
   const notes = [];
   const noteChars = ['♪', '♫', '♬'];
-  const noteColors = [0xc77dba, 0x4dd4e6, 0x5a1d6e, 0xddd0c0];
+  const noteColors = [0x00d4ff, 0x00ff88, 0xe0e8f0, 0x00d4ff];
 
   for (let i = 0; i < 12; i++) {
     const canvas = document.createElement('canvas');
@@ -1294,8 +1294,8 @@ function createMusicNotes(scene) {
 }
 
 export function createObjects(scene) {
-  const arcadeLeft  = buildArcadeCabinet(0, 0xc77dba);
-  const arcadeRight = buildArcadeCabinet(0, 0x4dd4e6);
+  const arcadeLeft  = buildArcadeCabinet(0, 0x00d4ff);
+  const arcadeRight = buildArcadeCabinet(0, 0x00d4ff);
 
   // Position arcades on the left wall, side by side, facing into the room
   arcadeLeft.position.set(-3.15, 0, 0.8);
@@ -1310,13 +1310,13 @@ export function createObjects(scene) {
   ghostGroup.position.set(0, 0, 2.6);
   const ghostBody = new THREE.Mesh(
     new THREE.CylinderGeometry(0.08, 0.08, 0.12, 8),
-    new THREE.MeshLambertMaterial({ color: 0xd65878 })
+    new THREE.MeshLambertMaterial({ color: 0x00d4ff })
   );
   ghostBody.position.y = 0.06;
   ghostGroup.add(ghostBody);
   const ghostHead = new THREE.Mesh(
     new THREE.SphereGeometry(0.08, 8, 6),
-    new THREE.MeshLambertMaterial({ color: 0xd65878 })
+    new THREE.MeshLambertMaterial({ color: 0x00d4ff })
   );
   ghostHead.position.y = 0.14;
   ghostGroup.add(ghostHead);
@@ -1333,14 +1333,14 @@ export function createObjects(scene) {
   holoGroup.position.set(1.5, 0, 2.0);
   const holoPole = new THREE.Mesh(
     new THREE.CylinderGeometry(0.06, 0.08, 0.6, 8),
-    new THREE.MeshLambertMaterial({ color: 0x1e2264 })
+    new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   holoPole.position.y = 0.3;
   holoGroup.add(holoPole);
   const holoDisc = new THREE.Mesh(
     new THREE.CylinderGeometry(0.15, 0.15, 0.02, 16),
     new THREE.MeshStandardMaterial({
-      color: 0x4dd4e6, emissive: 0x4dd4e6, emissiveIntensity: 1.5
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5
     })
   );
   holoDisc.position.y = 0.62;
@@ -1349,20 +1349,20 @@ export function createObjects(scene) {
   const holoDiamond = new THREE.Mesh(
     new THREE.OctahedronGeometry(0.08, 0),
     new THREE.MeshStandardMaterial({
-      color: 0xc77dba, emissive: 0xc77dba, emissiveIntensity: 1.0,
+      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0,
       transparent: true, opacity: 0.7
     })
   );
   holoDiamond.position.y = 0.82;
   holoGroup.add(holoDiamond);
-  const holoLight = new THREE.PointLight(0x4dd4e6, 0.5, 2);
+  const holoLight = new THREE.PointLight(0x00d4ff, 0.5, 2);
   holoLight.position.y = 0.7;
   holoGroup.add(holoLight);
   scene.add(holoGroup);
 
   // Neural network nodes (AI decoration)
   const nodeMat = new THREE.MeshStandardMaterial({
-    color: 0xc77dba, emissive: 0xc77dba, emissiveIntensity: 1.2,
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2,
     transparent: true, opacity: 0.8
   });
   const nodePositions = [
@@ -1376,7 +1376,7 @@ export function createObjects(scene) {
     scene.add(node);
   }
   // Connection lines between nodes
-  const lineMat = new THREE.LineBasicMaterial({ color: 0x4dd4e6, transparent: true, opacity: 0.4 });
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.4 });
   for (let i = 0; i < nodePositions.length; i++) {
     for (let j = i + 1; j < nodePositions.length; j++) {
       const geom = new THREE.BufferGeometry().setFromPoints([
@@ -1415,7 +1415,7 @@ export function createObjects(scene) {
   aiCanvas.height = 520;
   const actx = aiCanvas.getContext('2d');
   // Dark background
-  actx.fillStyle = '#0d2137';
+  actx.fillStyle = '#0d1520';
   actx.fillRect(0, 0, 400, 520);
   // Eye circle (simplified)
   actx.fillStyle = '#a8d8ea';
@@ -1428,7 +1428,7 @@ export function createObjects(scene) {
   actx.arc(200, 220, 50, 0, Math.PI * 2);
   actx.fill();
   // Pupil
-  actx.fillStyle = '#0d2137';
+  actx.fillStyle = '#0d1520';
   actx.beginPath();
   actx.arc(200, 220, 22, 0, Math.PI * 2);
   actx.fill();
@@ -1438,14 +1438,14 @@ export function createObjects(scene) {
   actx.arc(215, 205, 10, 0, Math.PI * 2);
   actx.fill();
   // Text
-  actx.fillStyle = '#ddd0c0';
+  actx.fillStyle = '#e0e8f0';
   actx.font = 'bold 42px sans-serif';
   actx.textAlign = 'center';
   actx.fillText('AN EYE FOR', 200, 400);
-  actx.fillStyle = '#d65878';
+  actx.fillStyle = '#00d4ff';
   actx.fillText('AI CINEMA', 200, 450);
   // Small subtitle
-  actx.fillStyle = '#4dd4e6';
+  actx.fillStyle = '#00d4ff';
   actx.font = '16px sans-serif';
   actx.fillText('CDN Event Series', 200, 490);
 
