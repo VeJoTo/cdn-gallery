@@ -62,12 +62,15 @@ document.addEventListener('click', (e) => {
   }
 });
 
+let hasEnteredOnce = false;
 controls.addEventListener('lock', () => {
+  hasEnteredOnce = true;
   fpOverlay.classList.add('hidden');
   crosshair.classList.remove('hidden');
 });
 controls.addEventListener('unlock', () => {
-  fpOverlay.classList.remove('hidden');
+  // Only show the intro overlay on the very first visit
+  if (!hasEnteredOnce) fpOverlay.classList.remove('hidden');
   crosshair.classList.add('hidden');
 });
 
