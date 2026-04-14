@@ -629,6 +629,160 @@ function buildImagePoster(x, y, z, imageSrc, title, idx) {
   return plane;
 }
 
+function buildAIPoster(x, y, z, title, icon, idx) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 400;
+  canvas.height = 550;
+  const ctx = canvas.getContext('2d');
+
+  // Dark background with subtle gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, 550);
+  grad.addColorStop(0, '#0a0f1a');
+  grad.addColorStop(1, '#111828');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 400, 550);
+
+  // Cyan frame with glow
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 15;
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(12, 12, 376, 526);
+  ctx.shadowBlur = 0;
+
+  // Inner frame line
+  ctx.strokeStyle = 'rgba(0,212,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(20, 20, 360, 510);
+
+  // Icon area
+  ctx.save();
+  ctx.translate(200, 220);
+
+  if (icon === 'brain') {
+    // Neural network / brain visualization
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = 1.5;
+    const nodes = [];
+    for (let layer = 0; layer < 4; layer++) {
+      const count = [3, 5, 5, 3][layer];
+      const lx = -80 + layer * 53;
+      for (let i = 0; i < count; i++) {
+        const ly = -((count - 1) * 25) / 2 + i * 25;
+        nodes.push({ x: lx, y: ly, layer });
+        ctx.fillStyle = '#00d4ff';
+        ctx.beginPath();
+        ctx.arc(lx, ly, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // Connections
+    ctx.strokeStyle = 'rgba(0,212,255,0.3)';
+    for (const a of nodes) {
+      for (const b of nodes) {
+        if (b.layer === a.layer + 1) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+    // Glow circle behind
+    ctx.beginPath();
+    ctx.arc(0, 0, 80, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,255,136,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else if (icon === 'eye') {
+    // AI eye
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 70, 40, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Iris
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,212,255,0.3)';
+    ctx.fill();
+    ctx.strokeStyle = '#00d4ff';
+    ctx.stroke();
+    // Pupil
+    ctx.beginPath();
+    ctx.arc(0, 0, 12, 0, Math.PI * 2);
+    ctx.fillStyle = '#00d4ff';
+    ctx.fill();
+    // Scan lines
+    ctx.strokeStyle = 'rgba(0,255,136,0.4)';
+    ctx.lineWidth = 1;
+    for (let sy = -35; sy <= 35; sy += 10) {
+      ctx.beginPath();
+      ctx.moveTo(-65, sy);
+      ctx.lineTo(65, sy);
+      ctx.stroke();
+    }
+  } else if (icon === 'circuit') {
+    // Circuit/chip pattern
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-40, -40, 80, 80);
+    // Traces coming out
+    const dirs = [[-40,-20], [-40,0], [-40,20], [40,-20], [40,0], [40,20], [-20,-40], [0,-40], [20,-40], [-20,40], [0,40], [20,40]];
+    for (const [dx, dy] of dirs) {
+      ctx.beginPath();
+      ctx.moveTo(dx, dy);
+      ctx.lineTo(dx + Math.sign(dx) * 30, dy + Math.sign(dy) * 30);
+      ctx.stroke();
+      // Node dot at end
+      ctx.fillStyle = '#00ff88';
+      ctx.beginPath();
+      ctx.arc(dx + Math.sign(dx) * 30, dy + Math.sign(dy) * 30, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Inner glow
+    ctx.fillStyle = 'rgba(0,212,255,0.15)';
+    ctx.fillRect(-35, -35, 70, 70);
+    ctx.fillStyle = '#00d4ff';
+    ctx.font = 'bold 18px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('AI', 0, 0);
+  }
+
+  ctx.restore();
+
+  // Title
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = '#e0e8f0';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.textAlign = 'center';
+  const lines = title.split('\n');
+  lines.forEach((line, i) => {
+    ctx.fillText(line, 200, 420 + i * 36);
+  });
+  ctx.shadowBlur = 0;
+
+  // Subtitle
+  ctx.fillStyle = 'rgba(0,212,255,0.6)';
+  ctx.font = '13px sans-serif';
+  ctx.fillText('CENTRE FOR DIGITAL NARRATIVE', 200, 510);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.MeshBasicMaterial({ map: tex });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.1), mat);
+  plane.position.set(x, y, z);
+  plane.userData = {
+    clickable: true,
+    hotspot: 'poster-' + idx,
+    action: 'openPoster',
+    panelId: 'poster-' + idx,
+    panelTitle: lines.join(' ')
+  };
+  return plane;
+}
+
 function buildNeonSign() {
   const group = new THREE.Group();
   group.position.set(1.8, 2.85, -2.97);
@@ -1404,9 +1558,9 @@ export function createObjects(scene) {
   const musicNotes  = createMusicNotes(scene);
 
   const posters = [
-    buildImagePoster(-2.5, 2.0, -2.90, (import.meta.env.BASE_URL || '/') + 'galaga-poster.svg', 'GALAGA', 0),
-    buildImagePoster(-1.4, 2.0, -2.90, (import.meta.env.BASE_URL || '/') + 'pacman-poster.svg', 'PAC-MAN', 1),
-    buildImagePoster(-0.3, 2.0, -2.90, (import.meta.env.BASE_URL || '/') + 'space-invaders-poster.svg', 'SPACE INVADERS', 2)
+    buildAIPoster(-2.5, 2.0, -2.90, 'NEURAL\nNETWORKS', 'brain', 0),
+    buildAIPoster(-1.4, 2.0, -2.90, 'MACHINE\nLEARNING', 'eye', 1),
+    buildAIPoster(-0.3, 2.0, -2.90, 'SYNTHETIC\nSTORYTELLERS', 'circuit', 2)
   ];
 
   // AI Cinema poster on the right wall

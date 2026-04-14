@@ -120,12 +120,32 @@ export function createUI(camera, renderer) {
           </a>
         </div>
       `;
+    } else if (panelId === 'poster-0') {
+      content = `
+        <h2>Neural Networks</h2>
+        <p>Neural networks are computing systems inspired by biological brains — interconnected nodes that learn patterns from data.</p>
+        <p>At CDN, researchers study how neural networks are transforming storytelling: from generating text and images to creating interactive narratives that adapt to their audience.</p>
+        <p>How does a network of artificial neurons learn to tell a story? And what kind of stories does it choose to tell?</p>
+      `;
+    } else if (panelId === 'poster-1') {
+      content = `
+        <h2>Machine Learning</h2>
+        <p>Machine learning enables computers to improve at tasks through experience — without being explicitly programmed for each step.</p>
+        <p>CDN explores how ML models trained on vast corpora of human writing develop their own "style" — and what gets lost or transformed when algorithms learn from our collective creative output.</p>
+        <p>Can a machine truly learn creativity, or does it only learn to imitate it?</p>
+      `;
+    } else if (panelId === 'poster-2') {
+      content = `
+        <h2>Synthetic Storytellers</h2>
+        <p>When AI generates stories, who is the author? The programmer, the training data, or the machine itself?</p>
+        <p>CDN researcher Anne Sigrid Refsum studied what happens when LLMs retell Norwegian folktales — they mix motifs from different traditions, add modern moral lessons, and lose cultural specificity.</p>
+        <p>Read the full research in the magical book on the pedestal.</p>
+      `;
     } else {
       content = `
         <h2>${safeTitle}</h2>
-        <p>This panel presents CDN research on <strong>${safeTitle}</strong>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.</p>
-        <p>Explore the interactive elements in this room to learn more about this area of CDN research.</p>
+        <p>This exhibit explores <strong>${safeTitle}</strong> as part of CDN's research into digital narratives and AI-driven storytelling.</p>
+        <p>The Centre for Digital Narrative at the University of Bergen studies how computational technologies shape the stories we tell and experience.</p>
       `;
     }
 
