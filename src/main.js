@@ -167,26 +167,10 @@ const ui       = createUI(camera, renderer);
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
 
-// TV sound toggle (declared here so nav.goTo decorator can reference it)
+// TV sound toggle — always visible in first-person mode
 const soundCheckbox = document.getElementById('sound-checkbox');
 const soundToggleDiv = document.getElementById('sound-toggle');
-soundToggleDiv.style.display = 'none'; // hidden by default
-
-const standupBtn = document.getElementById('standup-btn');
-
-// Hide arcades when zoomed into a wall (they'd otherwise block the view)
-const baseGoTo = nav.goTo;
-nav.goTo = (id) => {
-  baseGoTo(id);
-  const hideArcades = id === 'wall-left';
-  arcadeLeft.visible  = !hideArcades;
-  arcadeRight.visible = !hideArcades;
-  // Show TV sound toggle only when zoomed into TV
-  soundToggleDiv.style.display = id === 'tv' ? 'flex' : 'none';
-  // Show "Stand Up" button when seated
-  const isSeated = id.startsWith('seat-');
-  standupBtn.classList.toggle('hidden', !isSeated);
-};
+soundToggleDiv.style.display = 'flex';
 
 setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
 
@@ -223,15 +207,10 @@ renderer.domElement.addEventListener('mousemove', (event) => {
   }
 });
 
-document.getElementById('back-btn').addEventListener('click', () => nav.goTo('overview'));
 document.getElementById('reset-btn').addEventListener('click', () => {
   camera.position.set(0, 1.6, 2.5);
   camera.lookAt(0, 1.6, 0);
   if (controls.isLocked) controls.unlock();
-});
-standupBtn.addEventListener('click', () => {
-  nav.goTo('overview');
-  standupBtn.classList.add('hidden');
 });
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());

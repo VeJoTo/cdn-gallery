@@ -1,6 +1,4 @@
 // src/ui.js
-import * as THREE from 'three';
-import { HOTSPOTS } from './navigation.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -56,7 +54,6 @@ export function getPrevPageIndex(current) {
 
 export function createUI(camera, renderer) {
   const breadcrumb       = document.getElementById('breadcrumb');
-  const backBtn          = document.getElementById('back-btn');
   const panelDrawer      = document.getElementById('panel-drawer');
   const drawerContent    = document.getElementById('drawer-content');
   const drawerClose      = document.getElementById('drawer-close');
@@ -67,17 +64,9 @@ export function createUI(camera, renderer) {
   const inventoryOverlay = document.getElementById('inventory-overlay');
   const inventoryClose   = document.getElementById('inventory-close');
   const inventoryContent = document.getElementById('inventory-content');
-  const hintsContainer   = document.getElementById('hotspot-hints');
-
   // ── HUD ──────────────────────────────────────────
   function updateHUD(hotspotId) {
-    const label = HOTSPOTS[hotspotId]?.label ?? hotspotId;
-    breadcrumb.textContent = label;
-    if (hotspotId === 'overview') {
-      backBtn.classList.add('hidden');
-    } else {
-      backBtn.classList.remove('hidden');
-    }
+    breadcrumb.textContent = 'CDN GALLERY';
   }
 
   updateHUD('overview');
@@ -387,50 +376,8 @@ export function createUI(camera, renderer) {
     }
   });
 
-  // ── Hotspot hints (screen-space projection) ──────
-  const HINT_HOTSPOTS = ['arcade-left', 'arcade-right', 'desk', 'table', 'globe', 'pedestal', 'rabbit-hole', 'tv', 'poster-0', 'poster-1', 'poster-2', 'poster-ai-cinema'];
-  const hintWorldPositions = {
-    'arcade-left':      new THREE.Vector3(-3.15, 1.3, 0.8),
-    'arcade-right':     new THREE.Vector3(-3.15, 1.3, -0.5),
-    'desk':             new THREE.Vector3(1.8, 1.0, -2.6),
-    'table':            new THREE.Vector3(0, 0.5, 1.5),
-    'globe':            new THREE.Vector3(0.2, 0.85, -2.4),
-    'pedestal':         new THREE.Vector3(-2.8, 1.2, 2.6),
-    'rabbit-hole':      new THREE.Vector3(-0.8, 0.3, -2.4),
-    'tv':               new THREE.Vector3(3.4, 2.85, 0),
-    'poster-0':         new THREE.Vector3(-2.5, 2.0, -2.9),
-    'poster-1':         new THREE.Vector3(-1.4, 2.0, -2.9),
-    'poster-2':         new THREE.Vector3(-0.3, 2.0, -2.9),
-    'poster-ai-cinema': new THREE.Vector3(3.42, 1.5, 2.2)
-  };
-
-  const hintEls = {};
-  for (const id of HINT_HOTSPOTS) {
-    const el = document.createElement('div');
-    el.className = 'hotspot-hint';
-    el.dataset.id = id;
-    hintsContainer.appendChild(el);
-    hintEls[id] = el;
-  }
-
-  const _vec = new THREE.Vector3();
-
   function updateHints() {
-    const w = renderer.domElement.clientWidth;
-    const h = renderer.domElement.clientHeight;
-
-    for (const id of HINT_HOTSPOTS) {
-      _vec.copy(hintWorldPositions[id]);
-      _vec.project(camera);
-
-      const x = (_vec.x + 1) / 2 * w;
-      const y = (-_vec.y + 1) / 2 * h;
-
-      const visible = _vec.z < 1 && x > 0 && x < w && y > 0 && y < h;
-      hintEls[id].style.display = visible ? 'block' : 'none';
-      hintEls[id].style.left = x + 'px';
-      hintEls[id].style.top  = y + 'px';
-    }
+    // No-op in first person mode
   }
 
   return {

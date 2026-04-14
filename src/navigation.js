@@ -1,6 +1,5 @@
 // src/navigation.js
 import * as THREE from 'three';
-import gsap from 'gsap';
 
 export const HOTSPOTS = {
   overview:       { position: { x: 0, y: 1.6, z: 2.5 }, target: { x: 0, y: 1.6, z: 0 }, label: 'Overview' },
@@ -47,40 +46,11 @@ export function createNavigationState() {
 }
 
 export function createNavigationSystem(camera, state, ui, controls) {
-  // Proxy object for GSAP to tween plain numbers instead of Vector3
-  const proxy = {
-    px: camera.position.x,
-    py: camera.position.y,
-    pz: camera.position.z,
-    tx: 0, ty: 1, tz: 0
-  };
-
-  function applyProxy() {
-    camera.position.set(proxy.px, proxy.py, proxy.pz);
-    camera.lookAt(proxy.tx, proxy.ty, proxy.tz);
-    if (controls && controls.target) {
-      controls.target.set(proxy.tx, proxy.ty, proxy.tz);
+  return {
+    goTo(id) {
+      // No-op in first person mode — user walks around freely
     }
-  }
-
-  function goTo(id) {
-    if (!state.startTransition(id)) return;
-    const h = HOTSPOTS[id];
-    gsap.to(proxy, {
-      px: h.position.x, py: h.position.y, pz: h.position.z,
-      tx: h.target.x,   ty: h.target.y,   tz: h.target.z,
-      duration: 0.8,
-      ease: 'power2.inOut',
-      onUpdate: applyProxy,
-      onComplete: () => {
-        state.endTransition();
-        ui.updateHUD(id);
-      }
-    });
-    ui.updateHUD(id);
-  }
-
-  return { goTo };
+  };
 }
 
 export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState) {
@@ -118,13 +88,12 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     while (obj && !obj.userData.clickable) obj = obj.parent;
     if (!obj) return;
 
-    const { hotspot, action, panelId, panelTitle } = obj.userData;
+    const { action, panelId, panelTitle } = obj.userData;
 
-    if (hotspot)                      nav.goTo(hotspot);
-    if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
+    // Direct actions — no camera movement
+    if (action === 'openPanel' || action === 'openPoster') ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openBook')        ui.openBook();
     if (action === 'enterRabbitHole') ui.openRabbitHole();
-    if (action === 'openReport' && navState.current === 'table') ui.openReport();
-    if (action === 'openPoster' && navState.current === hotspot) ui.openPanelDrawer(panelId, panelTitle);
+    if (action === 'openReport')      ui.openReport();
   });
 }
