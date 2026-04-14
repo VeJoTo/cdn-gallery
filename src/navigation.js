@@ -54,6 +54,7 @@ export function createNavigationSystem(camera, state, ui, controls) {
     tx: 0, ty: 1.6, tz: 0
   };
   let savedPosition = null;
+  let activeTween = null;
 
   function applyProxy() {
     camera.position.set(proxy.px, proxy.py, proxy.pz);
@@ -64,6 +65,9 @@ export function createNavigationSystem(camera, state, ui, controls) {
     if (!state.startTransition(id)) return;
     const h = HOTSPOTS[id];
     if (!h) { state.endTransition(); return; }
+
+    // Kill any running tween
+    if (activeTween) activeTween.kill();
 
     // Save current position so user can return
     if (!savedPosition) {
@@ -77,13 +81,14 @@ export function createNavigationSystem(camera, state, ui, controls) {
     proxy.py = camera.position.y;
     proxy.pz = camera.position.z;
 
-    gsap.to(proxy, {
+    activeTween = gsap.to(proxy, {
       px: h.position.x, py: h.position.y, pz: h.position.z,
       tx: h.target.x,   ty: h.target.y,   tz: h.target.z,
       duration: 0.6,
       ease: 'power2.inOut',
       onUpdate: applyProxy,
       onComplete: () => {
+        activeTween = null;
         state.endTransition();
         ui.updateHUD(id);
       }
@@ -91,6 +96,8 @@ export function createNavigationSystem(camera, state, ui, controls) {
   }
 
   function goBack() {
+    // Kill any running tween so it doesn't overwrite the restored position
+    if (activeTween) { activeTween.kill(); activeTween = null; }
     if (savedPosition) {
       camera.position.copy(savedPosition);
       camera.lookAt(0, 1.6, 0);
