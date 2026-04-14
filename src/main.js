@@ -212,15 +212,17 @@ const hoverMouse     = new THREE.Vector2();
 
 // Hover highlight: glow objects the crosshair points at
 let lastHovered = null;
-let lastHoveredEmissive = null;
 let lastHoveredIntensity = null;
+const hoverLabel = document.getElementById('hover-label');
 
 function updateHoverHighlight() {
-  // In first-person, always raycast from center
-  if (controls.isLocked) {
-    hoverMouse.x = 0;
-    hoverMouse.y = 0;
+  if (!controls.isLocked) {
+    if (hoverLabel) hoverLabel.classList.add('hidden');
+    return;
   }
+
+  hoverMouse.x = 0;
+  hoverMouse.y = 0;
 
   hoverRaycaster.setFromCamera(hoverMouse, camera);
   const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
@@ -237,30 +239,36 @@ function updateHoverHighlight() {
 
   // Unhighlight previous
   if (lastHovered && lastHovered !== hitMesh) {
-    if (lastHovered.material && lastHoveredEmissive !== null) {
-      lastHovered.material.emissive?.setHex(lastHoveredEmissive);
-      if (lastHoveredIntensity !== null) lastHovered.material.emissiveIntensity = lastHoveredIntensity;
+    if (lastHovered.material && lastHovered.material.emissive && lastHoveredIntensity !== null) {
+      lastHovered.material.emissiveIntensity = lastHoveredIntensity;
     }
     lastHovered = null;
-    lastHoveredEmissive = null;
     lastHoveredIntensity = null;
   }
 
-  // Highlight current
+  // Highlight current — subtle glow boost
   if (hitObj && hitMesh && hitMesh.material && hitMesh.material.emissive) {
     if (lastHovered !== hitMesh) {
-      lastHoveredEmissive = hitMesh.material.emissive.getHex();
       lastHoveredIntensity = hitMesh.material.emissiveIntensity;
       lastHovered = hitMesh;
     }
-    // Keep original color, just boost the glow slightly
-    hitMesh.material.emissiveIntensity = (lastHoveredIntensity || 0) + 0.3;
+    hitMesh.material.emissiveIntensity = (lastHoveredIntensity || 0) + 0.4;
   }
 
-  // Update crosshair color
+  // Crosshair + label
   if (crosshair) {
     crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
     crosshair.style.fontSize = hitObj ? '28px' : '24px';
+  }
+
+  if (hoverLabel) {
+    if (hitObj) {
+      const name = hitObj.userData.panelTitle || hitObj.userData.hotspot || 'Interact';
+      hoverLabel.textContent = '[ ' + name + ' ]';
+      hoverLabel.classList.remove('hidden');
+    } else {
+      hoverLabel.classList.add('hidden');
+    }
   }
 }
 
