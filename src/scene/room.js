@@ -84,6 +84,144 @@ export function createRoom(scene) {
   frontWall.receiveShadow = true;
   scene.add(frontWall);
 
+  // ── AI graphics on the front wall ──
+  const aiWallCanvas = document.createElement('canvas');
+  aiWallCanvas.width = 1024;
+  aiWallCanvas.height = 512;
+  const awctx = aiWallCanvas.getContext('2d');
+
+  // Dark transparent base
+  awctx.clearRect(0, 0, 1024, 512);
+
+  // Large neural network visualization
+  awctx.strokeStyle = '#00d4ff';
+  awctx.lineWidth = 1;
+  awctx.shadowColor = '#00d4ff';
+  awctx.shadowBlur = 6;
+
+  // Central brain/network hub
+  awctx.beginPath();
+  awctx.arc(512, 256, 80, 0, Math.PI * 2);
+  awctx.strokeStyle = 'rgba(0,212,255,0.4)';
+  awctx.lineWidth = 2;
+  awctx.stroke();
+
+  awctx.beginPath();
+  awctx.arc(512, 256, 50, 0, Math.PI * 2);
+  awctx.strokeStyle = 'rgba(0,212,255,0.6)';
+  awctx.stroke();
+
+  awctx.beginPath();
+  awctx.arc(512, 256, 20, 0, Math.PI * 2);
+  awctx.fillStyle = 'rgba(0,212,255,0.3)';
+  awctx.fill();
+
+  // Radiating connection lines from center to nodes
+  const outerNodes = [];
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    const r = 150 + (i % 3) * 40;
+    const nx = 512 + Math.cos(angle) * r;
+    const ny = 256 + Math.sin(angle) * r;
+    outerNodes.push({ x: nx, y: ny });
+
+    // Line from center
+    awctx.strokeStyle = 'rgba(0,212,255,0.25)';
+    awctx.lineWidth = 1;
+    awctx.beginPath();
+    awctx.moveTo(512, 256);
+    awctx.lineTo(nx, ny);
+    awctx.stroke();
+
+    // Node dot
+    awctx.fillStyle = '#00d4ff';
+    awctx.shadowBlur = 8;
+    awctx.beginPath();
+    awctx.arc(nx, ny, 5, 0, Math.PI * 2);
+    awctx.fill();
+  }
+
+  // Inter-node connections
+  awctx.strokeStyle = 'rgba(0,212,255,0.15)';
+  awctx.shadowBlur = 3;
+  awctx.lineWidth = 0.5;
+  for (let i = 0; i < outerNodes.length; i++) {
+    for (let j = i + 2; j < outerNodes.length; j += 2) {
+      awctx.beginPath();
+      awctx.moveTo(outerNodes[i].x, outerNodes[i].y);
+      awctx.lineTo(outerNodes[j].x, outerNodes[j].y);
+      awctx.stroke();
+    }
+  }
+
+  // Left side: data stream / binary
+  awctx.shadowBlur = 4;
+  awctx.fillStyle = 'rgba(0,212,255,0.3)';
+  awctx.font = '10px monospace';
+  for (let row = 0; row < 20; row++) {
+    let bits = '';
+    for (let b = 0; b < 18; b++) bits += Math.random() > 0.5 ? '1' : '0';
+    awctx.fillText(bits, 20, 30 + row * 24);
+  }
+
+  // Right side: data stream
+  for (let row = 0; row < 20; row++) {
+    let bits = '';
+    for (let b = 0; b < 18; b++) bits += Math.random() > 0.5 ? '1' : '0';
+    awctx.fillText(bits, 830, 30 + row * 24);
+  }
+
+  // Horizontal scan lines across
+  awctx.strokeStyle = 'rgba(0,212,255,0.08)';
+  awctx.lineWidth = 1;
+  awctx.shadowBlur = 0;
+  for (let y = 0; y < 512; y += 16) {
+    awctx.beginPath();
+    awctx.moveTo(0, y);
+    awctx.lineTo(1024, y);
+    awctx.stroke();
+  }
+
+  // "AI" watermark
+  awctx.shadowColor = '#00d4ff';
+  awctx.shadowBlur = 15;
+  awctx.font = 'bold 120px sans-serif';
+  awctx.fillStyle = 'rgba(0,212,255,0.06)';
+  awctx.textAlign = 'center';
+  awctx.fillText('A.I.', 512, 290);
+
+  // Small text labels near nodes
+  awctx.shadowBlur = 4;
+  awctx.font = '11px sans-serif';
+  awctx.fillStyle = 'rgba(0,212,255,0.5)';
+  const labels = ['NEURAL', 'LEARN', 'DATA', 'PREDICT', 'TRAIN', 'MODEL', 'PROCESS', 'ANALYZE', 'GENERATE', 'COMPUTE', 'ENCODE', 'DECODE'];
+  for (let i = 0; i < outerNodes.length; i++) {
+    awctx.fillText(labels[i], outerNodes[i].x - 15, outerNodes[i].y + 18);
+  }
+
+  // Decorative corner brackets
+  awctx.strokeStyle = 'rgba(0,212,255,0.4)';
+  awctx.lineWidth = 2;
+  awctx.shadowBlur = 0;
+  const bSize = 40;
+  // Top-left
+  awctx.beginPath(); awctx.moveTo(10, 10 + bSize); awctx.lineTo(10, 10); awctx.lineTo(10 + bSize, 10); awctx.stroke();
+  // Top-right
+  awctx.beginPath(); awctx.moveTo(1014 - bSize, 10); awctx.lineTo(1014, 10); awctx.lineTo(1014, 10 + bSize); awctx.stroke();
+  // Bottom-left
+  awctx.beginPath(); awctx.moveTo(10, 502 - bSize); awctx.lineTo(10, 502); awctx.lineTo(10 + bSize, 502); awctx.stroke();
+  // Bottom-right
+  awctx.beginPath(); awctx.moveTo(1014 - bSize, 502); awctx.lineTo(1014, 502); awctx.lineTo(1014, 502 - bSize); awctx.stroke();
+
+  const aiWallTex = new THREE.CanvasTexture(aiWallCanvas);
+  const aiWallPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(6, 3),
+    new THREE.MeshBasicMaterial({ map: aiWallTex, transparent: true, side: THREE.DoubleSide })
+  );
+  aiWallPlane.position.set(0, 1.75, 2.97);
+  aiWallPlane.rotation.y = Math.PI;
+  scene.add(aiWallPlane);
+
   // Ceiling
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), ceilMat);
   ceil.rotation.x = Math.PI / 2;
