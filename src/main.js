@@ -194,7 +194,7 @@ const clickableObjects = [
   ...extras
 ];
 
-const ui       = createUI(camera, renderer);
+const ui       = createUI(camera, renderer, controls);
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
 

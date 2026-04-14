@@ -60,7 +60,16 @@ export function getPrevPageIndex(current) {
   return Math.max(current - 1, 0);
 }
 
-export function createUI(camera, renderer) {
+export function createUI(camera, renderer, controls) {
+  // Helper: unlock pointer when opening overlays, re-lock when closing
+  function unlockForOverlay() {
+    if (controls && controls.isLocked) controls.unlock();
+  }
+  function relockAfterOverlay() {
+    if (controls && !controls.isLocked) {
+      setTimeout(() => controls.lock(), 100);
+    }
+  }
   const breadcrumb       = document.getElementById('breadcrumb');
   const panelDrawer      = document.getElementById('panel-drawer');
   const drawerContent    = document.getElementById('drawer-content');
@@ -149,11 +158,13 @@ export function createUI(camera, renderer) {
     drawerContent.innerHTML = content;
     panelDrawer.classList.remove('hidden');
     requestAnimationFrame(() => panelDrawer.classList.add('open'));
+    unlockForOverlay();
   }
 
   function closePanelDrawer() {
     panelDrawer.classList.remove('open');
     setTimeout(() => panelDrawer.classList.add('hidden'), 350);
+    relockAfterOverlay();
   }
 
   drawerClose.addEventListener('click', closePanelDrawer);
@@ -302,10 +313,12 @@ export function createUI(camera, renderer) {
     bookPageIndex = 0;
     renderBookPage();
     bookOverlay.classList.remove('hidden');
+    unlockForOverlay();
   }
 
   function closeBook() {
     bookOverlay.classList.add('hidden');
+    relockAfterOverlay();
   }
 
   bookPrev.addEventListener('click',  () => { bookPageIndex = getPrevPageIndex(bookPageIndex); renderBookPage(); });
@@ -319,10 +332,12 @@ export function createUI(camera, renderer) {
 
   function openReport() {
     reportOverlay.classList.remove('hidden');
+    unlockForOverlay();
   }
 
   function closeReport() {
     reportOverlay.classList.add('hidden');
+    relockAfterOverlay();
   }
 
   reportClose.addEventListener('click', closeReport);
@@ -334,10 +349,12 @@ export function createUI(camera, renderer) {
 
   function openFinDuMonde() {
     fdmOverlay.classList.remove('hidden');
+    unlockForOverlay();
   }
 
   function closeFinDuMonde() {
     fdmOverlay.classList.add('hidden');
+    relockAfterOverlay();
   }
 
   fdmClose.addEventListener('click', closeFinDuMonde);
@@ -353,6 +370,7 @@ export function createUI(camera, renderer) {
   function openRabbitHole() {
     rhOverlay.classList.remove('hidden');
     rhOverlay.scrollTop = 0;
+    unlockForOverlay();
     // Reset section visibility
     rhSections.forEach(s => s.classList.remove('visible'));
     // Start observing sections for scroll-based reveal
@@ -361,6 +379,7 @@ export function createUI(camera, renderer) {
 
   function closeRabbitHole() {
     rhOverlay.classList.add('hidden');
+    relockAfterOverlay();
   }
 
   function checkRHSections() {
