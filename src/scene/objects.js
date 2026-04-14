@@ -1729,9 +1729,7 @@ function buildPortal() {
   // Store rings for animation
   group.userData = {
     clickable: true,
-    action: 'openPanel',
-    panelId: 'portal',
-    panelTitle: 'Portal — Coming Soon',
+    action: 'enterNatureRoom',
     rings,
     innerGlow
   };

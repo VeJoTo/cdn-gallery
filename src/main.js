@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
+import { createNatureRoom } from './scene/nature-room.js';
 import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
 import { createUI } from './ui.js';
 
@@ -103,10 +104,11 @@ function updateRotation(delta) {
     camera.position.add(move);
     controls.target.add(move);
 
-    // Clamp to room bounds
-    camera.position.x = Math.max(-3.0, Math.min(3.0, camera.position.x));
+    // Clamp to current room bounds
+    const roomX0 = currentRoom === 'nature' ? 20 : 0;
+    camera.position.x = Math.max(roomX0 - 3.0, Math.min(roomX0 + 3.0, camera.position.x));
     camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
-    controls.target.x = Math.max(-3.0, Math.min(3.0, controls.target.x));
+    controls.target.x = Math.max(roomX0 - 3.0, Math.min(roomX0 + 3.0, controls.target.x));
     controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
   }
 
@@ -122,9 +124,10 @@ function updateRotation(delta) {
     camera.position.add(move);
     controls.target.add(move);
 
-    camera.position.x = Math.max(-3.0, Math.min(3.0, camera.position.x));
+    const roomX1 = currentRoom === 'nature' ? 20 : 0;
+    camera.position.x = Math.max(roomX1 - 3.0, Math.min(roomX1 + 3.0, camera.position.x));
     camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
-    controls.target.x = Math.max(-3.0, Math.min(3.0, controls.target.x));
+    controls.target.x = Math.max(roomX1 - 3.0, Math.min(roomX1 + 3.0, controls.target.x));
     controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
   }
 }
@@ -204,6 +207,43 @@ const nav      = createNavigationSystem(camera, navState, ui, controls);
 const soundCheckbox = document.getElementById('sound-checkbox');
 const soundToggleDiv = document.getElementById('sound-toggle');
 soundToggleDiv.style.display = 'flex';
+
+// ── Nature room ──
+const natureRoom = createNatureRoom(scene);
+clickableObjects.push(...natureRoom.clickables);
+
+// Animate nature room return portal
+addUpdateCallback((delta) => {
+  if (natureRoom.returnGlow) natureRoom.returnGlow.rotation.z += delta * 0.3;
+  if (natureRoom.returnGlow2) natureRoom.returnGlow2.rotation.z -= delta * 0.5;
+});
+
+// ── Room transitions ──
+const fadeOverlay = document.getElementById('fade-overlay');
+let currentRoom = 'ai'; // 'ai' or 'nature'
+
+function transitionToRoom(targetRoom) {
+  fadeOverlay.classList.add('active');
+
+  setTimeout(() => {
+    if (targetRoom === 'nature') {
+      camera.position.set(20, 1.6, 2);
+      controls.target.set(20, 1.6, 0);
+      currentRoom = 'nature';
+    } else {
+      camera.position.set(0, 1.6, 2);
+      controls.target.set(0, 1.6, 0);
+      currentRoom = 'ai';
+    }
+    controls.update();
+
+    setTimeout(() => {
+      fadeOverlay.classList.remove('active');
+    }, 300);
+  }, 600);
+}
+
+window.__transitionToRoom = transitionToRoom;
 
 setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
 
