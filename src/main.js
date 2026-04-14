@@ -50,30 +50,33 @@ window.addEventListener('resize', () => {
 // ── First-person controls ──
 export const controls = new PointerLockControls(camera, document.body);
 
-// Click to lock pointer (but not if clicking UI elements)
-// Lock pointer on click — both the canvas and the overlay
-renderer.domElement.addEventListener('click', () => {
-  if (!controls.isLocked) controls.lock();
-});
-document.getElementById('fp-overlay').addEventListener('click', () => {
-  controls.lock();
-});
+const fpOverlay = document.getElementById('fp-overlay');
+const crosshair = document.getElementById('crosshair');
 
-// Show/hide a crosshair or instruction when locked/unlocked
+// Lock pointer on click — works from both overlay and canvas
+function lockPointer() {
+  if (!controls.isLocked) {
+    renderer.domElement.requestPointerLock();
+  }
+}
+
+fpOverlay.addEventListener('click', lockPointer);
+renderer.domElement.addEventListener('click', lockPointer);
+
 controls.addEventListener('lock', () => {
-  document.getElementById('fp-overlay').classList.add('hidden');
-  document.getElementById('crosshair').classList.remove('hidden');
+  fpOverlay.classList.add('hidden');
+  crosshair.classList.remove('hidden');
 });
 controls.addEventListener('unlock', () => {
-  document.getElementById('fp-overlay').classList.remove('hidden');
-  document.getElementById('crosshair').classList.add('hidden');
+  fpOverlay.classList.remove('hidden');
+  crosshair.classList.add('hidden');
 });
 
 // WASD movement
-const moveState = { forward: false, backward: false, left: false, right: false };
+const moveState = { forward: false, backward: false, left: false, right: false, sprint: false };
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
-const MOVE_SPEED = 4.0;
+const MOVE_SPEED = 6.0;
 
 document.addEventListener('keydown', (e) => {
   switch (e.code) {
@@ -81,6 +84,7 @@ document.addEventListener('keydown', (e) => {
     case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
     case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
     case 'KeyD': case 'ArrowRight': moveState.right = true; break;
+    case 'ShiftLeft': case 'ShiftRight': moveState.sprint = true; break;
   }
 });
 
@@ -90,6 +94,7 @@ document.addEventListener('keyup', (e) => {
     case 'KeyS': case 'ArrowDown':  moveState.backward = false; break;
     case 'KeyA': case 'ArrowLeft':  moveState.left = false; break;
     case 'KeyD': case 'ArrowRight': moveState.right = false; break;
+    case 'ShiftLeft': case 'ShiftRight': moveState.sprint = false; break;
   }
 });
 
@@ -108,8 +113,10 @@ function updateMovement(delta) {
   direction.x = Number(moveState.right) - Number(moveState.left);
   direction.normalize();
 
-  if (moveState.forward || moveState.backward) velocity.z -= direction.z * MOVE_SPEED * delta;
-  if (moveState.left || moveState.right) velocity.x -= direction.x * MOVE_SPEED * delta;
+  const speed = moveState.sprint ? MOVE_SPEED * 1.8 : MOVE_SPEED;
+
+  if (moveState.forward || moveState.backward) velocity.z -= direction.z * speed * delta;
+  if (moveState.left || moveState.right) velocity.x -= direction.x * speed * delta;
 
   controls.moveRight(-velocity.x * delta);
   controls.moveForward(-velocity.z * delta);

@@ -77,6 +77,13 @@ export function createRoom(scene) {
   backWall.receiveShadow = true;
   scene.add(backWall);
 
+  // Front wall (at z = +3, facing -z)
+  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), wallMat);
+  frontWall.rotation.y = Math.PI;
+  frontWall.position.set(0, 1.75, 3);
+  frontWall.receiveShadow = true;
+  scene.add(frontWall);
+
   // Ceiling
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), ceilMat);
   ceil.rotation.x = Math.PI / 2;
@@ -167,6 +174,13 @@ export function createRoom(scene) {
   backCeilStrip.position.set(0, ceilingY, -2.96);
   scene.add(backCeilStrip);
 
+  // Front wall ceiling strip
+  const frontCeilStrip = new THREE.Mesh(backStripGeom, new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5
+  }));
+  frontCeilStrip.position.set(0, ceilingY, 2.96);
+  scene.add(frontCeilStrip);
+
   // Green-teal secondary ceiling accent strip (parallel to back wall, offset)
   const amberCeilMat = new THREE.MeshStandardMaterial({
     color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 1.5
@@ -187,6 +201,13 @@ export function createRoom(scene) {
   backFloorStrip.position.set(0, 0.01, -2.96);
   scene.add(backFloorStrip);
 
+  // Front wall floor strip
+  const frontFloorStrip = new THREE.Mesh(backStripGeom, new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5
+  }));
+  frontFloorStrip.position.set(0, 0.01, 2.96);
+  scene.add(frontFloorStrip);
+
   // ── Vertical corner strips (cyan) at back-left and back-right ──
   const cornerStripGeom = new THREE.BoxGeometry(0.06, 3.45, 0.06);
   const cornerMat = new THREE.MeshStandardMaterial({
@@ -200,6 +221,14 @@ export function createRoom(scene) {
   const backRightCorner = new THREE.Mesh(cornerStripGeom, cornerMat);
   backRightCorner.position.set(3.45, 1.725, -2.96);
   scene.add(backRightCorner);
+
+  const frontLeftCorner = new THREE.Mesh(cornerStripGeom, cornerMat);
+  frontLeftCorner.position.set(-3.45, 1.725, 2.96);
+  scene.add(frontLeftCorner);
+
+  const frontRightCorner = new THREE.Mesh(cornerStripGeom, cornerMat);
+  frontRightCorner.position.set(3.45, 1.725, 2.96);
+  scene.add(frontRightCorner);
 
   // ── Exposed cables running along walls (cyberpunk detail) ──
   const cableMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
