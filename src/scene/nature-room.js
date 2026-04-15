@@ -90,68 +90,15 @@ export function createNatureRoom(scene) {
     scene.add(glass);
   }
 
-  // Pitched glass roof — two quad panels from exact vertex positions
-  const wallHalfW = 5.5;
-  const ridgeY = 5.5;
-  const zFront = 5;
-  const zBack = -5;
-  const wallTopY = 4;
-
-  function makeRoofQuad(v0, v1, v2, v3) {
-    // Two triangles: v0-v1-v2 and v0-v2-v3
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-      v0[0], v0[1], v0[2],  v1[0], v1[1], v1[2],  v2[0], v2[1], v2[2],
-      v0[0], v0[1], v0[2],  v2[0], v2[1], v2[2],  v3[0], v3[1], v3[2]
-    ]), 3));
-    geom.computeVertexNormals();
-    const mesh = new THREE.Mesh(geom, glassMat);
-    mesh.raycast = () => {};
-    return mesh;
-  }
-
-  // Left panel: left wall top edge → ridge
-  const roofLeft = makeRoofQuad(
-    [ox - wallHalfW, wallTopY, zFront],   // bottom-left-front (left wall top, front)
-    [ox - wallHalfW, wallTopY, zBack],    // bottom-left-back
-    [ox,             ridgeY,   zBack],    // top-right-back (ridge, back)
-    [ox,             ridgeY,   zFront]    // top-right-front (ridge, front)
+  // Flat glass ceiling — simple and clean
+  const ceilGlass = new THREE.Mesh(
+    new THREE.PlaneGeometry(11, 10),
+    glassMat
   );
-  scene.add(roofLeft);
-
-  // Right panel: right wall top edge → ridge
-  const roofRight = makeRoofQuad(
-    [ox + wallHalfW, wallTopY, zFront],
-    [ox,             ridgeY,   zFront],
-    [ox,             ridgeY,   zBack],
-    [ox + wallHalfW, wallTopY, zBack]
-  );
-  scene.add(roofRight);
-
-  // Triangular gable ends (front and back)
-  const gableFront = makeRoofQuad(
-    [ox - wallHalfW, wallTopY, zFront],
-    [ox,             ridgeY,   zFront],
-    [ox,             ridgeY,   zFront],
-    [ox + wallHalfW, wallTopY, zFront]
-  );
-  scene.add(gableFront);
-
-  const gableBack = makeRoofQuad(
-    [ox - wallHalfW, wallTopY, zBack],
-    [ox + wallHalfW, wallTopY, zBack],
-    [ox,             ridgeY,   zBack],
-    [ox,             ridgeY,   zBack]
-  );
-  scene.add(gableBack);
-
-  // Ridge beam at the peak
-  const ridgeBeam = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.06, zFront - zBack),
-    frameMat
-  );
-  ridgeBeam.position.set(ox, ridgeY, 0);
-  scene.add(ridgeBeam);
+  ceilGlass.rotation.x = Math.PI / 2;
+  ceilGlass.position.set(ox, 4, 0);
+  ceilGlass.raycast = () => {};
+  scene.add(ceilGlass);
 
   // Metal frame ribs — horizontal along the top edges
   const ribGeom = new THREE.BoxGeometry(11, 0.04, 0.04);
@@ -212,24 +159,22 @@ export function createNatureRoom(scene) {
     scene.add(rail);
   }
 
-  // Roof rafter beams — straight lines from wall top to ridge
+  // Ceiling cross beams
+  for (let cx = -4; cx <= 4; cx += 2) {
+    const beam = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.04, 10),
+      frameMat
+    );
+    beam.position.set(ox + cx, 4, 0);
+    scene.add(beam);
+  }
   for (let cz = -4; cz <= 4; cz += 2) {
-    for (const side of [-1, 1]) {
-      const startX = ox + side * wallHalfW;
-      const endX = ox;
-      const dx = endX - startX;
-      const dy = ridgeY - 4;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, Math.abs(dx));
-
-      const beam = new THREE.Mesh(
-        new THREE.BoxGeometry(len, 0.04, 0.04),
-        frameMat
-      );
-      beam.position.set(startX + dx / 2, 4 + dy / 2, cz);
-      beam.rotation.z = side > 0 ? angle : -angle;
-      scene.add(beam);
-    }
+    const beam = new THREE.Mesh(
+      new THREE.BoxGeometry(11, 0.04, 0.04),
+      frameMat
+    );
+    beam.position.set(ox, 4, cz);
+    scene.add(beam);
   }
 
   // ── Lighting — soft cozy sunlight from the corner ──
