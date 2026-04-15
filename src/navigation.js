@@ -105,8 +105,10 @@ export function createNavigationSystem(camera, state, ui, controls) {
     if (activeTween) { activeTween.kill(); activeTween = null; }
     if (savedPosition) {
       camera.position.copy(savedPosition);
-      camera.lookAt(0, 1.6, 0);
-      if (controls && controls.target) controls.target.set(0, 1.6, 0);
+      // Look toward the center of whichever room we're in
+      const roomCenterX = savedPosition.x > 10 ? 20 : 0;
+      camera.lookAt(roomCenterX, 1.6, 0);
+      if (controls && controls.target) controls.target.set(roomCenterX, 1.6, 0);
       savedPosition = null;
       state.endTransition();
       ui.updateHUD('overview');
