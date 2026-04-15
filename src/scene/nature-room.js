@@ -64,23 +64,50 @@ export function createNatureRoom(scene) {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // ── Lighting — warm sunlight ──
-  const ambient = new THREE.AmbientLight(0x8aaa6a, 0.8);
+  // ── Lighting — soft cozy sunlight from the corner ──
+  // Warm ambient fills everything softly
+  const ambient = new THREE.AmbientLight(0xaa9060, 0.9);
   scene.add(ambient);
 
-  const sun = new THREE.DirectionalLight(0xffeebb, 1.2);
-  sun.position.set(ox + 3, 8, 4);
+  // Sky-to-ground hemisphere — warm golden sky, soft green ground bounce
+  const hemi = new THREE.HemisphereLight(0xffeedd, 0x558844, 0.7);
+  hemi.position.set(ox, 0, 0);
+  scene.add(hemi);
+
+  // Main sun — positioned in the corner like a cozy game, warm golden
+  const sun = new THREE.DirectionalLight(0xffdd88, 1.0);
+  sun.position.set(ox + 5, 6, 4);
   sun.castShadow = true;
+  sun.shadow.camera.near = 0.5;
+  sun.shadow.camera.far = 20;
+  sun.shadow.camera.left = -8;
+  sun.shadow.camera.right = 8;
+  sun.shadow.camera.top = 8;
+  sun.shadow.camera.bottom = -8;
   scene.add(sun);
 
-  const warmFill = new THREE.PointLight(0xffcc66, 0.8, 15);
-  warmFill.position.set(ox, 3, 0);
-  scene.add(warmFill);
+  // Sun glow orb in the corner (visible warm sphere representing the sun)
+  const sunOrb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.6, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffeeaa })
+  );
+  sunOrb.position.set(ox + 5.5, 7, 4.5);
+  scene.add(sunOrb);
 
-  // Greenish fill from below
-  const groundBounce = new THREE.HemisphereLight(0x88bbff, 0x44aa44, 0.5);
-  groundBounce.position.set(ox, 0, 0);
-  scene.add(groundBounce);
+  // Warm point light at the sun orb for volumetric feel
+  const sunGlow = new THREE.PointLight(0xffdd88, 2.0, 18);
+  sunGlow.position.set(ox + 5.5, 7, 4.5);
+  scene.add(sunGlow);
+
+  // Soft warm fill closer to the ground (golden hour bounce)
+  const warmBounce = new THREE.PointLight(0xffaa55, 0.6, 12);
+  warmBounce.position.set(ox + 3, 1, 3);
+  scene.add(warmBounce);
+
+  // Second warm fill on the opposite side for soft shadows
+  const warmFill2 = new THREE.PointLight(0xeebb66, 0.4, 10);
+  warmFill2.position.set(ox - 3, 2, -2);
+  scene.add(warmFill2);
 
   // ── Trees (realistic multi-cluster canopy) ──
   function makeTree(x, z, trunkH, canopyR, lean) {
