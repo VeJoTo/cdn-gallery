@@ -240,7 +240,7 @@ function transitionToRoom(targetRoom) {
 
   setTimeout(() => {
     if (targetRoom === 'nature') {
-      camera.position.set(20, 1.6, 2);
+      camera.position.set(20, 1.6, -3);
       controls.target.set(20, 1.6, 0);
       currentRoom = 'nature';
       cssRenderer.domElement.style.display = 'none';
