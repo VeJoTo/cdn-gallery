@@ -155,10 +155,10 @@ function animate() {
   const camDir = new THREE.Vector3();
   camera.getWorldDirection(camDir);
 
-  // Check if camera is in the AI room and close to the right wall (TV) or desk area
-  const nearTV = camPos.x > 1 && camPos.x < 5 && Math.abs(camPos.z) < 3 && camDir.x > 0.3;
-  const nearDesk = camPos.x > 0.5 && camPos.x < 3.5 && camPos.z < -1 && camDir.z < -0.2;
-  const showCSS3D = currentRoom === 'ai' && (nearTV || nearDesk);
+  // Show CSS3D in AI room, hide in nature room
+  // Only hide when camera is clearly facing AWAY from the screens (left wall / back toward arcades)
+  const facingAway = camDir.x < -0.5; // facing left wall (away from TV + desk)
+  const showCSS3D = currentRoom === 'ai' && !facingAway;
 
   cssRenderer.domElement.style.display = showCSS3D ? '' : 'none';
   if (showCSS3D) cssRenderer.render(cssScene, camera);
