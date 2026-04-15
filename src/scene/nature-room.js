@@ -512,34 +512,68 @@ export function createNatureRoom(scene) {
 
   // Tall palm-like plants
   function makePalm(x, z, height) {
-    const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.06, height, 6),
-      new THREE.MeshLambertMaterial({ color: 0x6a5a3a })
-    );
-    trunk.position.set(ox + x, height / 2, z);
-    scene.add(trunk);
-
-    // Drooping fronds
-    for (let i = 0; i < 5; i++) {
-      const angle = (i / 5) * Math.PI * 2;
-      const frond = new THREE.Mesh(
-        new THREE.BoxGeometry(0.08, 0.02, 0.8),
-        new THREE.MeshLambertMaterial({ color: 0x2a7a1a })
+    // Slightly curved trunk (multiple segments)
+    const trunkMat = new THREE.MeshLambertMaterial({ color: 0x6a5030 });
+    const segments = 6;
+    const segH = height / segments;
+    let curveX = 0;
+    for (let s = 0; s < segments; s++) {
+      const radius = 0.06 - s * 0.006;
+      const seg = new THREE.Mesh(
+        new THREE.CylinderGeometry(Math.max(radius - 0.005, 0.02), radius, segH, 8),
+        trunkMat
       );
+      curveX += Math.sin(s * 0.15) * 0.03;
+      seg.position.set(ox + x + curveX, segH / 2 + s * segH, z);
+      seg.rotation.z = Math.sin(s * 0.2) * 0.05;
+      scene.add(seg);
+    }
+
+    // Organic drooping fronds — elongated scaled spheres
+    const frondColors = [0x2a7a1a, 0x3a8a2a, 0x1a6a15, 0x2a8a1a];
+    const frondCount = 7 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < frondCount; i++) {
+      const angle = (i / frondCount) * Math.PI * 2 + Math.random() * 0.3;
+      const droop = 0.4 + Math.random() * 0.4;
+      const length = 0.6 + Math.random() * 0.4;
+
+      const frond = new THREE.Mesh(
+        new THREE.SphereGeometry(length, 6, 4),
+        new THREE.MeshLambertMaterial({ color: frondColors[i % frondColors.length] })
+      );
+      frond.scale.set(0.15, 0.08, 1.0);
       frond.position.set(
-        ox + x + Math.cos(angle) * 0.15,
-        height - 0.1,
+        ox + x + curveX + Math.cos(angle) * 0.15,
+        height - droop * 0.3,
         z + Math.sin(angle) * 0.15
       );
       frond.rotation.y = angle;
-      frond.rotation.x = 0.5;
+      frond.rotation.x = droop;
+      frond.rotation.z = (Math.random() - 0.5) * 0.2;
       scene.add(frond);
+    }
+
+    // Crown cluster at the top (organic bushy top)
+    const crownColors = [0x2a8a2a, 0x3a9a3a, 0x1a7a1a];
+    for (let c = 0; c < 4; c++) {
+      const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(0.15 + Math.random() * 0.1, 8, 6),
+        new THREE.MeshLambertMaterial({ color: crownColors[c % crownColors.length] })
+      );
+      crown.position.set(
+        ox + x + curveX + (Math.random() - 0.5) * 0.12,
+        height + 0.05 + Math.random() * 0.1,
+        z + (Math.random() - 0.5) * 0.12
+      );
+      scene.add(crown);
     }
   }
 
   makePalm(-4.8, 0, 2.8);
   makePalm(4.8, -1, 2.5);
   makePalm(0, 4.2, 3.0);
+  makePalm(-3.5, 3.5, 2.3);
+  makePalm(3.5, 3.8, 2.6);
 
   // ── Butterflies (small rotating colored planes) ──
   const butterflies = [];
