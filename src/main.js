@@ -243,10 +243,12 @@ function transitionToRoom(targetRoom) {
       camera.position.set(20, 1.6, 2);
       controls.target.set(20, 1.6, 0);
       currentRoom = 'nature';
+      cssRenderer.domElement.style.display = 'none';
     } else {
       camera.position.set(0, 1.6, 2);
       controls.target.set(0, 1.6, 0);
       currentRoom = 'ai';
+      cssRenderer.domElement.style.display = '';
     }
     controls.update();
 

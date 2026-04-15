@@ -122,7 +122,7 @@ export function createNatureRoom(scene) {
   makeTree(4.5, 2.0, 2.6, 0.9, 0.06);
   makeTree(5.0, 4.0, 2.4, 0.85, -0.05);
   makeTree(-3.0, 4.5, 2.8, 1.0, 0);
-  makeTree(0, -4.5, 3.5, 1.3, 0);
+  makeTree(3.5, -4.0, 3.5, 1.3, 0);
   makeTree(-2.0, -3.0, 1.8, 0.6, 0.1);
   makeTree(2.5, -3.5, 2.0, 0.7, -0.06);
   makeTree(3.0, 4.5, 2.5, 0.9, 0);
