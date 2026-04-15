@@ -90,37 +90,38 @@ export function createNatureRoom(scene) {
     scene.add(glass);
   }
 
-  // Pitched glass roof — built from custom geometry
+  // Pitched glass roof — two tilted planes meeting at a ridge
   const wallHalfW = 5.5;
   const ridgeY = 5.5;
   const roofDepthHalf = 5;
-  const roofRise = ridgeY - 4;
+  const roofRise = ridgeY - 4; // 1.5
   const roofSlope = Math.sqrt(wallHalfW * wallHalfW + roofRise * roofRise);
   const roofAngle = Math.atan2(roofRise, wallHalfW);
 
-  // Left roof panel: from left wall top to ridge
-  // Vertices: bottom-left-front, bottom-left-back, top-front, top-back
-  function makeRoofPanel(xEdge, xCenter, yBottom, yTop, zFront, zBack) {
-    const geom = new THREE.BufferGeometry();
-    const verts = new Float32Array([
-      xEdge,   yBottom, zFront,
-      xEdge,   yBottom, zBack,
-      xCenter, yTop,    zBack,
-      xEdge,   yBottom, zFront,
-      xCenter, yTop,    zBack,
-      xCenter, yTop,    zFront,
-    ]);
-    geom.setAttribute('position', new THREE.BufferAttribute(verts, 3));
-    geom.computeVertexNormals();
-    const mesh = new THREE.Mesh(geom, glassMat);
-    mesh.raycast = () => {};
-    return mesh;
-  }
-
-  const roofLeft = makeRoofPanel(ox - wallHalfW, ox, 4, ridgeY, -roofDepthHalf, roofDepthHalf);
+  // Left panel: bottom edge at (ox-5.5, 4), tilts up toward center
+  const roofLeft = new THREE.Mesh(
+    new THREE.PlaneGeometry(roofSlope, roofDepthHalf * 2),
+    glassMat
+  );
+  // Position at midpoint of the slope
+  roofLeft.position.set(ox - wallHalfW / 2, 4 + roofRise / 2, 0);
+  // Rotate: first lay flat (face up), then tilt
+  roofLeft.rotation.set(0, 0, 0);
+  roofLeft.rotation.x = -Math.PI / 2; // lay flat facing up
+  roofLeft.rotation.z = roofAngle;     // tilt left side up toward ridge
+  roofLeft.raycast = () => {};
   scene.add(roofLeft);
 
-  const roofRight = makeRoofPanel(ox + wallHalfW, ox, 4, ridgeY, -roofDepthHalf, roofDepthHalf);
+  // Right panel: mirrors left
+  const roofRight = new THREE.Mesh(
+    new THREE.PlaneGeometry(roofSlope, roofDepthHalf * 2),
+    glassMat
+  );
+  roofRight.position.set(ox + wallHalfW / 2, 4 + roofRise / 2, 0);
+  roofRight.rotation.set(0, 0, 0);
+  roofRight.rotation.x = -Math.PI / 2;
+  roofRight.rotation.z = -roofAngle;
+  roofRight.raycast = () => {};
   scene.add(roofRight);
 
   // Ridge beam at the peak
