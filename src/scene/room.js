@@ -82,6 +82,7 @@ export function createRoom(scene) {
   frontWall.rotation.y = Math.PI;
   frontWall.position.set(0, 1.75, 3);
   frontWall.receiveShadow = true;
+  frontWall.raycast = () => {}; // Don't block raycasts to portal
   scene.add(frontWall);
 
   // ── AI graphics on the front wall ──
