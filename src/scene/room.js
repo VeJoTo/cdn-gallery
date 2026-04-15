@@ -5,7 +5,7 @@ export function createRoom(scene) {
   // Clean dark floor
   const floorMat = new THREE.MeshStandardMaterial({
     color: 0x0d1520,
-    roughness: 0.3,
+    roughness: 0.35,
     metalness: 0.4,
     side: THREE.FrontSide
   });
@@ -17,7 +17,7 @@ export function createRoom(scene) {
   wctx.fillStyle = '#0a0f1a';
   wctx.fillRect(0, 0, 256, 256);
   // Panel lines (subtle grid)
-  wctx.strokeStyle = '#152030';
+  wctx.strokeStyle = '#1e2e40';
   wctx.lineWidth = 1;
   // Horizontal panel lines
   for (let y = 0; y < 256; y += 64) {

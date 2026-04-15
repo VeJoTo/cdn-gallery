@@ -7,7 +7,7 @@ function buildArcadeCabinet(xPos, screenColor) {
 
   // Body
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(0.8, 2.0, 0.6),
+    new THREE.BoxGeometry(0.85, 2.0, 0.65),
     new THREE.MeshLambertMaterial({ color: 0x111828 })
   );
   body.position.y = 1.0;
@@ -59,11 +59,19 @@ function buildArcadeCabinet(xPos, screenColor) {
   jStick.position.set(-0.15, 1.03, 0.3);
   group.add(jStick);
 
+  // Screen border frame for definition
+  const screenFrame = new THREE.Mesh(
+    new THREE.BoxGeometry(0.54, 0.44, 0.01),
+    new THREE.MeshLambertMaterial({ color: 0x1a2838 })
+  );
+  screenFrame.position.set(0, 1.45, 0.342);
+  group.add(screenFrame);
+
   // Buttons (3): cyan, green-teal, cool white
   const buttonColors = [0x00d4ff, 0x00ff88, 0xe0e8f0];
   for (let i = 0; i < 3; i++) {
     const btn = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 0.04, 8),
+      new THREE.CylinderGeometry(0.05, 0.05, 0.05, 12),
       new THREE.MeshStandardMaterial({
         color: buttonColors[i],
         emissive: buttonColors[i],
@@ -83,8 +91,8 @@ function buildTable() {
   group.position.set(0, 0, 0.5);
 
   const top = new THREE.Mesh(
-    new THREE.BoxGeometry(1.4, 0.08, 0.8),
-    new THREE.MeshLambertMaterial({ color: 0x111828 })
+    new THREE.CylinderGeometry(0.7, 0.7, 0.1, 24),
+    new THREE.MeshLambertMaterial({ color: 0x1e2a3a })
   );
   top.position.y = 0.44;
   top.castShadow = true;
@@ -93,17 +101,9 @@ function buildTable() {
   const legMat = new THREE.MeshLambertMaterial({ color: 0x0a0f1a });
   const legPositions = [[-0.6, -0.3], [0.6, -0.3], [-0.6, 0.3], [0.6, 0.3]];
   for (const [lx, lz] of legPositions) {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.44, 0.06), legMat);
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.44, 8), legMat);
     leg.position.set(lx, 0.22, lz);
     group.add(leg);
-  }
-
-  const cardMat = new THREE.MeshLambertMaterial({ color: 0xe0f7ff, side: THREE.DoubleSide });
-  for (let i = 0; i < 2; i++) {
-    const card = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.28), cardMat);
-    card.rotation.x = -Math.PI / 2;
-    card.position.set(-0.25 + i * 0.55, 0.49, 0);
-    group.add(card);
   }
 
   // CDN Annual Report book on the table
@@ -152,7 +152,7 @@ function buildBeanBag(x, z) {
   group.position.set(x, 0, z);
 
   const base = new THREE.Mesh(
-    new THREE.SphereGeometry(0.42, 10, 8),
+    new THREE.SphereGeometry(0.42, 16, 12),
     new THREE.MeshLambertMaterial({ color: 0x1b3a4b })
   );
   base.scale.y = 0.55;
@@ -161,7 +161,7 @@ function buildBeanBag(x, z) {
   group.add(base);
 
   const cushion = new THREE.Mesh(
-    new THREE.SphereGeometry(0.3, 10, 8),
+    new THREE.SphereGeometry(0.3, 16, 12),
     new THREE.MeshLambertMaterial({ color: 0x00d4ff })
   );
   cushion.scale.y = 0.45;
@@ -192,7 +192,7 @@ function buildDesk() {
   const legZs = [-0.4, 0.4];
   for (const lx of legXs) {
     for (const lz of legZs) {
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.85, 0.06), legMat);
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.85, 8), legMat);
       leg.position.set(lx, 0.425, lz);
       group.add(leg);
     }
@@ -434,13 +434,13 @@ function buildGamingChair() {
   const blackMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
 
   // Seat
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.5), frameMat);
+  const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.08, 16), frameMat);
   seat.position.y = 0.45;
   seat.castShadow = true;
   group.add(seat);
 
   // Backrest
-  const back = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.85, 0.08), frameMat);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.85, 0.12), frameMat);
   back.position.set(0, 0.92, -0.21);
   back.castShadow = true;
   group.add(back);
@@ -467,14 +467,15 @@ function buildGamingChair() {
 
   // Armrests
   for (const ax of [-0.29, 0.29]) {
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.4), blackMat);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.35, 8), blackMat);
+    arm.rotation.x = Math.PI / 2;
     arm.position.set(ax, 0.6, 0);
     group.add(arm);
   }
 
   // Centre pole
   const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.04, 0.04, 0.4, 6),
+    new THREE.CylinderGeometry(0.04, 0.04, 0.4, 12),
     blackMat
   );
   pole.position.y = 0.2;
@@ -516,18 +517,29 @@ function buildBookshelf() {
     group.add(shelf);
   }
 
-  // Books — 4 colours rotated through, ~10 per shelf
-  const bookColours = [0x00d4ff, 0x00ff88, 0x00d4ff, 0xe0e8f0, 0x111828];
+  // Books — varied colours and heights, with rounded sphere caps on some
+  const bookColours = [0x00d4ff, 0x00ff88, 0x00d4ff, 0xe0e8f0, 0x111828, 0x1e2a3a, 0x004466];
   for (const sy of shelfYs) {
     let xOffset = -0.5;
     for (let i = 0; i < 10; i++) {
       const colour = bookColours[i % bookColours.length];
+      const bookH = 0.22 + (i % 4) * 0.03;
+      const bookMat = new THREE.MeshLambertMaterial({ color: colour });
       const book = new THREE.Mesh(
-        new THREE.BoxGeometry(0.085, 0.22, 0.18),
-        new THREE.MeshLambertMaterial({ color: colour })
+        new THREE.BoxGeometry(0.085, bookH, 0.18),
+        bookMat
       );
-      book.position.set(xOffset + 0.04, sy + 0.13, 0);
+      book.position.set(xOffset + 0.04, sy + bookH / 2, 0);
       group.add(book);
+      // Add rounded cap on every other book
+      if (i % 2 === 0) {
+        const cap = new THREE.Mesh(
+          new THREE.SphereGeometry(0.04, 8, 4),
+          bookMat
+        );
+        cap.position.set(xOffset + 0.04, sy + bookH + 0.01, 0);
+        group.add(cap);
+      }
       xOffset += 0.095 + (i % 3) * 0.005;
     }
   }
@@ -556,14 +568,24 @@ function buildMiniFridge() {
   const group = new THREE.Group();
   group.position.set(-3.0, 0, -2.8);
 
+  const fridgeBodyMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
   const body = new THREE.Mesh(
     new THREE.BoxGeometry(0.7, 1.0, 0.6),
-    new THREE.MeshLambertMaterial({ color: 0x111828 })
+    fridgeBodyMat
   );
   body.position.y = 0.5;
   body.castShadow = true;
   body.receiveShadow = true;
   group.add(body);
+
+  // Rounded corner caps at top four corners for a chunky feel
+  const capMat = new THREE.MeshLambertMaterial({ color: 0x1a2838 });
+  const cornerOffsets = [[-0.33, 0.28], [0.33, 0.28], [-0.33, -0.28], [0.33, -0.28]];
+  for (const [cx, cz] of cornerOffsets) {
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), capMat);
+    cap.position.set(cx, 1.01, cz);
+    group.add(cap);
+  }
 
   // Door split trim
   const trim = new THREE.Mesh(
@@ -603,7 +625,7 @@ function buildFloorLamp() {
   const blackMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
 
   const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.15, 0.15, 0.04, 12),
+    new THREE.CylinderGeometry(0.15, 0.15, 0.04, 16),
     blackMat
   );
   base.position.y = 0.02;
@@ -617,7 +639,7 @@ function buildFloorLamp() {
   group.add(pole);
 
   const tube = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.06, 0.5, 12),
+    new THREE.CylinderGeometry(0.06, 0.06, 0.5, 16),
     new THREE.MeshStandardMaterial({
       color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
     })
@@ -1281,7 +1303,7 @@ function buildGlobe() {
   // Pedestal base
   const baseMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
   const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.2, 0.24, 0.06, 12),
+    new THREE.CylinderGeometry(0.2, 0.24, 0.06, 16),
     baseMat
   );
   base.position.y = 0.03;
@@ -1332,7 +1354,7 @@ function buildGlobe() {
 
   const globeTex = new THREE.CanvasTexture(globeCanvas);
   const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(0.25, 32, 24),
+    new THREE.SphereGeometry(0.25, 48, 32),
     new THREE.MeshStandardMaterial({ map: globeTex, roughness: 0.6, metalness: 0.1 })
   );
   sphere.position.y = 0.85;
