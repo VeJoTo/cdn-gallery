@@ -364,81 +364,100 @@ export function createNatureRoom(scene) {
     scene.add(rock);
   }
 
-  // ── Fountain ──
-  // Base pool (circular)
-  const poolMat = new THREE.MeshStandardMaterial({
-    color: 0x4a6a7a, roughness: 0.3, metalness: 0.2
+  // ── Tiered fountain (like the reference) ──
+  const stoneMat = new THREE.MeshStandardMaterial({ color: 0xe8d8c8, roughness: 0.6, metalness: 0.1 });
+  const stoneRimMat = new THREE.MeshStandardMaterial({ color: 0xd0c0a8, roughness: 0.5, metalness: 0.1 });
+  const waterMat = new THREE.MeshStandardMaterial({
+    color: 0x5a9aba, emissive: 0x2a6a8a, emissiveIntensity: 0.1,
+    roughness: 0.05, metalness: 0.4, transparent: true, opacity: 0.75
   });
-  const pool = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.9, 1.0, 0.2, 24),
-    poolMat
-  );
-  pool.position.set(ox, 0.1, 0);
-  scene.add(pool);
 
-  // Water surface
-  const water = new THREE.Mesh(
-    new THREE.CircleGeometry(0.85, 24),
-    new THREE.MeshStandardMaterial({
-      color: 0x4a9ac0,
-      emissive: 0x1a4a6a,
-      emissiveIntensity: 0.15,
-      roughness: 0.05,
-      metalness: 0.5,
-      transparent: true,
-      opacity: 0.7
-    })
+  // Bottom basin — wide octagonal pool
+  const basinOuter = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.3, 1.4, 0.3, 8),
+    stoneRimMat
   );
-  water.rotation.x = -Math.PI / 2;
-  water.position.set(ox, 0.21, 0);
-  scene.add(water);
+  basinOuter.position.set(ox, 0.15, 0);
+  basinOuter.castShadow = true;
+  scene.add(basinOuter);
 
-  // Central pillar
-  const pillarMat = new THREE.MeshLambertMaterial({ color: 0x6a7a6a });
-  const pillar = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08, 0.1, 0.8, 8),
-    pillarMat
+  // Basin inner (slightly smaller, darker — the pool walls)
+  const basinInner = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.15, 1.2, 0.28, 8),
+    stoneMat
   );
-  pillar.position.set(ox, 0.6, 0);
-  scene.add(pillar);
+  basinInner.position.set(ox, 0.16, 0);
+  scene.add(basinInner);
 
-  // Top bowl
-  const bowl = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.15, 0.1, 12),
-    pillarMat
+  // Water in basin
+  const basinWater = new THREE.Mesh(
+    new THREE.CircleGeometry(1.1, 24),
+    waterMat
   );
-  bowl.position.set(ox, 1.05, 0);
-  scene.add(bowl);
+  basinWater.rotation.x = -Math.PI / 2;
+  basinWater.position.set(ox, 0.28, 0);
+  scene.add(basinWater);
 
-  // Water spout (small sphere on top)
-  const spout = new THREE.Mesh(
-    new THREE.SphereGeometry(0.06, 8, 6),
-    new THREE.MeshStandardMaterial({
-      color: 0x6abaee, emissive: 0x3a8abb, emissiveIntensity: 0.3
-    })
+  // Central pedestal (tapered column)
+  const pedestal1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.15, 0.2, 0.6, 12),
+    stoneMat
   );
-  spout.position.set(ox, 1.15, 0);
-  scene.add(spout);
+  pedestal1.position.set(ox, 0.6, 0);
+  scene.add(pedestal1);
 
-  // Water droplet particles falling from the bowl
+  // Middle tier bowl
+  const midBowl = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.5, 0.35, 0.12, 12),
+    stoneRimMat
+  );
+  midBowl.position.set(ox, 0.96, 0);
+  scene.add(midBowl);
+
+  // Water in middle bowl
+  const midWater = new THREE.Mesh(
+    new THREE.CircleGeometry(0.42, 16),
+    waterMat
+  );
+  midWater.rotation.x = -Math.PI / 2;
+  midWater.position.set(ox, 1.03, 0);
+  scene.add(midWater);
+
+  // Upper pedestal
+  const pedestal2 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.08, 0.12, 0.4, 10),
+    stoneMat
+  );
+  pedestal2.position.set(ox, 1.22, 0);
+  scene.add(pedestal2);
+
+  // Top finial (decorative sphere)
+  const finial = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1, 12, 8),
+    stoneRimMat
+  );
+  finial.position.set(ox, 1.5, 0);
+  scene.add(finial);
+
+  // Water droplets falling from middle tier to basin
   const dropMat = new THREE.MeshStandardMaterial({
-    color: 0x6abaee, emissive: 0x3a8abb, emissiveIntensity: 0.2,
-    transparent: true, opacity: 0.6
+    color: 0x7abade, emissive: 0x4a8abb, emissiveIntensity: 0.15,
+    transparent: true, opacity: 0.5
   });
   const drops = [];
-  for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * Math.PI * 2;
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2;
     const drop = new THREE.Mesh(
-      new THREE.SphereGeometry(0.02, 4, 3),
+      new THREE.SphereGeometry(0.015, 4, 3),
       dropMat
     );
     drop.position.set(
-      ox + Math.cos(angle) * 0.2,
+      ox + Math.cos(angle) * 0.45,
       0.9,
-      Math.sin(angle) * 0.2
+      Math.sin(angle) * 0.45
     );
     drop.userData.angle = angle;
-    drop.userData.speed = 0.8 + Math.random() * 0.4;
+    drop.userData.speed = 0.6 + Math.random() * 0.3;
     scene.add(drop);
     drops.push(drop);
   }
