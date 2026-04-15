@@ -64,6 +64,119 @@ export function createNatureRoom(scene) {
   floor.receiveShadow = true;
   scene.add(floor);
 
+  // ── Greenhouse structure — glass walls + metal frame ──
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: 0xaaddee,
+    transparent: true,
+    opacity: 0.15,
+    roughness: 0.05,
+    metalness: 0.3,
+    side: THREE.DoubleSide
+  });
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x3a4a3a });
+
+  // Glass walls
+  const wallDefs = [
+    { w: 10, h: 4, pos: [ox - 5.5, 2, 0], rotY: Math.PI / 2 },   // left
+    { w: 10, h: 4, pos: [ox + 5.5, 2, 0], rotY: -Math.PI / 2 },  // right
+    { w: 11, h: 4, pos: [ox, 2, -5], rotY: 0 },                    // back
+    { w: 11, h: 4, pos: [ox, 2, 5], rotY: Math.PI },                // front
+  ];
+  for (const wd of wallDefs) {
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(wd.w, wd.h), glassMat);
+    glass.position.set(...wd.pos);
+    glass.rotation.y = wd.rotY;
+    glass.raycast = () => {}; // Don't block clicks
+    scene.add(glass);
+  }
+
+  // Glass ceiling (slightly arched using a wide low cylinder segment)
+  const ceilGlass = new THREE.Mesh(
+    new THREE.PlaneGeometry(11, 10),
+    glassMat
+  );
+  ceilGlass.rotation.x = Math.PI / 2;
+  ceilGlass.position.set(ox, 4, 0);
+  ceilGlass.raycast = () => {};
+  scene.add(ceilGlass);
+
+  // Metal frame ribs — horizontal along the top edges
+  const ribGeom = new THREE.BoxGeometry(11, 0.04, 0.04);
+  const ribGeomSide = new THREE.BoxGeometry(10, 0.04, 0.04);
+
+  // Top edge ribs
+  for (const rz of [-5, 5]) {
+    const rib = new THREE.Mesh(ribGeom, frameMat);
+    rib.position.set(ox, 4, rz);
+    scene.add(rib);
+  }
+  for (const rx of [-5.5, 5.5]) {
+    const rib = new THREE.Mesh(ribGeomSide, frameMat);
+    rib.position.set(ox + rx, 4, 0);
+    rib.rotation.y = Math.PI / 2;
+    scene.add(rib);
+  }
+
+  // Vertical corner posts
+  const postGeom = new THREE.BoxGeometry(0.06, 4, 0.06);
+  const corners = [[-5.5, -5], [-5.5, 5], [5.5, -5], [5.5, 5]];
+  for (const [cx, cz] of corners) {
+    const post = new THREE.Mesh(postGeom, frameMat);
+    post.position.set(ox + cx, 2, cz);
+    scene.add(post);
+  }
+
+  // Vertical mullion ribs on walls (dividing glass into panes)
+  for (const side of [-5.5, 5.5]) {
+    for (let mz = -3; mz <= 3; mz += 2) {
+      const mullion = new THREE.Mesh(
+        new THREE.BoxGeometry(0.03, 4, 0.03),
+        frameMat
+      );
+      mullion.position.set(ox + side, 2, mz);
+      scene.add(mullion);
+    }
+  }
+  for (const fz of [-5, 5]) {
+    for (let mx = -4; mx <= 4; mx += 2) {
+      const mullion = new THREE.Mesh(
+        new THREE.BoxGeometry(0.03, 4, 0.03),
+        frameMat
+      );
+      mullion.position.set(ox + mx, 2, fz);
+      scene.add(mullion);
+    }
+  }
+
+  // Horizontal mid-rail on all walls
+  for (const wd of wallDefs) {
+    const rail = new THREE.Mesh(
+      new THREE.BoxGeometry(wd.w, 0.03, 0.03),
+      frameMat
+    );
+    rail.position.set(wd.pos[0], 2, wd.pos[2]);
+    rail.rotation.y = wd.rotY;
+    scene.add(rail);
+  }
+
+  // Ceiling ribs (cross beams)
+  for (let cx = -4; cx <= 4; cx += 2) {
+    const beam = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.04, 10),
+      frameMat
+    );
+    beam.position.set(ox + cx, 4, 0);
+    scene.add(beam);
+  }
+  for (let cz = -4; cz <= 4; cz += 2) {
+    const beam = new THREE.Mesh(
+      new THREE.BoxGeometry(11, 0.04, 0.04),
+      frameMat
+    );
+    beam.position.set(ox, 4, cz);
+    scene.add(beam);
+  }
+
   // ── Lighting — soft cozy sunlight from the corner ──
   // Warm ambient fills everything softly
   const ambient = new THREE.AmbientLight(0xaa9060, 0.9);
