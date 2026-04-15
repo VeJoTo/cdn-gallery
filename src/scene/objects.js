@@ -1726,12 +1726,12 @@ function buildPortal() {
   portalLight.position.z = 0.5;
   group.add(portalLight);
 
-  // Large invisible click target covering the entire portal area
+  // Large transparent click target covering the entire portal area
   const clickTarget = new THREE.Mesh(
-    new THREE.CircleGeometry(1.2, 32),
-    new THREE.MeshBasicMaterial({ visible: false })
+    new THREE.CircleGeometry(1.4, 32),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide })
   );
-  clickTarget.position.z = 0.02;
+  clickTarget.position.z = 0.05;
   group.add(clickTarget);
 
   // Store rings for animation
