@@ -115,7 +115,13 @@ export function createNavigationSystem(camera, state, ui, controls) {
     }
   }
 
-  return { goTo, goBack };
+  function clearSaved() {
+    if (activeTween) { activeTween.kill(); activeTween = null; }
+    savedPosition = null;
+    state.endTransition();
+  }
+
+  return { goTo, goBack, clearSaved };
 }
 
 export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState) {

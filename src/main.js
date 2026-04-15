@@ -253,8 +253,8 @@ const fadeOverlay = document.getElementById('fade-overlay');
 let currentRoom = 'ai'; // 'ai' or 'nature'
 
 function transitionToRoom(targetRoom) {
-  // Clear any saved zoom position so goBack doesn't send us to the wrong room
-  nav.goBack();
+  // Clear saved zoom position without moving the camera
+  nav.clearSaved();
   fadeOverlay.classList.add('active');
 
   setTimeout(() => {
