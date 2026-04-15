@@ -373,21 +373,24 @@ export function createNatureRoom(scene) {
   });
 
   // Bottom basin — wide octagonal pool
-  const basinOuter = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.3, 1.4, 0.3, 8),
+  // Basin rim
+  const basinRim = new THREE.Mesh(
+    new THREE.TorusGeometry(1.2, 0.12, 8, 8),
     stoneRimMat
   );
-  basinOuter.position.set(ox, 0.15, 0);
-  basinOuter.castShadow = true;
-  scene.add(basinOuter);
+  basinRim.rotation.x = -Math.PI / 2;
+  basinRim.position.set(ox, 0.3, 0);
+  basinRim.castShadow = true;
+  scene.add(basinRim);
 
-  // Basin inner (slightly smaller, darker — the pool walls)
-  const basinInner = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.15, 1.2, 0.28, 8),
+  // Basin floor (flat disc inside the rim)
+  const basinFloor = new THREE.Mesh(
+    new THREE.CircleGeometry(1.1, 8),
     stoneMat
   );
-  basinInner.position.set(ox, 0.16, 0);
-  scene.add(basinInner);
+  basinFloor.rotation.x = -Math.PI / 2;
+  basinFloor.position.set(ox, 0.05, 0);
+  scene.add(basinFloor);
 
   // Water in basin
   const basinWater = new THREE.Mesh(
