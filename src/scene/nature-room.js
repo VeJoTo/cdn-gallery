@@ -90,36 +90,42 @@ export function createNatureRoom(scene) {
     scene.add(glass);
   }
 
-  // Pitched glass roof — edges sit on wall tops at y=4, ridge at y=5.5
+  // Pitched glass roof — built from custom geometry
   const wallHalfW = 5.5;
   const ridgeY = 5.5;
+  const roofDepthHalf = 5;
   const roofRise = ridgeY - 4;
   const roofSlope = Math.sqrt(wallHalfW * wallHalfW + roofRise * roofRise);
   const roofAngle = Math.atan2(roofRise, wallHalfW);
 
-  const roofLeft = new THREE.Mesh(
-    new THREE.PlaneGeometry(roofSlope, 10),
-    glassMat
-  );
-  roofLeft.position.set(ox - wallHalfW / 2, 4 + roofRise / 2, 0);
-  roofLeft.rotation.x = Math.PI / 2;
-  roofLeft.rotation.z = roofAngle;
-  roofLeft.raycast = () => {};
+  // Left roof panel: from left wall top to ridge
+  // Vertices: bottom-left-front, bottom-left-back, top-front, top-back
+  function makeRoofPanel(xEdge, xCenter, yBottom, yTop, zFront, zBack) {
+    const geom = new THREE.BufferGeometry();
+    const verts = new Float32Array([
+      xEdge,   yBottom, zFront,
+      xEdge,   yBottom, zBack,
+      xCenter, yTop,    zBack,
+      xEdge,   yBottom, zFront,
+      xCenter, yTop,    zBack,
+      xCenter, yTop,    zFront,
+    ]);
+    geom.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    geom.computeVertexNormals();
+    const mesh = new THREE.Mesh(geom, glassMat);
+    mesh.raycast = () => {};
+    return mesh;
+  }
+
+  const roofLeft = makeRoofPanel(ox - wallHalfW, ox, 4, ridgeY, roofDepthHalf, -roofDepthHalf);
   scene.add(roofLeft);
 
-  const roofRight = new THREE.Mesh(
-    new THREE.PlaneGeometry(roofSlope, 10),
-    glassMat
-  );
-  roofRight.position.set(ox + wallHalfW / 2, 4 + roofRise / 2, 0);
-  roofRight.rotation.x = Math.PI / 2;
-  roofRight.rotation.z = -roofAngle;
-  roofRight.raycast = () => {};
+  const roofRight = makeRoofPanel(ox + wallHalfW, ox, 4, ridgeY, -roofDepthHalf, roofDepthHalf);
   scene.add(roofRight);
 
   // Ridge beam at the peak
   const ridgeBeam = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.06, 10),
+    new THREE.BoxGeometry(0.06, 0.06, roofDepthHalf * 2),
     frameMat
   );
   ridgeBeam.position.set(ox, ridgeY, 0);
@@ -184,15 +190,22 @@ export function createNatureRoom(scene) {
     scene.add(rail);
   }
 
-  // Roof beams following the pitch
+  // Roof rafter beams — straight lines from wall top to ridge
   for (let cz = -4; cz <= 4; cz += 2) {
     for (const side of [-1, 1]) {
+      const startX = ox + side * wallHalfW;
+      const endX = ox;
+      const dx = endX - startX;
+      const dy = ridgeY - 4;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, Math.abs(dx));
+
       const beam = new THREE.Mesh(
-        new THREE.BoxGeometry(roofSlope, 0.04, 0.04),
+        new THREE.BoxGeometry(len, 0.04, 0.04),
         frameMat
       );
-      beam.position.set(ox + side * wallHalfW / 2, 4 + roofRise / 2, cz);
-      beam.rotation.z = side * -roofAngle;
+      beam.position.set(startX + dx / 2, 4 + dy / 2, cz);
+      beam.rotation.z = side > 0 ? angle : -angle;
       scene.add(beam);
     }
   }
