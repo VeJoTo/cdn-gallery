@@ -238,6 +238,136 @@ export function createNatureRoom(scene) {
     butterflies.push(bGroup);
   }
 
+  // ── Wooden sign ──
+  const signGroup = new THREE.Group();
+  signGroup.position.set(ox - 1.5, 0, 1.5);
+
+  // Posts
+  const postMat = new THREE.MeshLambertMaterial({ color: 0x5a3a1a });
+  for (const px of [-0.45, 0.45]) {
+    const post = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.035, 1.0, 6),
+      postMat
+    );
+    post.position.set(px, 0.5, 0);
+    signGroup.add(post);
+  }
+
+  // Board
+  const boardMat = new THREE.MeshLambertMaterial({ color: 0x8a6a3a });
+  const board = new THREE.Mesh(
+    new THREE.BoxGeometry(1.0, 0.5, 0.04),
+    boardMat
+  );
+  board.position.set(0, 0.85, 0);
+  signGroup.add(board);
+
+  // Text on the sign
+  const signCanvas = document.createElement('canvas');
+  signCanvas.width = 512;
+  signCanvas.height = 256;
+  const sgnctx = signCanvas.getContext('2d');
+  sgnctx.fillStyle = '#8a6a3a';
+  sgnctx.fillRect(0, 0, 512, 256);
+  // Wood grain lines
+  sgnctx.strokeStyle = 'rgba(60,40,15,0.3)';
+  sgnctx.lineWidth = 1;
+  for (let wy = 0; wy < 256; wy += 12) {
+    sgnctx.beginPath();
+    sgnctx.moveTo(0, wy);
+    for (let wx = 0; wx < 512; wx += 15) {
+      sgnctx.lineTo(wx, wy + Math.sin(wx * 0.03) * 2);
+    }
+    sgnctx.stroke();
+  }
+  // Text
+  sgnctx.fillStyle = '#2a1a08';
+  sgnctx.font = '18px Georgia, serif';
+  sgnctx.textAlign = 'center';
+
+  const signText = 'This garden is just an example of how this 3D gallery can expand in the future. With several rooms highlighting different research in a visual and engaging way.';
+  const words = signText.split(' ');
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const test = line + (line ? ' ' : '') + word;
+    if (sgnctx.measureText(test).width > 440) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+
+  const lineHeight = 28;
+  const startY = 128 - (lines.length * lineHeight) / 2 + 14;
+  for (let i = 0; i < lines.length; i++) {
+    sgnctx.fillText(lines[i], 256, startY + i * lineHeight);
+  }
+
+  const signTex = new THREE.CanvasTexture(signCanvas);
+  const signFace = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.96, 0.48),
+    new THREE.MeshBasicMaterial({ map: signTex })
+  );
+  signFace.position.set(0, 0.85, 0.025);
+  signGroup.add(signFace);
+
+  scene.add(signGroup);
+
+  // ── Wooden bench ──
+  const benchGroup = new THREE.Group();
+  benchGroup.position.set(ox + 2.0, 0, 1.5);
+  benchGroup.rotation.y = -0.3;
+
+  const benchWood = new THREE.MeshLambertMaterial({ color: 0x6a4a2a });
+  const benchDark = new THREE.MeshLambertMaterial({ color: 0x4a3018 });
+
+  // Seat plank
+  const seat = new THREE.Mesh(
+    new THREE.BoxGeometry(1.0, 0.04, 0.35),
+    benchWood
+  );
+  seat.position.y = 0.42;
+  seat.castShadow = true;
+  benchGroup.add(seat);
+
+  // Back rest
+  const backrest = new THREE.Mesh(
+    new THREE.BoxGeometry(1.0, 0.35, 0.03),
+    benchWood
+  );
+  backrest.position.set(0, 0.65, -0.16);
+  benchGroup.add(backrest);
+
+  // Legs (4)
+  for (const [lx, lz] of [[-0.42, 0.1], [0.42, 0.1], [-0.42, -0.1], [0.42, -0.1]]) {
+    const leg = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.42, 0.04),
+      benchDark
+    );
+    leg.position.set(lx, 0.21, lz);
+    benchGroup.add(leg);
+  }
+
+  // Armrests
+  for (const ax of [-0.48, 0.48]) {
+    const armrest = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.04, 0.3),
+      benchDark
+    );
+    armrest.position.set(ax, 0.55, -0.02);
+    benchGroup.add(armrest);
+  }
+
+  benchGroup.userData = {
+    clickable: true,
+    hotspot: 'seat-bench'
+  };
+
+  scene.add(benchGroup);
+
   // ── Return portal (green themed) ──
   const returnPortal = new THREE.Group();
   returnPortal.position.set(ox, 1.5, -4.5);
@@ -328,6 +458,6 @@ export function createNatureRoom(scene) {
     returnGlow2,
     returnGlow3,
     butterflies,
-    clickables: [returnPortal]
+    clickables: [returnPortal, benchGroup]
   };
 }

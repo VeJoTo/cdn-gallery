@@ -23,7 +23,8 @@ export const HOTSPOTS = {
   'desk-right-monitor': { position: { x: 2.6, y: 1.4, z: -1.8 }, target: { x: 2.35, y: 1.18, z: -3.0 }, label: 'Right Monitor' },
   'seat-beanbag-left':  { position: { x: -0.8, y: 0.5, z: 1.2 }, target: { x: 0, y: 0.5, z: 0.5 }, label: 'Relaxing...' },
   'seat-beanbag-right': { position: { x: 0.8, y: 0.5, z: 1.2 }, target: { x: 0, y: 0.5, z: 0.5 }, label: 'Relaxing...' },
-  'seat-chair':         { position: { x: 1.8, y: 1.3, z: -2.0 }, target: { x: 1.8, y: 1.2, z: -2.8 }, label: 'Seated at desk' }
+  'seat-chair':         { position: { x: 1.8, y: 1.3, z: -2.0 }, target: { x: 1.8, y: 1.2, z: -2.8 }, label: 'Seated at desk' },
+  'seat-bench':         { position: { x: 22.0, y: 0.7, z: 1.5 }, target: { x: 20.5, y: 0.8, z: 0.5 }, label: 'Enjoying the garden...' }
 };
 
 export function createNavigationState() {
