@@ -1726,6 +1726,14 @@ function buildPortal() {
   portalLight.position.z = 0.5;
   group.add(portalLight);
 
+  // Large invisible click target covering the entire portal area
+  const clickTarget = new THREE.Mesh(
+    new THREE.CircleGeometry(1.2, 32),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  clickTarget.position.z = 0.02;
+  group.add(clickTarget);
+
   // Store rings for animation
   group.userData = {
     clickable: true,
