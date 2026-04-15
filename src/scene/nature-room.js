@@ -90,36 +90,39 @@ export function createNatureRoom(scene) {
     scene.add(glass);
   }
 
-  // Pitched glass roof (two angled planes meeting at a ridge)
-  const roofHalfW = 5.6;
-  const roofAngle = 0.25; // gentle pitch
+  // Pitched glass roof — edges sit on wall tops at y=4, ridge at y=5.5
+  const wallHalfW = 5.5;
+  const ridgeY = 5.5;
+  const roofRise = ridgeY - 4;
+  const roofSlope = Math.sqrt(wallHalfW * wallHalfW + roofRise * roofRise);
+  const roofAngle = Math.atan2(roofRise, wallHalfW);
 
   const roofLeft = new THREE.Mesh(
-    new THREE.PlaneGeometry(roofHalfW, 10),
+    new THREE.PlaneGeometry(roofSlope, 10),
     glassMat
   );
-  roofLeft.position.set(ox - roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), 0);
+  roofLeft.position.set(ox - wallHalfW / 2, 4 + roofRise / 2, 0);
   roofLeft.rotation.x = Math.PI / 2;
   roofLeft.rotation.z = roofAngle;
   roofLeft.raycast = () => {};
   scene.add(roofLeft);
 
   const roofRight = new THREE.Mesh(
-    new THREE.PlaneGeometry(roofHalfW, 10),
+    new THREE.PlaneGeometry(roofSlope, 10),
     glassMat
   );
-  roofRight.position.set(ox + roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), 0);
+  roofRight.position.set(ox + wallHalfW / 2, 4 + roofRise / 2, 0);
   roofRight.rotation.x = Math.PI / 2;
   roofRight.rotation.z = -roofAngle;
   roofRight.raycast = () => {};
   scene.add(roofRight);
 
-  // Ridge beam along the top
+  // Ridge beam at the peak
   const ridgeBeam = new THREE.Mesh(
     new THREE.BoxGeometry(0.06, 0.06, 10),
     frameMat
   );
-  ridgeBeam.position.set(ox, 4 + roofHalfW * Math.sin(roofAngle), 0);
+  ridgeBeam.position.set(ox, ridgeY, 0);
   scene.add(ridgeBeam);
 
   // Metal frame ribs — horizontal along the top edges
@@ -183,33 +186,15 @@ export function createNatureRoom(scene) {
 
   // Roof beams following the pitch
   for (let cz = -4; cz <= 4; cz += 2) {
-    // Left side beam
-    const beamL = new THREE.Mesh(
-      new THREE.BoxGeometry(roofHalfW, 0.04, 0.04),
-      frameMat
-    );
-    beamL.position.set(ox - roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), cz);
-    beamL.rotation.z = roofAngle;
-    scene.add(beamL);
-
-    // Right side beam
-    const beamR = new THREE.Mesh(
-      new THREE.BoxGeometry(roofHalfW, 0.04, 0.04),
-      frameMat
-    );
-    beamR.position.set(ox + roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), cz);
-    beamR.rotation.z = -roofAngle;
-    scene.add(beamR);
-  }
-  // Longitudinal beams along the ridge
-  for (let cx = -4; cx <= 4; cx += 2) {
-    const h = 4 + Math.abs(cx) < 0.5 ? roofHalfW * Math.sin(roofAngle) : (roofHalfW - Math.abs(cx)) * Math.sin(roofAngle) * 0.5;
-    const beam = new THREE.Mesh(
-      new THREE.BoxGeometry(0.04, 0.04, 10),
-      frameMat
-    );
-    beam.position.set(ox + cx, 4 + (roofHalfW / 2 - Math.abs(cx) * 0.5) * Math.sin(roofAngle), 0);
-    scene.add(beam);
+    for (const side of [-1, 1]) {
+      const beam = new THREE.Mesh(
+        new THREE.BoxGeometry(roofSlope, 0.04, 0.04),
+        frameMat
+      );
+      beam.position.set(ox + side * wallHalfW / 2, 4 + roofRise / 2, cz);
+      beam.rotation.z = side * -roofAngle;
+      scene.add(beam);
+    }
   }
 
   // ── Lighting — soft cozy sunlight from the corner ──
@@ -302,34 +287,85 @@ export function createNatureRoom(scene) {
   makeTree(2.5, -3.5, 2.0, 0.7, -0.06);
   makeTree(3.0, 4.5, 2.5, 0.9, 0);
 
-  // ── Flowers — lots of colorful clusters ──
-  const flowerColors = [0xff6688, 0xffaa44, 0xcc66ff, 0xff4466, 0x66ccff, 0xff88aa, 0xffdd44, 0xee55cc, 0xff7744, 0xaaddff];
+  // ── Flowers — dense colorful clusters ──
+  const flowerColors = [0xff6688, 0xffaa44, 0xcc66ff, 0xff4466, 0x66ccff, 0xff88aa, 0xffdd44, 0xee55cc, 0xff7744, 0xaaddff, 0xff99cc, 0xffbb66, 0xaa88ff, 0xff6655, 0x88eebb];
 
-  for (let i = 0; i < 60; i++) {
-    const fx = (Math.random() - 0.5) * 8;
-    const fz = (Math.random() - 0.5) * 7;
+  // Flower clusters — groups of 3-6 flowers near each other
+  const clusterCenters = [];
+  for (let c = 0; c < 25; c++) {
+    clusterCenters.push({
+      x: (Math.random() - 0.5) * 9,
+      z: (Math.random() - 0.5) * 8
+    });
+  }
 
-    // Skip if too close to pond
-    if (Math.sqrt((fx - 0.5) ** 2 + (fz - 0.5) ** 2) < 1.2) continue;
+  for (const center of clusterCenters) {
+    const clusterSize = 3 + Math.floor(Math.random() * 5);
+    const clusterColor = flowerColors[Math.floor(Math.random() * flowerColors.length)];
 
-    // Stem
-    const stemH = 0.12 + Math.random() * 0.15;
+    for (let f = 0; f < clusterSize; f++) {
+      const fx = center.x + (Math.random() - 0.5) * 0.6;
+      const fz = center.z + (Math.random() - 0.5) * 0.6;
+
+      // Skip if too close to fountain
+      if (Math.sqrt(fx * fx + fz * fz) < 1.3) continue;
+
+      const stemH = 0.1 + Math.random() * 0.18;
+      const stem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.005, 0.005, stemH, 4),
+        new THREE.MeshLambertMaterial({ color: 0x2a7a2a })
+      );
+      stem.position.set(ox + fx, stemH / 2, fz);
+      scene.add(stem);
+
+      // Vary the color slightly within the cluster
+      const colorVariant = Math.random() > 0.3 ? clusterColor : flowerColors[Math.floor(Math.random() * flowerColors.length)];
+      const petalSize = 0.025 + Math.random() * 0.035;
+      const flower = new THREE.Mesh(
+        new THREE.SphereGeometry(petalSize, 6, 4),
+        new THREE.MeshStandardMaterial({
+          color: colorVariant, emissive: colorVariant, emissiveIntensity: 0.15
+        })
+      );
+      flower.position.set(ox + fx, stemH + 0.015, fz);
+      scene.add(flower);
+
+      // Some flowers get a second petal ring (larger flowers)
+      if (Math.random() > 0.6) {
+        const outerPetal = new THREE.Mesh(
+          new THREE.SphereGeometry(petalSize * 1.3, 6, 4),
+          new THREE.MeshStandardMaterial({
+            color: colorVariant, transparent: true, opacity: 0.5
+          })
+        );
+        outerPetal.position.set(ox + fx, stemH + 0.01, fz);
+        scene.add(outerPetal);
+      }
+    }
+  }
+
+  // Extra scattered individual flowers for fullness
+  for (let i = 0; i < 40; i++) {
+    const fx = (Math.random() - 0.5) * 9;
+    const fz = (Math.random() - 0.5) * 8;
+    if (Math.sqrt(fx * fx + fz * fz) < 1.3) continue;
+
+    const stemH = 0.08 + Math.random() * 0.12;
     const stem = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.006, 0.006, stemH, 4),
+      new THREE.CylinderGeometry(0.004, 0.004, stemH, 4),
       new THREE.MeshLambertMaterial({ color: 0x2a7a2a })
     );
     stem.position.set(ox + fx, stemH / 2, fz);
     scene.add(stem);
 
-    // Flower head
     const fColor = flowerColors[Math.floor(Math.random() * flowerColors.length)];
     const flower = new THREE.Mesh(
-      new THREE.SphereGeometry(0.03 + Math.random() * 0.03, 6, 4),
+      new THREE.SphereGeometry(0.02 + Math.random() * 0.02, 6, 4),
       new THREE.MeshStandardMaterial({
-        color: fColor, emissive: fColor, emissiveIntensity: 0.15
+        color: fColor, emissive: fColor, emissiveIntensity: 0.1
       })
     );
-    flower.position.set(ox + fx, stemH + 0.02, fz);
+    flower.position.set(ox + fx, stemH + 0.01, fz);
     scene.add(flower);
   }
 
@@ -507,8 +543,8 @@ export function createNatureRoom(scene) {
 
   // ── Butterflies (small rotating colored planes) ──
   const butterflies = [];
-  const butterflyColors = [0xff88aa, 0xffcc44, 0x88ddff, 0xcc88ff];
-  for (let i = 0; i < 6; i++) {
+  const butterflyColors = [0xff88aa, 0xffcc44, 0x88ddff, 0xcc88ff, 0xff6688, 0xaaffaa, 0xffaa88, 0xff66cc, 0x88ffdd];
+  for (let i = 0; i < 15; i++) {
     const bGroup = new THREE.Group();
     bGroup.position.set(
       ox + (Math.random() - 0.5) * 6,
