@@ -117,7 +117,7 @@ export function createNatureRoom(scene) {
     return mesh;
   }
 
-  const roofLeft = makeRoofPanel(ox - wallHalfW, ox, 4, ridgeY, roofDepthHalf, -roofDepthHalf);
+  const roofLeft = makeRoofPanel(ox - wallHalfW, ox, 4, ridgeY, -roofDepthHalf, roofDepthHalf);
   scene.add(roofLeft);
 
   const roofRight = makeRoofPanel(ox + wallHalfW, ox, 4, ridgeY, -roofDepthHalf, roofDepthHalf);
