@@ -338,8 +338,14 @@ export function createNatureRoom(scene) {
     new THREE.PlaneGeometry(0.96, 0.48),
     new THREE.MeshBasicMaterial({ map: signTex })
   );
-  signFace.position.set(0, 0.85, 0.025);
+  signFace.position.set(0, 0.85, -0.025);
+  signFace.rotation.y = Math.PI;
   signGroup.add(signFace);
+
+  signGroup.userData = {
+    clickable: true,
+    hotspot: 'garden-sign'
+  };
 
   scene.add(signGroup);
 
@@ -485,6 +491,6 @@ export function createNatureRoom(scene) {
     returnGlow2,
     returnGlow3,
     butterflies,
-    clickables: [returnPortal, benchGroup]
+    clickables: [returnPortal, benchGroup, signGroup]
   };
 }
