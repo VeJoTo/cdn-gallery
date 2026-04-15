@@ -683,10 +683,7 @@ export function createNatureRoom(scene) {
   signFace.rotation.y = Math.PI;
   signGroup.add(signFace);
 
-  signGroup.userData = {
-    clickable: true,
-    hotspot: 'garden-sign'
-  };
+  // Sign is decorative — walk up to read it
 
   scene.add(signGroup);
 
@@ -743,10 +740,7 @@ export function createNatureRoom(scene) {
   benchClick.position.y = 0.5;
   benchGroup.add(benchClick);
 
-  benchGroup.userData = {
-    clickable: true,
-    hotspot: 'seat-bench'
-  };
+  // Bench is decorative
 
   scene.add(benchGroup);
 
@@ -841,6 +835,6 @@ export function createNatureRoom(scene) {
     returnGlow3,
     butterflies,
     drops,
-    clickables: [returnPortal, benchGroup, signGroup]
+    clickables: [returnPortal]
   };
 }
