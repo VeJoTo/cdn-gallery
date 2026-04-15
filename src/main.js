@@ -148,7 +148,20 @@ function animate() {
   controls.update();
   updateHoverHighlight();
   renderer.render(scene, camera);
-  cssRenderer.render(cssScene, camera);
+
+  // Only show CSS3D iframes when camera is close to the screens and facing them
+  // TV is at (3.419, 2.85, 0), monitor at ~(2.35, 1.22, -2.9)
+  const camPos = camera.position;
+  const camDir = new THREE.Vector3();
+  camera.getWorldDirection(camDir);
+
+  // Check if camera is in the AI room and close to the right wall (TV) or desk area
+  const nearTV = camPos.x > 1 && camPos.x < 5 && Math.abs(camPos.z) < 3 && camDir.x > 0.3;
+  const nearDesk = camPos.x > 0.5 && camPos.x < 3.5 && camPos.z < -1 && camDir.z < -0.2;
+  const showCSS3D = currentRoom === 'ai' && (nearTV || nearDesk);
+
+  cssRenderer.domElement.style.display = showCSS3D ? '' : 'none';
+  if (showCSS3D) cssRenderer.render(cssScene, camera);
 }
 
 createRoom(scene);
