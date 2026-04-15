@@ -229,6 +229,23 @@ addUpdateCallback((delta) => {
       b.rotation.y = elapsed * d.speed * 2;
     }
   }
+
+  // Animate fountain drops
+  if (natureRoom.drops) {
+    for (const drop of natureRoom.drops) {
+      drop.position.y -= drop.userData.speed * delta;
+      const dx = Math.cos(drop.userData.angle) * 0.15 * delta;
+      const dz = Math.sin(drop.userData.angle) * 0.15 * delta;
+      drop.position.x += dx;
+      drop.position.z += dz;
+      // Reset when they fall into the pool
+      if (drop.position.y < 0.25) {
+        drop.position.y = 0.95 + Math.random() * 0.1;
+        drop.position.x = 20 + Math.cos(drop.userData.angle) * 0.2;
+        drop.position.z = Math.sin(drop.userData.angle) * 0.2;
+      }
+    }
+  }
 });
 
 // ── Room transitions ──

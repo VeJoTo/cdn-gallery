@@ -90,15 +90,37 @@ export function createNatureRoom(scene) {
     scene.add(glass);
   }
 
-  // Glass ceiling (slightly arched using a wide low cylinder segment)
-  const ceilGlass = new THREE.Mesh(
-    new THREE.PlaneGeometry(11, 10),
+  // Pitched glass roof (two angled planes meeting at a ridge)
+  const roofHalfW = 5.6;
+  const roofAngle = 0.25; // gentle pitch
+
+  const roofLeft = new THREE.Mesh(
+    new THREE.PlaneGeometry(roofHalfW, 10),
     glassMat
   );
-  ceilGlass.rotation.x = Math.PI / 2;
-  ceilGlass.position.set(ox, 4, 0);
-  ceilGlass.raycast = () => {};
-  scene.add(ceilGlass);
+  roofLeft.position.set(ox - roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), 0);
+  roofLeft.rotation.x = Math.PI / 2;
+  roofLeft.rotation.z = roofAngle;
+  roofLeft.raycast = () => {};
+  scene.add(roofLeft);
+
+  const roofRight = new THREE.Mesh(
+    new THREE.PlaneGeometry(roofHalfW, 10),
+    glassMat
+  );
+  roofRight.position.set(ox + roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), 0);
+  roofRight.rotation.x = Math.PI / 2;
+  roofRight.rotation.z = -roofAngle;
+  roofRight.raycast = () => {};
+  scene.add(roofRight);
+
+  // Ridge beam along the top
+  const ridgeBeam = new THREE.Mesh(
+    new THREE.BoxGeometry(0.06, 0.06, 10),
+    frameMat
+  );
+  ridgeBeam.position.set(ox, 4 + roofHalfW * Math.sin(roofAngle), 0);
+  scene.add(ridgeBeam);
 
   // Metal frame ribs — horizontal along the top edges
   const ribGeom = new THREE.BoxGeometry(11, 0.04, 0.04);
@@ -159,21 +181,34 @@ export function createNatureRoom(scene) {
     scene.add(rail);
   }
 
-  // Ceiling ribs (cross beams)
+  // Roof beams following the pitch
+  for (let cz = -4; cz <= 4; cz += 2) {
+    // Left side beam
+    const beamL = new THREE.Mesh(
+      new THREE.BoxGeometry(roofHalfW, 0.04, 0.04),
+      frameMat
+    );
+    beamL.position.set(ox - roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), cz);
+    beamL.rotation.z = roofAngle;
+    scene.add(beamL);
+
+    // Right side beam
+    const beamR = new THREE.Mesh(
+      new THREE.BoxGeometry(roofHalfW, 0.04, 0.04),
+      frameMat
+    );
+    beamR.position.set(ox + roofHalfW / 2 * Math.cos(roofAngle), 4 + roofHalfW / 2 * Math.sin(roofAngle), cz);
+    beamR.rotation.z = -roofAngle;
+    scene.add(beamR);
+  }
+  // Longitudinal beams along the ridge
   for (let cx = -4; cx <= 4; cx += 2) {
+    const h = 4 + Math.abs(cx) < 0.5 ? roofHalfW * Math.sin(roofAngle) : (roofHalfW - Math.abs(cx)) * Math.sin(roofAngle) * 0.5;
     const beam = new THREE.Mesh(
       new THREE.BoxGeometry(0.04, 0.04, 10),
       frameMat
     );
-    beam.position.set(ox + cx, 4, 0);
-    scene.add(beam);
-  }
-  for (let cz = -4; cz <= 4; cz += 2) {
-    const beam = new THREE.Mesh(
-      new THREE.BoxGeometry(11, 0.04, 0.04),
-      frameMat
-    );
-    beam.position.set(ox, 4, cz);
+    beam.position.set(ox + cx, 4 + (roofHalfW / 2 - Math.abs(cx) * 0.5) * Math.sin(roofAngle), 0);
     scene.add(beam);
   }
 
@@ -313,39 +348,162 @@ export function createNatureRoom(scene) {
     scene.add(rock);
   }
 
-  // ── Pond / stream ──
-  const pond = new THREE.Mesh(
-    new THREE.CircleGeometry(1.0, 32),
+  // ── Fountain ──
+  // Base pool (circular)
+  const poolMat = new THREE.MeshStandardMaterial({
+    color: 0x4a6a7a, roughness: 0.3, metalness: 0.2
+  });
+  const pool = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.9, 1.0, 0.2, 24),
+    poolMat
+  );
+  pool.position.set(ox, 0.1, 0);
+  scene.add(pool);
+
+  // Water surface
+  const water = new THREE.Mesh(
+    new THREE.CircleGeometry(0.85, 24),
     new THREE.MeshStandardMaterial({
-      color: 0x3a8abf,
+      color: 0x4a9ac0,
       emissive: 0x1a4a6a,
-      emissiveIntensity: 0.2,
+      emissiveIntensity: 0.15,
       roughness: 0.05,
-      metalness: 0.6,
+      metalness: 0.5,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.7
     })
   );
-  pond.rotation.x = -Math.PI / 2;
-  pond.position.set(ox + 0.5, 0.005, 0.5);
-  scene.add(pond);
+  water.rotation.x = -Math.PI / 2;
+  water.position.set(ox, 0.21, 0);
+  scene.add(water);
 
-  // Pond edge rocks
-  for (let i = 0; i < 8; i++) {
-    const angle = (i / 8) * Math.PI * 2;
-    const pr = 1.0 + (Math.random() - 0.5) * 0.3;
-    const prock = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(0.08 + Math.random() * 0.06, 0),
-      rockMat
+  // Central pillar
+  const pillarMat = new THREE.MeshLambertMaterial({ color: 0x6a7a6a });
+  const pillar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.08, 0.1, 0.8, 8),
+    pillarMat
+  );
+  pillar.position.set(ox, 0.6, 0);
+  scene.add(pillar);
+
+  // Top bowl
+  const bowl = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.15, 0.1, 12),
+    pillarMat
+  );
+  bowl.position.set(ox, 1.05, 0);
+  scene.add(bowl);
+
+  // Water spout (small sphere on top)
+  const spout = new THREE.Mesh(
+    new THREE.SphereGeometry(0.06, 8, 6),
+    new THREE.MeshStandardMaterial({
+      color: 0x6abaee, emissive: 0x3a8abb, emissiveIntensity: 0.3
+    })
+  );
+  spout.position.set(ox, 1.15, 0);
+  scene.add(spout);
+
+  // Water droplet particles falling from the bowl
+  const dropMat = new THREE.MeshStandardMaterial({
+    color: 0x6abaee, emissive: 0x3a8abb, emissiveIntensity: 0.2,
+    transparent: true, opacity: 0.6
+  });
+  const drops = [];
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    const drop = new THREE.Mesh(
+      new THREE.SphereGeometry(0.02, 4, 3),
+      dropMat
     );
-    prock.position.set(
-      ox + 0.5 + Math.cos(angle) * pr,
-      0.04,
-      0.5 + Math.sin(angle) * pr
+    drop.position.set(
+      ox + Math.cos(angle) * 0.2,
+      0.9,
+      Math.sin(angle) * 0.2
     );
-    prock.rotation.set(Math.random(), Math.random(), Math.random());
-    scene.add(prock);
+    drop.userData.angle = angle;
+    drop.userData.speed = 0.8 + Math.random() * 0.4;
+    scene.add(drop);
+    drops.push(drop);
   }
+
+  // ── Tropical plants ──
+  // Large fern-like plants (flattened scaled spheres in clusters)
+  function makeTropicalPlant(x, z, size) {
+    const plantGroup = new THREE.Group();
+    plantGroup.position.set(ox + x, 0, z);
+
+    // Central stem
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.03, size * 0.5, 6),
+      new THREE.MeshLambertMaterial({ color: 0x2a5a1a })
+    );
+    stem.position.y = size * 0.25;
+    plantGroup.add(stem);
+
+    // Large drooping leaves
+    const leafColors = [0x1a7a2a, 0x2a8a1a, 0x3a9a2a, 0x1a6a1a];
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2 + Math.random() * 0.3;
+      const leaf = new THREE.Mesh(
+        new THREE.SphereGeometry(size * 0.4, 6, 4),
+        new THREE.MeshLambertMaterial({ color: leafColors[i % leafColors.length] })
+      );
+      leaf.scale.set(0.3, 0.15, 1.0);
+      leaf.position.set(
+        Math.cos(angle) * size * 0.3,
+        size * 0.4 + Math.random() * 0.1,
+        Math.sin(angle) * size * 0.3
+      );
+      leaf.rotation.z = Math.cos(angle) * 0.5;
+      leaf.rotation.x = Math.sin(angle) * 0.3;
+      leaf.rotation.y = angle;
+      plantGroup.add(leaf);
+    }
+
+    scene.add(plantGroup);
+  }
+
+  // Place tropical plants around the greenhouse
+  makeTropicalPlant(-4.5, -1, 1.2);
+  makeTropicalPlant(-4.0, 3, 1.0);
+  makeTropicalPlant(4.5, -2, 1.3);
+  makeTropicalPlant(4.0, 3.5, 0.9);
+  makeTropicalPlant(-3.5, -4, 1.1);
+  makeTropicalPlant(3.0, -3.5, 1.0);
+  makeTropicalPlant(-2.0, 4, 0.8);
+  makeTropicalPlant(5.0, 0, 1.4);
+
+  // Tall palm-like plants
+  function makePalm(x, z, height) {
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.06, height, 6),
+      new THREE.MeshLambertMaterial({ color: 0x6a5a3a })
+    );
+    trunk.position.set(ox + x, height / 2, z);
+    scene.add(trunk);
+
+    // Drooping fronds
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const frond = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 0.02, 0.8),
+        new THREE.MeshLambertMaterial({ color: 0x2a7a1a })
+      );
+      frond.position.set(
+        ox + x + Math.cos(angle) * 0.15,
+        height - 0.1,
+        z + Math.sin(angle) * 0.15
+      );
+      frond.rotation.y = angle;
+      frond.rotation.x = 0.5;
+      scene.add(frond);
+    }
+  }
+
+  makePalm(-4.8, 0, 2.8);
+  makePalm(4.8, -1, 2.5);
+  makePalm(0, 4.2, 3.0);
 
   // ── Butterflies (small rotating colored planes) ──
   const butterflies = [];
@@ -604,6 +762,7 @@ export function createNatureRoom(scene) {
     returnGlow2,
     returnGlow3,
     butterflies,
+    drops,
     clickables: [returnPortal, benchGroup, signGroup]
   };
 }
