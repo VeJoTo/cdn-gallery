@@ -90,43 +90,64 @@ export function createNatureRoom(scene) {
     scene.add(glass);
   }
 
-  // Pitched glass roof — two tilted planes meeting at a ridge
+  // Pitched glass roof — two quad panels from exact vertex positions
   const wallHalfW = 5.5;
   const ridgeY = 5.5;
-  const roofDepthHalf = 5;
-  const roofRise = ridgeY - 4; // 1.5
-  const roofSlope = Math.sqrt(wallHalfW * wallHalfW + roofRise * roofRise);
-  const roofAngle = Math.atan2(roofRise, wallHalfW);
+  const zFront = 5;
+  const zBack = -5;
+  const wallTopY = 4;
 
-  // Left panel: bottom edge at (ox-5.5, 4), tilts up toward center
-  const roofLeft = new THREE.Mesh(
-    new THREE.PlaneGeometry(roofSlope, roofDepthHalf * 2),
-    glassMat
+  function makeRoofQuad(v0, v1, v2, v3) {
+    // Two triangles: v0-v1-v2 and v0-v2-v3
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+      v0[0], v0[1], v0[2],  v1[0], v1[1], v1[2],  v2[0], v2[1], v2[2],
+      v0[0], v0[1], v0[2],  v2[0], v2[1], v2[2],  v3[0], v3[1], v3[2]
+    ]), 3));
+    geom.computeVertexNormals();
+    const mesh = new THREE.Mesh(geom, glassMat);
+    mesh.raycast = () => {};
+    return mesh;
+  }
+
+  // Left panel: left wall top edge → ridge
+  const roofLeft = makeRoofQuad(
+    [ox - wallHalfW, wallTopY, zFront],   // bottom-left-front (left wall top, front)
+    [ox - wallHalfW, wallTopY, zBack],    // bottom-left-back
+    [ox,             ridgeY,   zBack],    // top-right-back (ridge, back)
+    [ox,             ridgeY,   zFront]    // top-right-front (ridge, front)
   );
-  // Position at midpoint of the slope
-  roofLeft.position.set(ox - wallHalfW / 2, 4 + roofRise / 2, 0);
-  // Rotate: first lay flat (face up), then tilt
-  roofLeft.rotation.set(0, 0, 0);
-  roofLeft.rotation.x = -Math.PI / 2; // lay flat facing up
-  roofLeft.rotation.z = roofAngle;     // tilt left side up toward ridge
-  roofLeft.raycast = () => {};
   scene.add(roofLeft);
 
-  // Right panel: mirrors left
-  const roofRight = new THREE.Mesh(
-    new THREE.PlaneGeometry(roofSlope, roofDepthHalf * 2),
-    glassMat
+  // Right panel: right wall top edge → ridge
+  const roofRight = makeRoofQuad(
+    [ox + wallHalfW, wallTopY, zFront],
+    [ox,             ridgeY,   zFront],
+    [ox,             ridgeY,   zBack],
+    [ox + wallHalfW, wallTopY, zBack]
   );
-  roofRight.position.set(ox + wallHalfW / 2, 4 + roofRise / 2, 0);
-  roofRight.rotation.set(0, 0, 0);
-  roofRight.rotation.x = -Math.PI / 2;
-  roofRight.rotation.z = -roofAngle;
-  roofRight.raycast = () => {};
   scene.add(roofRight);
+
+  // Triangular gable ends (front and back)
+  const gableFront = makeRoofQuad(
+    [ox - wallHalfW, wallTopY, zFront],
+    [ox,             ridgeY,   zFront],
+    [ox,             ridgeY,   zFront],
+    [ox + wallHalfW, wallTopY, zFront]
+  );
+  scene.add(gableFront);
+
+  const gableBack = makeRoofQuad(
+    [ox - wallHalfW, wallTopY, zBack],
+    [ox + wallHalfW, wallTopY, zBack],
+    [ox,             ridgeY,   zBack],
+    [ox,             ridgeY,   zBack]
+  );
+  scene.add(gableBack);
 
   // Ridge beam at the peak
   const ridgeBeam = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, 0.06, roofDepthHalf * 2),
+    new THREE.BoxGeometry(0.06, 0.06, zFront - zBack),
     frameMat
   );
   ridgeBeam.position.set(ox, ridgeY, 0);
