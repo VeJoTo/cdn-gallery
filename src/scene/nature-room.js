@@ -735,6 +735,14 @@ export function createNatureRoom(scene) {
     benchGroup.add(armrest);
   }
 
+  // Invisible click target over the whole bench
+  const benchClick = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 0.8, 0.5),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+  );
+  benchClick.position.y = 0.5;
+  benchGroup.add(benchClick);
+
   benchGroup.userData = {
     clickable: true,
     hotspot: 'seat-bench'
