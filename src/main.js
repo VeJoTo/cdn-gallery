@@ -212,10 +212,23 @@ soundToggleDiv.style.display = 'flex';
 const natureRoom = createNatureRoom(scene);
 clickableObjects.push(...natureRoom.clickables);
 
-// Animate nature room return portal
+// Animate nature room
 addUpdateCallback((delta) => {
+  const elapsed = performance.now() * 0.001;
   if (natureRoom.returnGlow) natureRoom.returnGlow.rotation.z += delta * 0.3;
   if (natureRoom.returnGlow2) natureRoom.returnGlow2.rotation.z -= delta * 0.5;
+  if (natureRoom.returnGlow3) natureRoom.returnGlow3.rotation.z += delta * 0.2;
+
+  // Animate butterflies
+  if (natureRoom.butterflies) {
+    for (const b of natureRoom.butterflies) {
+      const d = b.userData;
+      b.position.x = d.baseX + Math.sin(elapsed * d.speed + d.phase) * d.radius;
+      b.position.z = d.baseZ + Math.cos(elapsed * d.speed * 0.7 + d.phase) * d.radius * 0.6;
+      b.position.y += Math.sin(elapsed * 3 + d.phase) * 0.002;
+      b.rotation.y = elapsed * d.speed * 2;
+    }
+  }
 });
 
 // ── Room transitions ──
