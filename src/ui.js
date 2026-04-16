@@ -162,6 +162,17 @@ export function createUI(camera, renderer, controls) {
         <p>CDN researcher Anne Sigrid Refsum studied what happens when LLMs retell Norwegian folktales — they mix motifs from different traditions, add modern moral lessons, and lose cultural specificity.</p>
         <p>Read the full research in the magical book on the pedestal.</p>
       `;
+    } else if (panelId === 'floating-motifs') {
+      content = `
+        <h2>${safeTitle}</h2>
+        <p style="font-size:15px;color:#9ce0ff;margin-bottom:14px;font-style:italic">The holographic heart of the AI room.</p>
+        <p>Folklorist Lauri Honko called the shared reservoir of oral tradition the <strong>pool of tradition</strong>. When a large language model retells a folktale, it swims in that pool — but without knowing which drops belong to which story.</p>
+        <p>A trail of breadcrumbs from <em>Hansel &amp; Gretel</em> shows up in <em>The Sweetheart in the Forest</em>. A forbidden locked room from <em>Bluebeard</em> drifts into <em>East of the Sun</em>. A helper animal from one tale appears in another. These recurring images are <strong>floating motifs</strong> — pieces that travel between tales.</p>
+        <p>CDN researcher Anne Sigrid Refsum's work examines what happens when AI treats the pool of tradition as one big soup, remixing motifs without cultural context.</p>
+        <div style="background:rgba(13,33,55,0.5);border:1px solid #a8d8ea;border-radius:8px;padding:14px;margin-top:16px">
+          <p style="font-size:13px;margin:0"><strong>Read the full research</strong> in the magical book on the pedestal.</p>
+        </div>
+      `;
     } else if (panelId === 'portal') {
       content = `
         <h2>Portal</h2>

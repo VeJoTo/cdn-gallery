@@ -1624,6 +1624,11 @@ export function createObjects(scene) {
   const fridge      = buildMiniFridge();
   const centralPedestal = buildCentralPedestal();
   const holoSphere  = buildHoloSphere();
+  holoSphere.userData.clickable = true;
+  holoSphere.userData.hotspot = 'holo-sphere';
+  holoSphere.userData.action = 'openPanel';
+  holoSphere.userData.panelId = 'floating-motifs';
+  holoSphere.userData.panelTitle = 'Floating Motifs';
   const pedestal    = buildPedestal();
   const rabbitHole  = buildRabbitHole();
   const tv          = buildTV();
