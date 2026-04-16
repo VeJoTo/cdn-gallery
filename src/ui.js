@@ -16,8 +16,38 @@ export const BOOK_PAGES = [
   { image: 'bok-9.jpg'  },
   { image: 'bok-10.jpg' },
   { image: 'bok-11.jpg' },
-  { image: 'bok-12.jpg' }
+  { image: 'bok-12.jpg' },
+  { type: 'intro' },
+  { type: 'deviation' }
 ];
+
+// Detailed content for each "dive deeper" point on the deviation page
+export const DIVE_DEEPER_CONTENT = {
+  creepier: {
+    title: 'A "creepier" retelling',
+    body: `<p>The AI version leans into horror tropes that the original folktale never needed. The original storyteller trusted the audience — a bloody room full of skeletons was enough. The tale didn't linger on the gore.</p>
+           <p>LLMs trained on modern horror fiction amplify the creepiness — adding eerie descriptions of flickering candles, whispering shadows, and "a sense of dread that crept up her spine." The original is matter-of-fact; the AI is <em>atmospheric</em>.</p>
+           <p>Why? Because training data includes thousands of horror novels, each pattern-matching "scary forest house" to ominous prose.</p>`
+  },
+  explicit: {
+    title: 'Implicit becomes explicit',
+    body: `<p>Folktales rely on <strong>implication</strong>. "The bird said: be bold, but not too bold" — the audience fills in why. The original doesn't explain the bird's motivation or the protagonist's feelings.</p>
+           <p>The AI retelling adds inner monologue: <em>"She felt a chill run down her spine as the bird's warning echoed in her mind, a nagging sense that something was terribly wrong..."</em></p>
+           <p>The machine explains what should be felt. Human storytellers trust the listener to feel it.</p>`
+  },
+  scenic: {
+    title: 'Less ambiguous scenes',
+    body: `<p>In Karen's 1847 version, the house is just "a beautiful house." The forest is just "the forest." These locations are scaffolding — the listener imagines their own.</p>
+           <p>The AI version anchors every scene: <em>"a grand Victorian mansion with ivy creeping up the weathered stone walls, surrounded by ancient oak trees whose gnarled branches reached toward the moonlit sky."</em></p>
+           <p>It's vivid, but it removes the listener's imagination. The tale becomes a movie pitch, not a folktale.</p>`
+  },
+  floating: {
+    title: 'Floating motifs',
+    body: `<p>The AI mixes motifs from different folktales — pieces of <em>Bluebeard</em>, <em>Hansel & Gretel</em>, <em>East of the Sun</em> — all stories that sit close together in its training data.</p>
+           <p>A typical AI retelling adds a trail of breadcrumbs (from Hansel), a locked forbidden room (from Bluebeard), and a mysterious helper animal (from many tales). None of these belong in "The Sweetheart in the Forest."</p>
+           <p>Folklorist Lauri Honko called the shared reservoir of oral tradition the <strong>"pool of tradition."</strong> AI swims in the same pool — but without knowing which drops go with which story.</p>`
+  }
+};
 
 const KEYWORD_RESPONSES = [
   { keys: ['xp', 'level', 'experience'], reply: 'Earn XP by exploring rooms and reading panels. Each discovery counts!' },
@@ -300,9 +330,13 @@ export function createUI(camera, renderer, controls) {
 
   let bookPageIndex = 0;
 
-  function renderBookPage() {
-    const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + BOOK_PAGES[bookPageIndex].image;
-    // Clear HTML content; use background image that spans the entire spread
+  function clearPageBackgrounds() {
+    bookPageL.style.backgroundImage = '';
+    bookPageR.style.backgroundImage = '';
+  }
+
+  function renderImagePage(image) {
+    const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + image;
     bookPageL.innerHTML = '';
     bookPageR.innerHTML = '';
     bookPageL.style.backgroundImage = `url("${imgPath}")`;
@@ -313,9 +347,91 @@ export function createUI(camera, renderer, controls) {
     bookPageR.style.backgroundSize = '200% 100%';
     bookPageR.style.backgroundPosition = 'right center';
     bookPageR.style.backgroundRepeat = 'no-repeat';
+  }
+
+  function renderIntroPage() {
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      <div class="book-intro">
+        <h2>Want to dig deeper?</h2>
+        <p>You've read the story. Now let's look at what AI does differently when retelling folklore like this one.</p>
+        <p>Based on research by <strong>Anne Sigrid Refsum</strong><br>Centre for Digital Narrative, University of Bergen</p>
+      </div>
+    `;
+    bookPageR.innerHTML = `
+      <div class="book-intro-right">
+        <button class="book-big-btn" data-action="go-deviation">
+          What mistakes does AI do<br>when retelling the folklore?
+        </button>
+      </div>
+    `;
+  }
+
+  function renderDeviationPage(selectedKey) {
+    clearPageBackgrounds();
+    const points = [
+      { key: 'creepier', label: 'The AI version is told in a "creepier" way.' },
+      { key: 'explicit', label: 'The AI version has a tendency to make the implicit more explicit.' },
+      { key: 'scenic',   label: 'The AI is less ambiguous when describing the scenic elements.' },
+      { key: 'floating', label: 'The use of "Floating motifs" and imagery.' }
+    ];
+
+    const rowsHTML = points.map(p => `
+      <div class="dive-row">
+        <p class="dive-label">${p.label}</p>
+        <button class="dive-btn ${selectedKey === p.key ? 'active' : ''}" data-action="dive" data-key="${p.key}">Dive deeper</button>
+      </div>
+    `).join('');
+
+    bookPageL.innerHTML = `
+      <div class="book-deviation">
+        <h2>What makes the AI version of the story deviate from the original?</h2>
+        <div class="dive-rows">${rowsHTML}</div>
+        <button class="book-back-btn" data-action="go-intro">Go back</button>
+      </div>
+    `;
+
+    const content = selectedKey && DIVE_DEEPER_CONTENT[selectedKey]
+      ? `<div class="dive-content"><h3>${DIVE_DEEPER_CONTENT[selectedKey].title}</h3>${DIVE_DEEPER_CONTENT[selectedKey].body}</div>`
+      : `<div class="dive-placeholder">Choose a point to dive deeper into…</div>`;
+    bookPageR.innerHTML = `<div class="book-deviation-right">${content}</div>`;
+  }
+
+  function renderBookPage() {
+    const page = BOOK_PAGES[bookPageIndex];
+    if (page.type === 'intro') {
+      renderIntroPage();
+    } else if (page.type === 'deviation') {
+      renderDeviationPage(deviationSelectedKey);
+    } else {
+      renderImagePage(page.image);
+    }
     bookPrev.disabled = bookPageIndex === 0;
     bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
   }
+
+  let deviationSelectedKey = null;
+
+  // Delegate clicks inside the book pages
+  function handleBookPageClick(e) {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    if (action === 'go-deviation') {
+      bookPageIndex = BOOK_PAGES.findIndex(p => p.type === 'deviation');
+      deviationSelectedKey = null;
+      renderBookPage();
+    } else if (action === 'go-intro') {
+      bookPageIndex = BOOK_PAGES.findIndex(p => p.type === 'intro');
+      deviationSelectedKey = null;
+      renderBookPage();
+    } else if (action === 'dive') {
+      deviationSelectedKey = btn.dataset.key;
+      renderBookPage();
+    }
+  }
+  bookPageL.addEventListener('click', handleBookPageClick);
+  bookPageR.addEventListener('click', handleBookPageClick);
 
   function openBook() {
     bookPageIndex = 0;
