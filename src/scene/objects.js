@@ -1429,6 +1429,99 @@ function buildCentralPedestal() {
   return group;
 }
 
+function buildHoloSphere() {
+  const group = new THREE.Group();
+  // Sphere floats at eye-level above the pedestal
+  group.position.set(0, 1.8, 0);
+
+  // Layer 1: wireframe sphere
+  const wireMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0,
+    wireframe: true, transparent: true, opacity: 0.85
+  });
+  const wireframe = new THREE.Mesh(new THREE.IcosahedronGeometry(0.45, 2), wireMat);
+  group.add(wireframe);
+
+  // Layer 2: inner particle cloud
+  const particleCount = 240;
+  const ppos = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    // Random point inside a sphere of radius 0.4
+    const r = 0.4 * Math.cbrt(Math.random());
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    ppos[i * 3    ] = r * Math.sin(phi) * Math.cos(theta);
+    ppos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    ppos[i * 3 + 2] = r * Math.cos(phi);
+  }
+  const pGeom = new THREE.BufferGeometry();
+  pGeom.setAttribute('position', new THREE.Float32BufferAttribute(ppos, 3));
+  const pMat = new THREE.PointsMaterial({
+    color: 0x9ce0ff, size: 0.02, transparent: true, opacity: 0.9,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const particles = new THREE.Points(pGeom, pMat);
+  group.add(particles);
+
+  // Layer 3a: orbiting dot-ring (tilt 1)
+  const ringA = new THREE.Group();
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2;
+    const dot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.012, 8, 6),
+      new THREE.MeshStandardMaterial({
+        color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5
+      })
+    );
+    dot.position.set(Math.cos(a) * 0.6, 0, Math.sin(a) * 0.6);
+    ringA.add(dot);
+  }
+  ringA.rotation.x = 0.4;
+  group.add(ringA);
+
+  // Layer 3b: orbiting dot-ring (tilt 2, counter-rotating)
+  const ringB = new THREE.Group();
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 2;
+    const dot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.01, 8, 6),
+      new THREE.MeshStandardMaterial({
+        color: 0x9ce0ff, emissive: 0x9ce0ff, emissiveIntensity: 1.5
+      })
+    );
+    dot.position.set(Math.cos(a) * 0.7, 0, Math.sin(a) * 0.7);
+    ringB.add(dot);
+  }
+  ringB.rotation.x = -0.6;
+  ringB.rotation.z = 0.3;
+  group.add(ringB);
+
+  // Projection beam — transparent cone from pedestal top to sphere
+  const beamMat = new THREE.MeshBasicMaterial({
+    color: 0x00d4ff, transparent: true, opacity: 0.15,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+  });
+  const beam = new THREE.Mesh(
+    new THREE.ConeGeometry(0.45, 1.05, 48, 1, true),
+    beamMat
+  );
+  beam.position.y = -0.55; // cone extends downward to pedestal top
+  beam.rotation.x = Math.PI;
+  group.add(beam);
+
+  // Sphere's own point light
+  const light = new THREE.PointLight(0x00d4ff, 1.0, 4);
+  group.add(light);
+
+  // Expose inner groups so createObjects can animate them in sceneUpdate
+  group.userData.wireframe = wireframe;
+  group.userData.particles = particles;
+  group.userData.ringA = ringA;
+  group.userData.ringB = ringB;
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(0, 0x00d4ff);
   const arcadeRight = buildArcadeCabinet(0, 0x00d4ff);
@@ -1530,6 +1623,7 @@ export function createObjects(scene) {
   const bookshelf   = buildBookshelf();
   const fridge      = buildMiniFridge();
   const centralPedestal = buildCentralPedestal();
+  const holoSphere  = buildHoloSphere();
   const pedestal    = buildPedestal();
   const rabbitHole  = buildRabbitHole();
   const tv          = buildTV();
@@ -1613,7 +1707,7 @@ export function createObjects(scene) {
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge,
-    centralPedestal, pedestal, rabbitHole, tv, globe, ...posters,
+    centralPedestal, holoSphere, pedestal, rabbitHole, tv, globe, ...posters,
     portal
   );
 
@@ -1634,6 +1728,16 @@ export function createObjects(scene) {
     }
     if (musicNotes) musicNotes.update(delta, elapsed);
 
+    if (holoSphere) {
+      holoSphere.userData.wireframe.rotation.y += delta * 0.35;
+      holoSphere.userData.wireframe.rotation.x += delta * 0.12;
+      holoSphere.userData.particles.rotation.y -= delta * 0.2;
+      holoSphere.userData.ringA.rotation.y += delta * 0.6;
+      holoSphere.userData.ringB.rotation.y -= delta * 0.9;
+      const pulse = 1 + Math.sin(elapsed * 1.4) * 0.03;
+      holoSphere.scale.setScalar(pulse);
+    }
+
     // Spin portal rings
     if (portal && portal.userData.rings) {
       for (const ring of portal.userData.rings) {
@@ -1649,6 +1753,6 @@ export function createObjects(scene) {
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
     tv, globe, musicNotes,
-    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, tv, rabbitHole, globe, aiPoster, portal]
+    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, tv, holoSphere, rabbitHole, globe, aiPoster, portal]
   };
 }
