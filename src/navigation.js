@@ -149,12 +149,24 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     const hits = raycaster.intersectObjects(clickableObjects, true);
     if (!hits.length) return;
 
+    // Scan ALL hits: a mesh with its own action (e.g. button) wins over parent group
+    const specificHit = hits.find(h => h.object.userData.action);
+    if (specificHit) {
+      const action = specificHit.object.userData.action;
+      console.log('ACTION TRIGGERED:', action);
+      if (action === 'toggleTV') { window.__toggleTV?.(); return; }
+    }
+
     // Walk up parent chain to find userData.clickable
     let obj = hits[0].object;
     while (obj && !obj.userData.clickable) obj = obj.parent;
     if (!obj) return;
 
     const { hotspot, action, panelId, panelTitle } = obj.userData;
+    console.log('ACTION TRIGGERED:', action);
+
+    // toggleTV is handled exclusively – no zoom, no panel
+    if (action === 'toggleTV') { window.__toggleTV?.(); return; }
 
     // Zoom in if there's a hotspot
     if (hotspot) nav.goTo(hotspot);
@@ -168,5 +180,8 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     if (action === 'openFinDuMonde')  ui.openFinDuMonde();
     if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
     if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
+    if (action === 'nextVideo')       window.__nextVideo?.();
+    if (action === 'prevVideo')       window.__prevVideo?.();
+    if (action === 'showInfo')        window.__showInfo?.();
   });
 }
