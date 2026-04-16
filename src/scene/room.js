@@ -2,55 +2,6 @@
 import * as THREE from 'three';
 
 export function createRoom(scene) {
-  // Clean dark floor
-  const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x0d1520,
-    roughness: 0.35,
-    metalness: 0.4,
-    side: THREE.FrontSide
-  });
-  // Dark paneled walls
-  const wallCanvas = document.createElement('canvas');
-  wallCanvas.width = 256;
-  wallCanvas.height = 256;
-  const wctx = wallCanvas.getContext('2d');
-  wctx.fillStyle = '#0a0f1a';
-  wctx.fillRect(0, 0, 256, 256);
-  // Panel lines (subtle grid)
-  wctx.strokeStyle = '#1e2e40';
-  wctx.lineWidth = 1;
-  // Horizontal panel lines
-  for (let y = 0; y < 256; y += 64) {
-    wctx.beginPath();
-    wctx.moveTo(0, y);
-    wctx.lineTo(256, y);
-    wctx.stroke();
-  }
-  // Vertical panel lines
-  for (let x = 0; x < 256; x += 85) {
-    wctx.beginPath();
-    wctx.moveTo(x, 0);
-    wctx.lineTo(x, 256);
-    wctx.stroke();
-  }
-  const wallTex = new THREE.CanvasTexture(wallCanvas);
-  wallTex.wrapS = THREE.RepeatWrapping;
-  wallTex.wrapT = THREE.RepeatWrapping;
-  wallTex.repeat.set(3, 2);
-  const wallMat = new THREE.MeshStandardMaterial({
-    map: wallTex,
-    emissive: 0x050a12,
-    emissiveIntensity: 0.3,
-    roughness: 0.7,
-    side: THREE.FrontSide
-  });
-  const ceilMat  = new THREE.MeshStandardMaterial({
-    color: 0x080d15,
-    emissive: 0x050a12,
-    emissiveIntensity: 0.2,
-    side: THREE.FrontSide
-  });
-
   // ── Observatory shell materials ──
   const shellWhiteMat = new THREE.MeshStandardMaterial({
     color: 0xf4f6f8, metalness: 0.1, roughness: 0.7, side: THREE.DoubleSide
@@ -59,38 +10,38 @@ export function createRoom(scene) {
     color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
   });
 
-  // Floor 7×6
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), floorMat);
+  // ── Hidden box walls/ceiling/floor ──
+  // Kept as invisible meshes so the scene graph retains the room's nominal
+  // dimensions; the observatory skin (curved panels, dome, hex floor) sits
+  // on top of this box. Shared shellWhiteMat is used because these meshes
+  // never render — the material is just a placeholder.
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), shellWhiteMat);
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   floor.visible = false;
   scene.add(floor);
 
-  // Left wall
-  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), shellWhiteMat);
   leftWall.rotation.y = Math.PI / 2;
   leftWall.position.set(-3.5, 1.75, 0);
   leftWall.receiveShadow = true;
   leftWall.visible = false;
   scene.add(leftWall);
 
-  // Right wall
-  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), wallMat);
+  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), shellWhiteMat);
   rightWall.rotation.y = -Math.PI / 2;
   rightWall.position.set(3.5, 1.75, 0);
   rightWall.receiveShadow = true;
   rightWall.visible = false;
   scene.add(rightWall);
 
-  // Back wall
-  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), wallMat);
+  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), shellWhiteMat);
   backWall.position.set(0, 1.75, -3);
   backWall.receiveShadow = true;
   backWall.visible = false;
   scene.add(backWall);
 
-  // Front wall (at z = +3, facing -z)
-  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), wallMat);
+  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), shellWhiteMat);
   frontWall.rotation.y = Math.PI;
   frontWall.position.set(0, 1.75, 3);
   frontWall.receiveShadow = true;
@@ -98,8 +49,7 @@ export function createRoom(scene) {
   frontWall.visible = false;
   scene.add(frontWall);
 
-  // Ceiling
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), ceilMat);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), shellWhiteMat);
   ceil.rotation.x = Math.PI / 2;
   ceil.position.set(0, 3.5, 0);
   ceil.receiveShadow = true;
