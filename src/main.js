@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+import { aiArtVideos } from './videoData.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom } from './scene/nature-room.js';
@@ -169,8 +170,14 @@ const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, t
 addUpdateCallback(sceneUpdate);
 
 // ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
+let currentVideoIndex = 0;
+
+function buildTVSrc(id, autoplay = 1) {
+  return `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+}
+
 const tvVideoIframe = document.createElement('iframe');
-tvVideoIframe.src = `https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 0);
 tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
 tvVideoIframe.style.width = '1280px';
 tvVideoIframe.style.height = '720px';
@@ -188,6 +195,71 @@ tvCSS3D.rotation.y = -Math.PI / 2;
 const tvScale = 1.92 / 1280;
 tvCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvCSS3D);
+
+// ── Hologram info-panel (CSS3DObject) ──
+const hologramDiv = document.createElement('div');
+hologramDiv.style.cssText = `
+  width: 500px;
+  max-height: 310px;
+  overflow: hidden;
+  padding: 22px 28px;
+  box-sizing: border-box;
+  background: rgba(2, 0, 14, 0.88);
+  border: 1px solid rgba(106, 13, 170, 0.7);
+  border-top: 2px solid rgba(0, 212, 255, 0.9);
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+  pointer-events: none;
+`;
+
+function updateHologram(video) {
+  hologramDiv.innerHTML = `
+    <div style="color:#b833ff;font-size:9px;letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 10px #b833ff,0 0 20px #b833ff">
+      ◈ &nbsp;NOW PLAYING &nbsp;◈
+    </div>
+    <div style="font-size:15px;font-weight:bold;color:#ffffff;margin-bottom:6px;line-height:1.35;text-shadow:0 0 10px #6a0daa,0 0 20px #6a0daa">
+      ${video.title}
+    </div>
+    <div style="font-size:11px;color:rgba(168,216,234,0.8);margin-bottom:10px">${video.artist}</div>
+    ${video.description
+      ? `<div style="font-size:11px;color:rgba(0,212,255,0.8);border-top:1px solid rgba(106,13,170,0.4);padding-top:10px;line-height:1.5;text-shadow:0 0 8px rgba(0,212,255,0.6);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+           ${video.description}
+         </div>`
+      : ''}
+    <div style="margin-top:14px;font-size:9px;color:rgba(106,13,170,0.9);letter-spacing:3px;display:flex;justify-content:space-between;text-shadow:0 0 8px #6a0daa">
+      <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
+      <span>${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
+    </div>
+  `;
+}
+
+const infoCss3D = new CSS3DObject(hologramDiv);
+// Position hologram above and slightly in front of the TV screen
+infoCss3D.position.set(3.0, 3.75, 0);
+infoCss3D.rotation.y = -Math.PI / 2;
+infoCss3D.scale.setScalar(1.5 / 500);
+cssScene.add(infoCss3D);
+
+updateHologram(aiArtVideos[currentVideoIndex]);
+
+let hologramTime = 0;
+addUpdateCallback((delta) => {
+  hologramTime += delta;
+  infoCss3D.position.y = 3.75 + Math.sin(hologramTime * 0.25) * 0.015;
+  // Subtle flicker
+  if (Math.random() < 0.02)
+    hologramDiv.style.opacity = (0.88 + Math.random() * 0.12).toFixed(2);
+});
+
+function loadVideo(index) {
+  currentVideoIndex = (index + aiArtVideos.length) % aiArtVideos.length;
+  tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1);
+  updateHologram(aiArtVideos[currentVideoIndex]);
+}
+
+window.__nextVideo = () => loadVideo(currentVideoIndex + 1);
+window.__prevVideo = () => loadVideo(currentVideoIndex - 1);
 
 // ── Right monitor: Fin du Monde interactive project via CSS3DRenderer ──
 const fdmIframe = document.createElement('iframe');
