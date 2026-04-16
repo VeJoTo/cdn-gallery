@@ -5,34 +5,18 @@ function escapeHtml(str) {
 }
 
 export const BOOK_PAGES = [
-  {
-    left:  '<h2>The Sweetheart in the Forest</h2><p class="book-subtitle">& the Synthetic Storytellers</p><p class="book-meta">Based on research by Anne Sigrid Refsum<br>Centre for Digital Narrative, University of Bergen</p><p>What happens to a Norwegian folktale when it\'s retold by artificial intelligence?</p><p>This is the story of a 200-year-old tale, the woman who kept it alive, and the machines that tried to tell it again.</p>',
-    right: '<h2>Once Upon a Time...</h2><p>A young woman was so beautiful that suitors came from across many kingdoms. One man, richer and more handsome than the rest, won her heart.</p><p>One day he invited her to visit his home in the forest. "I\'ll scatter peas along the path so you can find your way," he promised.</p><p>But he scattered them a day too early.</p><p>She arrived before he expected her. The house was beautiful — but empty. Only a strange bird in a cage greeted her.</p>'
-  },
-  {
-    left:  '<p>As she explored the rooms, the bird cried out:</p><p class="book-quote">"Beautiful maiden, be bold — but be not too bold!"</p><p>Each room was more lavish than the last. But then she found one chamber filled with buckets of blood. And the last room...</p><p><em>Was full of the bodies and skeletons of slain women.</em></p><p>The bird told her to hide under the bed. She did — and watched as the man returned with his next victim.</p>',
-    right: '<p>But this heroine fought back. She escaped, told the authorities, and in the end:</p><p class="book-quote">"They seized him and killed him and burned both him and the house in the forest."</p><p>This tale was first recorded from <strong>Karen</strong>, a woman in her sixties in 1847. Born a clergyman\'s daughter, her family fell apart — her father died petitioning the king, her mother abandoned her. She married a poor lodger. But she kept these stories alive.</p><p>To Karen and her listeners, this wasn\'t just entertainment. It was a warning, a comfort, and a community ritual.</p>'
-  },
-  {
-    left:  '<h2>Then AI Tried to Tell It</h2><p>Researcher Anne Sigrid Refsum asked ChatGPT, Claude, and Gemini to retell this exact tale. She collected 32 versions.</p><p>The results were... weird.</p><p>The AIs mixed in motifs from <em>Bluebeard</em>. They added modern moral lessons that were never part of the original. They turned the brave heroine into a passive character who "learned a valuable lesson about trusting strangers."</p>',
-    right: '<h2>Original vs AI</h2><div class="book-compare"><div class="book-compare-col"><p class="book-compare-label">🧓 Karen\'s version (1847)</p><p>"She was so beautiful that she was renowned across many kingdoms"</p><p><em>The story just begins. No moral setup. The audience knows the rules.</em></p></div><div class="book-compare-col"><p class="book-compare-label">🤖 AI version (2025)</p><p>"In a small village in Norway there lived a kind and curious young woman named Solveig who always believed in seeing the good in people"</p><p><em>The AI adds a name, a personality trait, and a moral setup — none of which existed in the original.</em></p></div></div>'
-  },
-  {
-    left:  '<h2>Floating Motifs</h2><p>Refsum discovered that AI stories have elements that <strong>"float"</strong> away from where they belong — like motifs from one tale drifting into another.</p><p>The AIs would mix in pieces of <em>East of the Sun and West of the Moon</em>, <em>Bluebeard</em>, and <em>Hansel & Gretel</em> — stories that live near each other in the training data.</p><p>It\'s like dreaming: the AI draws from a vast pool of stories, but without understanding which pieces belong together.</p>',
-    right: '<h2>The Pool of Tradition</h2><p>Folklorist Lauri Honko described oral storytelling as drawing from a <strong>"pool of tradition"</strong> — a shared reservoir that many contribute to and many draw from.</p><p>AI training data works the same way. But there\'s a crucial difference:</p><p>A human storyteller like Karen <em>knew her audience</em>. She adjusted the tale for her listeners. The story carried cultural weight, personal meaning, and communal purpose.</p><p>An LLM calculates the most likely next word. It has no audience, no intent, no community. The pool is there — but no one is swimming in it.</p>'
-  },
-  {
-    left:  '<h2>Why Does This Matter?</h2><p>As AI generates more and more text, the stories we encounter are increasingly machine-made. Understanding what gets <em>lost</em> in that process matters:</p><ul class="book-list"><li><strong>Cultural specificity</strong> — Norwegian night-courting customs, local geography, the social reality of Karen\'s world</li><li><strong>The storyteller\'s voice</strong> — Karen\'s version reflects her life, her losses, her community</li><li><strong>Communal purpose</strong> — folktales weren\'t just entertainment; they were warnings, comfort, and social bonding</li><li><strong>Audience awareness</strong> — knowing who you\'re telling the story <em>to</em></li></ul>',
-    right: '<p>AI can generate <em>text that looks like</em> a folktale. But it cannot generate the human connection that makes a story meaningful.</p><p>The next time you read something — ask yourself: who is telling this story, and why?</p><div class="book-source"><p><strong>Read the full paper:</strong></p><p>Refsum, A.S. (2025). "The Sweetheart in the Forest" and the Synthetic Storytellers. <em>Humanities</em>, 14, 230.</p><p>Centre for Digital Narrative, University of Bergen</p></div>'
-  },
-  {
-    left:  '<h2>Try It Yourself: Bukkene Bruse</h2><p>You know the story — three billy goats want to cross a bridge, but a troll lives underneath. The smallest goes first, tricks the troll into waiting for a bigger meal, and the biggest goat knocks the troll off the bridge.</p><p class="book-quote">"Nå kommer jeg! Jeg har to spyd, og med dem skal jeg stikke ut øynene dine!"</p><p><em>"Now I\'m coming! I have two spears, and with them I\'ll poke out your eyes!"</em></p><p>The story is blunt. The violence is matter-of-fact. The troll gets what\'s coming to him. No moral lesson. The audience already knows the deal.</p>',
-    right: '<h2>What AI Does With It</h2><div class="book-compare"><div class="book-compare-col"><p class="book-compare-label">🐐 Original</p><p>"Hvem er det som tramper på min bru?" brølte trollet.</p><p><em>Direct. Threatening. No explanation needed.</em></p></div><div class="book-compare-col"><p class="book-compare-label">🤖 AI retelling</p><p>"Under the old stone bridge lived a lonely troll who, despite his fearsome appearance, simply wanted to be left in peace and protect his home."</p><p><em>The AI gives the troll a backstory, makes him sympathetic, and removes all threat. The tale loses its teeth.</em></p></div></div><p style="margin-top:16px">The AI also adds: a moral about "cooperation and bravery," names for each goat, and a scene where the goats and troll become friends. None of this exists in any Norwegian variant.</p>'
-  },
-  {
-    left:  '<h2>Human or AI?</h2><p>Can you spot which excerpts were written by a human storyteller and which were generated by AI? Click your guess on each one.</p><div id="quiz-container"><div class="quiz-item" data-answer="human" onclick="this.classList.add(\'revealed\')"><p class="quiz-text">"Det var en gang tre bukker som skulle til seters for å gjøre seg fete, og alle tre hette Bruse."</p><div class="quiz-buttons"><span class="quiz-btn" onclick="event.stopPropagation()">🧓 Human</span><span class="quiz-btn" onclick="event.stopPropagation()">🤖 AI</span></div><p class="quiz-answer quiz-correct">✅ <strong>Human</strong> — This is the actual opening line from Asbjørnsen & Moe. Simple, direct, no embellishment.</p></div><div class="quiz-item" data-answer="ai" onclick="this.classList.add(\'revealed\')"><p class="quiz-text">"In a lush green valley in Norway, there lived three brother goats named Lille Bruse, Mellom Bruse, and Store Bruse, who shared a deep bond of family love."</p><div class="quiz-buttons"><span class="quiz-btn" onclick="event.stopPropagation()">🧓 Human</span><span class="quiz-btn" onclick="event.stopPropagation()">🤖 AI</span></div><p class="quiz-answer quiz-correct">✅ <strong>AI</strong> — Named characters, emotional description ("deep bond of family love"), geographic setting. All hallmarks of LLM retelling.</p></div></div>',
-    right: '<div id="quiz-container-2"><div class="quiz-item" data-answer="ai" onclick="this.classList.add(\'revealed\')"><p class="quiz-text">"The troll, though frightening in appearance, was actually misunderstood. Years of solitude had made him bitter, but deep down he yearned for companionship."</p><div class="quiz-buttons"><span class="quiz-btn" onclick="event.stopPropagation()">🧓 Human</span><span class="quiz-btn" onclick="event.stopPropagation()">🤖 AI</span></div><p class="quiz-answer quiz-correct">✅ <strong>AI</strong> — Sympathetic backstory for the villain, psychological motivation. Folktales never explain the troll — he just IS.</p></div><div class="quiz-item" data-answer="human" onclick="this.classList.add(\'revealed\')"><p class="quiz-text">"Først så kom den minste bukken Bruse og skulle over brua. \'Tripp, trapp, tripp, trapp!\' sa brua."</p><div class="quiz-buttons"><span class="quiz-btn" onclick="event.stopPropagation()">🧓 Human</span><span class="quiz-btn" onclick="event.stopPropagation()">🤖 AI</span></div><p class="quiz-answer quiz-correct">✅ <strong>Human</strong> — The onomatopoeia "tripp, trapp" is a signature of oral storytelling — rhythm and sound that a live audience responds to. AI rarely invents sound patterns.</p></div></div><p style="margin-top:20px;font-style:italic;color:#6a4a28">The key giveaway: AI explains everything. Human storytellers trust their audience to fill in the gaps.</p><p class="book-end">— End —</p>'
-  }
+  { image: 'bok-1.jpg'  },
+  { image: 'bok-2.jpg'  },
+  { image: 'bok-3.jpg'  },
+  { image: 'bok-4.jpg'  },
+  { image: 'bok-5.jpg'  },
+  { image: 'bok-6.jpg'  },
+  { image: 'bok-7.jpg'  },
+  { image: 'bok-8.jpg'  },
+  { image: 'bok-9.jpg'  },
+  { image: 'bok-10.jpg' },
+  { image: 'bok-11.jpg' },
+  { image: 'bok-12.jpg' }
 ];
 
 const KEYWORD_RESPONSES = [
@@ -317,8 +301,18 @@ export function createUI(camera, renderer, controls) {
   let bookPageIndex = 0;
 
   function renderBookPage() {
-    bookPageL.innerHTML = BOOK_PAGES[bookPageIndex].left;
-    bookPageR.innerHTML = BOOK_PAGES[bookPageIndex].right;
+    const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + BOOK_PAGES[bookPageIndex].image;
+    // Clear HTML content; use background image that spans the entire spread
+    bookPageL.innerHTML = '';
+    bookPageR.innerHTML = '';
+    bookPageL.style.backgroundImage = `url("${imgPath}")`;
+    bookPageL.style.backgroundSize = '200% 100%';
+    bookPageL.style.backgroundPosition = 'left center';
+    bookPageL.style.backgroundRepeat = 'no-repeat';
+    bookPageR.style.backgroundImage = `url("${imgPath}")`;
+    bookPageR.style.backgroundSize = '200% 100%';
+    bookPageR.style.backgroundPosition = 'right center';
+    bookPageR.style.backgroundRepeat = 'no-repeat';
     bookPrev.disabled = bookPageIndex === 0;
     bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
   }

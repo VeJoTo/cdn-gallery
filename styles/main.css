@@ -662,17 +662,14 @@ body {
 
 .book-page {
   flex: 1;
-  background: linear-gradient(180deg, #f5e6c8, #e8d4a8);
-  border: 1px solid #e0e8f0;
-  box-shadow:
-    0 0 30px rgba(224,232,240,0.4),
-    inset 0 0 40px rgba(224,232,240,0.2);
-  padding: 48px 56px;
+  background: #f5e6c8;
+  box-shadow: 0 0 30px rgba(224,232,240,0.4);
+  padding: 0;
   font-family: 'Georgia', serif;
   color: #3a2818;
   line-height: 1.7;
   font-size: 17px;
-  border-radius: 4px;
+  border-radius: 0;
   overflow-y: auto;
 }
 
