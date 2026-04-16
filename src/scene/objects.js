@@ -618,42 +618,6 @@ function buildMiniFridge() {
   return group;
 }
 
-function buildFloorLamp() {
-  const group = new THREE.Group();
-  group.position.set(2.6, 0, 1.8);
-
-  const blackMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
-
-  const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.15, 0.15, 0.04, 16),
-    blackMat
-  );
-  base.position.y = 0.02;
-  group.add(base);
-
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.025, 0.025, 1.6, 8),
-    blackMat
-  );
-  pole.position.y = 0.84;
-  group.add(pole);
-
-  const tube = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.06, 0.5, 16),
-    new THREE.MeshStandardMaterial({
-      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
-    })
-  );
-  tube.position.y = 1.7;
-  group.add(tube);
-
-  const halo = new THREE.PointLight(0x00d4ff, 0.5, 4);
-  halo.position.y = 1.7;
-  group.add(halo);
-
-  return group;
-}
-
 function buildPoster(x, y, z, frameColor, accentColor, title, idx) {
   const canvas = document.createElement('canvas');
   canvas.width = 320;
@@ -897,160 +861,6 @@ function buildAIPoster(x, y, z, title, icon, idx) {
     panelTitle: lines.join(' ')
   };
   return plane;
-}
-
-function buildNeonSign() {
-  const group = new THREE.Group();
-  group.position.set(1.8, 2.85, -2.97);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = 640;
-  canvas.height = 240;
-  const ctx = canvas.getContext('2d');
-
-  // Transparent background
-  ctx.clearRect(0, 0, 640, 240);
-
-  // Neon cyan glow text
-  ctx.font = 'bold 80px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Glow layers (multiple strokes for neon effect)
-  ctx.shadowColor = '#00d4ff';
-  ctx.shadowBlur = 20;
-  ctx.fillStyle = '#00d4ff';
-  ctx.fillText('AI', 320, 75);
-  ctx.fillText('ROOM', 320, 175);
-
-  // Bright core
-  ctx.shadowBlur = 8;
-  ctx.fillStyle = '#66e8ff';
-  ctx.fillText('AI', 320, 75);
-  ctx.fillText('ROOM', 320, 175);
-
-  const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.MeshBasicMaterial({
-    map: tex,
-    transparent: true,
-    side: THREE.DoubleSide
-  });
-
-  const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.82), mat);
-  group.add(plane);
-
-  return group;
-}
-
-function buildRug() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 384;
-  const ctx = canvas.getContext('2d');
-
-  // Dark base
-  ctx.fillStyle = '#080c14';
-  ctx.fillRect(0, 0, 512, 384);
-
-  // Circuit traces
-  ctx.strokeStyle = '#00d4ff';
-  ctx.lineWidth = 1.5;
-  ctx.shadowColor = '#00d4ff';
-  ctx.shadowBlur = 4;
-
-  // Horizontal traces
-  const hLines = [48, 96, 144, 192, 240, 288, 336];
-  for (const y of hLines) {
-    ctx.beginPath();
-    let x = Math.random() * 40;
-    ctx.moveTo(x, y);
-    while (x < 512) {
-      const seg = 30 + Math.random() * 60;
-      x += seg;
-      ctx.lineTo(Math.min(x, 512), y);
-      // Random branch up or down
-      if (Math.random() > 0.6 && x < 480) {
-        const dy = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 20);
-        ctx.lineTo(x, y + dy);
-        ctx.lineTo(x + 15, y + dy);
-        x += 15;
-        ctx.lineTo(x, y);
-      }
-    }
-    ctx.stroke();
-  }
-
-  // Vertical traces
-  const vLines = [64, 160, 256, 352, 448];
-  for (const x of vLines) {
-    ctx.beginPath();
-    let y = Math.random() * 40;
-    ctx.moveTo(x, y);
-    while (y < 384) {
-      const seg = 25 + Math.random() * 50;
-      y += seg;
-      ctx.lineTo(x, Math.min(y, 384));
-      if (Math.random() > 0.65 && y < 360) {
-        const dx = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 18);
-        ctx.lineTo(x + dx, y);
-        ctx.lineTo(x + dx, y + 12);
-        y += 12;
-        ctx.lineTo(x, y);
-      }
-    }
-    ctx.stroke();
-  }
-
-  // Circuit nodes at intersections
-  ctx.fillStyle = '#00d4ff';
-  ctx.shadowBlur = 6;
-  for (const y of hLines) {
-    for (const x of vLines) {
-      if (Math.random() > 0.4) {
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }
-
-  // Larger hub nodes
-  ctx.shadowBlur = 10;
-  const hubs = [[128, 144], [384, 96], [256, 240], [96, 288], [420, 336]];
-  for (const [hx, hy] of hubs) {
-    ctx.beginPath();
-    ctx.arc(hx, hy, 6, 0, Math.PI * 2);
-    ctx.fill();
-    // Ring around hub
-    ctx.strokeStyle = 'rgba(0,212,255,0.4)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(hx, hy, 14, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.strokeStyle = '#00d4ff';
-    ctx.lineWidth = 1.5;
-  }
-
-  // Subtle border
-  ctx.shadowBlur = 8;
-  ctx.strokeStyle = 'rgba(0,212,255,0.3)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(8, 8, 496, 368);
-
-  ctx.shadowBlur = 0;
-
-  const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.MeshStandardMaterial({
-    map: tex,
-    emissive: 0x00d4ff,
-    emissiveIntensity: 0.15,
-    roughness: 0.7
-  });
-  const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.5), mat);
-  rug.rotation.x = -Math.PI / 2;
-  rug.position.set(0, 0.005, 0.5);
-  rug.receiveShadow = true;
-  return rug;
 }
 
 function buildPedestal() {
@@ -1372,205 +1182,6 @@ function buildGlobe() {
   return group;
 }
 
-function buildWallTagging() {
-  const group = new THREE.Group();
-
-  const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 512;
-  const ctx = canvas.getContext('2d');
-
-  // Transparent background (the wall shows through)
-  ctx.clearRect(0, 0, 1024, 512);
-
-  // "CDN" — large cyan tag
-  ctx.save();
-  ctx.translate(180, 180);
-  ctx.rotate(-0.08);
-  ctx.font = 'bold italic 120px sans-serif';
-  ctx.fillStyle = '#00d4ff';
-  ctx.strokeStyle = '#0a0f1a';
-  ctx.lineWidth = 4;
-  ctx.strokeText('CDN', 0, 0);
-  ctx.fillText('CDN', 0, 0);
-  // Drip effect
-  ctx.fillStyle = '#00d4ff';
-  ctx.fillRect(45, 5, 3, 30);
-  ctx.fillRect(155, 5, 3, 25);
-  ctx.fillRect(265, 5, 3, 35);
-  ctx.restore();
-
-  // "DIGITAL NARRATIVE" — smaller, cyan, angular
-  ctx.save();
-  ctx.translate(500, 100);
-  ctx.rotate(0.05);
-  ctx.font = 'bold 28px sans-serif';
-  ctx.fillStyle = '#00d4ff';
-  ctx.fillText('DIGITAL', 0, 0);
-  ctx.fillText('NARRATIVE', 0, 36);
-  ctx.restore();
-
-  // "UiB" with circle — cool white
-  ctx.save();
-  ctx.translate(780, 200);
-  ctx.beginPath();
-  ctx.arc(30, -10, 45, 0, Math.PI * 2);
-  ctx.strokeStyle = '#e0e8f0';
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.font = 'bold 40px sans-serif';
-  ctx.fillStyle = '#e0e8f0';
-  ctx.textAlign = 'center';
-  ctx.fillText('UiB', 30, 5);
-  ctx.restore();
-
-  // "PLAY" — blocky, green-teal
-  ctx.save();
-  ctx.translate(100, 380);
-  ctx.rotate(0.12);
-  ctx.font = 'bold 64px sans-serif';
-  ctx.fillStyle = '#00ff88';
-  ctx.strokeStyle = '#0a0f1a';
-  ctx.lineWidth = 3;
-  ctx.strokeText('PLAY', 0, 0);
-  ctx.fillText('PLAY', 0, 0);
-  ctx.restore();
-
-  // Stars
-  ctx.fillStyle = '#e0e8f0';
-  ctx.font = '36px sans-serif';
-  ctx.fillText('★', 450, 300);
-  ctx.fillText('★', 700, 380);
-  ctx.fillStyle = '#e0e8f0';
-  ctx.fillText('★', 620, 140);
-
-  // Arrow
-  ctx.save();
-  ctx.translate(500, 400);
-  ctx.rotate(-0.1);
-  ctx.strokeStyle = '#00ff88';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(120, 0);
-  ctx.lineTo(100, -15);
-  ctx.moveTo(120, 0);
-  ctx.lineTo(100, 15);
-  ctx.stroke();
-  ctx.restore();
-
-  // Heart
-  ctx.save();
-  ctx.translate(830, 350);
-  ctx.fillStyle = '#00d4ff';
-  ctx.beginPath();
-  ctx.moveTo(0, -10);
-  ctx.bezierCurveTo(-20, -35, -50, -10, 0, 20);
-  ctx.moveTo(0, -10);
-  ctx.bezierCurveTo(20, -35, 50, -10, 0, 20);
-  ctx.fill();
-  ctx.restore();
-
-  // Squiggly underline under CDN
-  ctx.save();
-  ctx.strokeStyle = '#00d4ff';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  for (let x = 100; x < 420; x += 10) {
-    const y = 220 + Math.sin(x * 0.15) * 6;
-    if (x === 100) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  ctx.restore();
-
-  const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.MeshBasicMaterial({
-    map: tex,
-    transparent: true,
-    side: THREE.DoubleSide
-  });
-
-  // Smaller plane in the lower portion of the right wall, away from the TV
-  const plane = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 1.8), mat);
-  plane.position.set(3.47, 0.9, -0.5);
-  plane.rotation.y = -Math.PI / 2;
-  group.add(plane);
-
-  return group;
-}
-
-function buildRadio() {
-  const group = new THREE.Group();
-  // On the table, slightly to the side
-  group.position.set(-0.4, 0.49, 0.5);
-
-  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x111828 });
-
-  // Main body (retro boombox shape)
-  const body = new THREE.Mesh(
-    new THREE.BoxGeometry(0.4, 0.22, 0.15),
-    bodyMat
-  );
-  body.position.y = 0.11;
-  body.castShadow = true;
-  group.add(body);
-
-  // Speaker grilles (two circles on the front)
-  const grilleMat = new THREE.MeshLambertMaterial({ color: 0x2a2a3a });
-  for (const gx of [-0.1, 0.1]) {
-    const grille = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.06, 0.06, 0.01, 12),
-      grilleMat
-    );
-    grille.rotation.x = Math.PI / 2;
-    grille.position.set(gx, 0.11, 0.08);
-    group.add(grille);
-
-    // Speaker cone ring
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(0.055, 0.005, 6, 16),
-      new THREE.MeshStandardMaterial({
-        color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0.5
-      })
-    );
-    ring.rotation.x = Math.PI / 2;
-    ring.position.set(gx, 0.11, 0.081);
-    group.add(ring);
-  }
-
-  // Display screen (small glowing strip in the center)
-  const display = new THREE.Mesh(
-    new THREE.BoxGeometry(0.1, 0.04, 0.01),
-    new THREE.MeshStandardMaterial({
-      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
-    })
-  );
-  display.position.set(0, 0.16, 0.08);
-  group.add(display);
-
-  // Antenna
-  const antenna = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.005, 0.005, 0.25, 6),
-    new THREE.MeshLambertMaterial({ color: 0x888888 })
-  );
-  antenna.position.set(0.15, 0.3, 0);
-  antenna.rotation.z = -0.3;
-  group.add(antenna);
-
-  // Small glowing tip on antenna
-  const tip = new THREE.Mesh(
-    new THREE.SphereGeometry(0.012, 6, 4),
-    new THREE.MeshStandardMaterial({
-      color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 1.5
-    })
-  );
-  tip.position.set(0.15 + Math.sin(0.3) * 0.25, 0.3 + Math.cos(0.3) * 0.25, 0);
-  group.add(tip);
-
-  return group;
-}
-
 function createMusicNotes(scene) {
   const notes = [];
   const noteChars = ['♪', '♫', '♬'];
@@ -1867,15 +1478,10 @@ export function createObjects(scene) {
   const chair       = buildGamingChair();
   const bookshelf   = buildBookshelf();
   const fridge      = buildMiniFridge();
-  const floorLamp   = buildFloorLamp();
-  const neonSign    = buildNeonSign();
-  const rug         = buildRug();
   const pedestal    = buildPedestal();
   const rabbitHole  = buildRabbitHole();
   const tv          = buildTV();
   const globe       = buildGlobe();
-  const wallTagging = buildWallTagging();
-  const radio       = buildRadio();
   const musicNotes  = createMusicNotes(scene);
 
   const posters = [
@@ -1951,14 +1557,12 @@ export function createObjects(scene) {
   chair.userData     = { clickable: true, hotspot: 'seat-chair' };
   bookshelf.userData = { clickable: true, action: 'openPanel', panelId: 'bookshelf', panelTitle: 'Game Library' };
   fridge.userData    = { clickable: true, action: 'openPanel', panelId: 'fridge',    panelTitle: 'Refreshments' };
-  floorLamp.userData = { clickable: true, action: 'openPanel', panelId: 'lamp',      panelTitle: 'Mood Lighting' };
-  neonSign.userData  = { clickable: true, action: 'openPanel', panelId: 'sign',      panelTitle: 'Welcome to the Game Room' };
 
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
-    desk, chair, bookshelf, fridge, floorLamp,
-    neonSign, rug, pedestal, rabbitHole, tv, globe, ...posters,
-    wallTagging, radio, portal
+    desk, chair, bookshelf, fridge,
+    pedestal, rabbitHole, tv, globe, ...posters,
+    portal
   );
 
   // ── Animation: spin globe + bob book ──
@@ -1993,6 +1597,6 @@ export function createObjects(scene) {
   return {
     arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate,
     tv, globe, musicNotes,
-    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, floorLamp, neonSign, tv, rabbitHole, globe, aiPoster, portal]
+    extras: [table, beanBag1, beanBag2, chair, bookshelf, fridge, tv, rabbitHole, globe, aiPoster, portal]
   };
 }
