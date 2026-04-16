@@ -1379,6 +1379,65 @@ function buildPortal() {
   return group;
 }
 
+function buildAlcoveFrame(width = 1.5, height = 2.3, depth = 0.15) {
+  const group = new THREE.Group();
+  const whiteMat = new THREE.MeshStandardMaterial({
+    color: 0xf4f6f8, metalness: 0.1, roughness: 0.6
+  });
+  const cyanMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
+  });
+
+  // Back panel (matte white, slightly recessed into the wall)
+  const back = new THREE.Mesh(
+    new THREE.PlaneGeometry(width, height),
+    whiteMat
+  );
+  back.position.set(0, height / 2, -depth);
+  group.add(back);
+
+  // Two vertical posts (left + right)
+  const postGeom = new THREE.BoxGeometry(0.05, height, depth + 0.02);
+  const postL = new THREE.Mesh(postGeom, whiteMat);
+  postL.position.set(-width / 2, height / 2, -depth / 2 + 0.01);
+  group.add(postL);
+  const postR = new THREE.Mesh(postGeom, whiteMat);
+  postR.position.set(width / 2, height / 2, -depth / 2 + 0.01);
+  group.add(postR);
+
+  // Arch cap — half-torus across the top
+  const cap = new THREE.Mesh(
+    new THREE.TorusGeometry(width / 2, 0.04, 8, 24, Math.PI),
+    whiteMat
+  );
+  cap.position.set(0, height, -depth / 2 + 0.01);
+  cap.rotation.x = Math.PI / 2;
+  group.add(cap);
+
+  // Cyan LED trim along the inside edges — left, right, top arch
+  const ledStripGeom = new THREE.BoxGeometry(0.015, height - 0.05, 0.01);
+  const ledL = new THREE.Mesh(ledStripGeom, cyanMat);
+  ledL.position.set(-width / 2 + 0.03, height / 2 - 0.02, -depth / 2 + 0.05);
+  group.add(ledL);
+  const ledR = new THREE.Mesh(ledStripGeom, cyanMat);
+  ledR.position.set(width / 2 - 0.03, height / 2 - 0.02, -depth / 2 + 0.05);
+  group.add(ledR);
+  const ledArch = new THREE.Mesh(
+    new THREE.TorusGeometry(width / 2 - 0.03, 0.012, 6, 24, Math.PI),
+    cyanMat
+  );
+  ledArch.position.set(0, height - 0.02, -depth / 2 + 0.05);
+  ledArch.rotation.x = Math.PI / 2;
+  group.add(ledArch);
+
+  // Small cyan point light inside the alcove
+  const alcoveLight = new THREE.PointLight(0x9ce0ff, 0.3, 1.5);
+  alcoveLight.position.set(0, height / 2, -depth + 0.05);
+  group.add(alcoveLight);
+
+  return group;
+}
+
 function buildCentralPedestal() {
   const group = new THREE.Group();
   group.position.set(0, 0, 0);
