@@ -140,6 +140,55 @@ export function createRoom(scene) {
     scene.add(seam);
   }
 
+  // ── Dome ceiling ──
+  const domeGeom = new THREE.SphereGeometry(3.6, 48, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+  const dome = new THREE.Mesh(domeGeom, shellWhiteMat);
+  dome.rotation.x = Math.PI;   // flip to face downward
+  dome.position.set(0, 3.4, 0);
+  scene.add(dome);
+
+  // ── Ceiling inset light panels (10 discs dotted across the dome) ──
+  const panelDiscMat = new THREE.MeshStandardMaterial({
+    color: 0xf4f6f8, metalness: 0.1, roughness: 0.5
+  });
+  const panelCoreMat = new THREE.MeshStandardMaterial({
+    color: 0xa8e8ff, emissive: 0x9ce0ff, emissiveIntensity: 1.3
+  });
+  // Panel placements as (radius-from-center, angle-around-Y) pairs.
+  // One at apex (r=0), three inner at r=1.2, six outer at r=2.4.
+  const panelSpots = [
+    { r: 0,   a: 0 },
+    { r: 1.2, a: 0 },
+    { r: 1.2, a: (2 * Math.PI) / 3 },
+    { r: 1.2, a: (4 * Math.PI) / 3 },
+    { r: 2.4, a: Math.PI / 6 },
+    { r: 2.4, a: Math.PI / 2 },
+    { r: 2.4, a: (5 * Math.PI) / 6 },
+    { r: 2.4, a: (7 * Math.PI) / 6 },
+    { r: 2.4, a: (3 * Math.PI) / 2 },
+    { r: 2.4, a: (11 * Math.PI) / 6 }
+  ];
+  const panelDiscGeom = new THREE.CircleGeometry(0.3, 24);
+  const panelCoreGeom = new THREE.CircleGeometry(0.15, 24);
+  for (const { r, a } of panelSpots) {
+    const px = Math.cos(a) * r;
+    const pz = Math.sin(a) * r;
+
+    const disc = new THREE.Mesh(panelDiscGeom, panelDiscMat);
+    disc.rotation.x = Math.PI / 2;
+    disc.position.set(px, 3.38, pz);
+    scene.add(disc);
+
+    const core = new THREE.Mesh(panelCoreGeom, panelCoreMat);
+    core.rotation.x = Math.PI / 2;
+    core.position.set(px, 3.381, pz);
+    scene.add(core);
+
+    const panelLight = new THREE.PointLight(0xb8e0ff, 0.4, 5);
+    panelLight.position.set(px, 3.2, pz);
+    scene.add(panelLight);
+  }
+
   // ── Lighting ────────────────────────────────────
   const ambient = new THREE.AmbientLight(0xc8d8e8, 0.35);
   scene.add(ambient);
