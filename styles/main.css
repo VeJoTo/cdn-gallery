@@ -780,6 +780,114 @@ body {
   justify-content: center;
 }
 
+.book-topics {
+  padding: 48px 40px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+
+.book-topics .book-big-btn {
+  max-width: 100%;
+  width: 100%;
+  padding: 20px 24px;
+  font-size: 17px;
+  margin: 0;
+}
+
+.book-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #2a2a3a;
+  margin-bottom: 12px;
+}
+
+.book-quote {
+  font-size: 15px;
+  font-style: italic;
+  color: #5a5a7a;
+  border-left: 3px solid #9ab5d2;
+  padding-left: 14px;
+  margin: 12px 0;
+}
+
+.book-folklore-right {
+  padding: 48px 40px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.folklore-image {
+  flex: 1;
+  border-radius: 8px;
+  background: #1a1a2a;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+  min-height: 160px;
+  overflow: hidden;
+}
+
+.folklore-image-1 {
+  background: linear-gradient(180deg, #2a3a4a 0%, #0a0a1a 60%), radial-gradient(circle at 30% 40%, rgba(100,120,80,0.3), transparent 60%);
+  background-blend-mode: overlay;
+}
+
+.folklore-image-1::before {
+  content: '🌲';
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 70px;
+  filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+}
+
+.folklore-image-2 {
+  background: linear-gradient(180deg, #4a2020 0%, #1a0a0a 70%);
+}
+
+.folklore-image-2::before {
+  content: '💀';
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 60px;
+  filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+}
+
+.folklore-caption {
+  background: rgba(0,0,0,0.6);
+  color: #e0e8f0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-style: italic;
+  z-index: 1;
+}
+
+.folklore-note {
+  font-size: 11px;
+  color: #8a8a9a;
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+}
+
+.book-meta {
+  font-size: 11px;
+  color: #8a8a9a;
+  font-style: italic;
+}
+
 .book-big-btn {
   background: #eaf2fb;
   border: none;

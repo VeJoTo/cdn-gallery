@@ -17,8 +17,7 @@ export const BOOK_PAGES = [
   { image: 'bok-10.jpg' },
   { image: 'bok-11.jpg' },
   { image: 'bok-12.jpg' },
-  { type: 'intro' },
-  { type: 'deviation' }
+  { type: 'interactive' }
 ];
 
 // Detailed content for each "dive deeper" point on the deviation page
@@ -349,20 +348,58 @@ export function createUI(camera, renderer, controls) {
     bookPageR.style.backgroundRepeat = 'no-repeat';
   }
 
-  function renderIntroPage() {
+  // Interactive state: 'start' | 'folklore' | 'deviation' | 'methodology'
+  let bookTopic = 'start';
+  let deviationSelectedKey = null;
+
+  function renderStartState() {
     clearPageBackgrounds();
     bookPageL.innerHTML = `
       <div class="book-intro">
-        <h2>Want to dig deeper?</h2>
-        <p>You've read the story. Now let's look at what AI does differently when retelling folklore like this one.</p>
-        <p>Based on research by <strong>Anne Sigrid Refsum</strong><br>Centre for Digital Narrative, University of Bergen</p>
+        <h2>Dig deeper</h2>
+        <p>What would happen if you asked a large language model to retell a Norwegian folktale?</p>
+        <p>This is the story of Anne Sigrid Refsum's research into "The Sweetheart in the Forest" — a tale first recorded from a woman named Karen in 1847 — and what happens when AI tries to tell it again.</p>
+        <p class="book-meta">Centre for Digital Narrative, University of Bergen</p>
       </div>
     `;
     bookPageR.innerHTML = `
-      <div class="book-intro-right">
+      <div class="book-topics">
+        <button class="book-big-btn" data-action="go-folklore">
+          What is the original<br>folklore like?
+        </button>
         <button class="book-big-btn" data-action="go-deviation">
           What mistakes does AI do<br>when retelling the folklore?
         </button>
+        <button class="book-big-btn" data-action="go-methodology">
+          How was the research done?
+        </button>
+      </div>
+    `;
+  }
+
+  function renderFolklorePage() {
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      <div class="book-deviation">
+        <h2>The Sweetheart in the Forest</h2>
+        <p class="book-body">A young woman was so beautiful that suitors came from across many kingdoms. One man — rich and handsome — won her heart.</p>
+        <p class="book-body">He invited her to his house in the forest, promising to scatter peas along the path. But he scattered them a day too early. She arrived while he was still away.</p>
+        <p class="book-body">Inside the beautiful house: only a strange bird in a cage that cried <em>"Beautiful maiden, be bold — but be not too bold!"</em></p>
+        <p class="book-body">Room by room she explored. Rich rooms, stranger rooms, then one filled with buckets of blood, and last — a chamber of bones and the bodies of slain women.</p>
+        <p class="book-body">The bird told her to hide. She watched from under the bed as her suitor returned with his next victim. She escaped, told the authorities, and the tale ended:</p>
+        <p class="book-quote">"They seized him and killed him and burned both him and the house in the forest."</p>
+        <button class="book-back-btn" data-action="go-start">Go back</button>
+      </div>
+    `;
+    bookPageR.innerHTML = `
+      <div class="book-folklore-right">
+        <div class="folklore-image folklore-image-1">
+          <div class="folklore-caption">The suitor waits in the forest</div>
+        </div>
+        <div class="folklore-image folklore-image-2">
+          <div class="folklore-caption">The chamber of bones</div>
+        </div>
+        <p class="folklore-note">AI-generated illustrations based on the 1847 folktale recorded from Karen.</p>
       </div>
     `;
   }
@@ -387,7 +424,7 @@ export function createUI(camera, renderer, controls) {
       <div class="book-deviation">
         <h2>What makes the AI version of the story deviate from the original?</h2>
         <div class="dive-rows">${rowsHTML}</div>
-        <button class="book-back-btn" data-action="go-intro">Go back</button>
+        <button class="book-back-btn" data-action="go-start">Go back</button>
       </div>
     `;
 
@@ -397,12 +434,42 @@ export function createUI(camera, renderer, controls) {
     bookPageR.innerHTML = `<div class="book-deviation-right">${content}</div>`;
   }
 
+  function renderMethodologyPage() {
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      <div class="book-deviation">
+        <h2>How was the research done?</h2>
+        <p class="book-body">Researcher <strong>Anne Sigrid Refsum</strong> asked three large language models — ChatGPT, Claude, and Gemini — to retell the Norwegian folktale "Kjæresten i skogen" ("The Sweetheart in the Forest").</p>
+        <p class="book-body">Between September 10th and 22nd, 2025, she collected <strong>32 AI retellings</strong> using two simple prompts:</p>
+        <ul class="book-list">
+          <li>"Fortell eventyret 'Kjæresten i skogen'"</li>
+          <li>"Fortell en norsk versjon av eventyrtypen ATU 955"</li>
+        </ul>
+        <p class="book-body">She accessed each model through its public website without logging in, and used Claude's incognito mode — to see what the AIs produce without personalization or fine-tuned context.</p>
+        <button class="book-back-btn" data-action="go-start">Go back</button>
+      </div>
+    `;
+    bookPageR.innerHTML = `
+      <div class="book-deviation-right">
+        <div class="dive-content">
+          <h3>The corpus</h3>
+          <p>32 tales total. Results varied wildly — few matched the original, most were fabrications in "folktale style."</p>
+          <p>The ATU-number prompt produced more consistent results, closely resembling the Grimm Brothers' <em>"The Robber Bridegroom"</em> — a related tale often confused with the Norwegian variant.</p>
+          <h3>Analysis method</h3>
+          <p>Refsum used literary scholarship and folkloristics to compare the AI tales to the 1847 variant recorded from Karen, analyzing style, cultural specificity, and what she calls "floating motifs."</p>
+          <p class="book-meta">Published: <em>Humanities</em> 14, 230 (2025)</p>
+        </div>
+      </div>
+    `;
+  }
+
   function renderBookPage() {
     const page = BOOK_PAGES[bookPageIndex];
-    if (page.type === 'intro') {
-      renderIntroPage();
-    } else if (page.type === 'deviation') {
-      renderDeviationPage(deviationSelectedKey);
+    if (page.type === 'interactive') {
+      if (bookTopic === 'folklore')         renderFolklorePage();
+      else if (bookTopic === 'deviation')   renderDeviationPage(deviationSelectedKey);
+      else if (bookTopic === 'methodology') renderMethodologyPage();
+      else                                   renderStartState();
     } else {
       renderImagePage(page.image);
     }
@@ -410,22 +477,24 @@ export function createUI(camera, renderer, controls) {
     bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
   }
 
-  let deviationSelectedKey = null;
+  function goToInteractive(topic) {
+    const idx = BOOK_PAGES.findIndex(p => p.type === 'interactive');
+    if (idx >= 0) bookPageIndex = idx;
+    bookTopic = topic;
+    deviationSelectedKey = null;
+    renderBookPage();
+  }
 
   // Delegate clicks inside the book pages
   function handleBookPageClick(e) {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
-    if (action === 'go-deviation') {
-      bookPageIndex = BOOK_PAGES.findIndex(p => p.type === 'deviation');
-      deviationSelectedKey = null;
-      renderBookPage();
-    } else if (action === 'go-intro') {
-      bookPageIndex = BOOK_PAGES.findIndex(p => p.type === 'intro');
-      deviationSelectedKey = null;
-      renderBookPage();
-    } else if (action === 'dive') {
+    if (action === 'go-start')         goToInteractive('start');
+    else if (action === 'go-folklore')    goToInteractive('folklore');
+    else if (action === 'go-deviation')   goToInteractive('deviation');
+    else if (action === 'go-methodology') goToInteractive('methodology');
+    else if (action === 'dive') {
       deviationSelectedKey = btn.dataset.key;
       renderBookPage();
     }
@@ -435,6 +504,8 @@ export function createUI(camera, renderer, controls) {
 
   function openBook() {
     bookPageIndex = 0;
+    bookTopic = 'start';
+    deviationSelectedKey = null;
     renderBookPage();
     bookOverlay.classList.remove('hidden');
     unlockForOverlay();
