@@ -1,4 +1,4 @@
-export const sciFiVideos = [
+export const aiArtVideos = [
   {
     id: "oMngEHXiGqg",
     title:

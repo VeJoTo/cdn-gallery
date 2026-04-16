@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
-import { sciFiVideos } from './videoData.js';
+import { aiArtVideos } from './videoData.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom } from './scene/nature-room.js';
@@ -175,7 +175,7 @@ tvWrapper.style.cssText = `
 `;
 
 const tvVideoIframe = document.createElement('iframe');
-tvVideoIframe.src = buildTVSrc(sciFiVideos[currentVideoIndex].id, 0);
+tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 0);
 tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
 tvVideoIframe.style.cssText = `
   width: 1280px;
@@ -249,8 +249,8 @@ function updateHologram(video) {
          </div>`
       : ''}
     <div style="margin-top:14px;font-size:9px;color:rgba(106,13,170,0.9);letter-spacing:3px;display:flex;justify-content:space-between;text-shadow:0 0 8px #6a0daa">
-      <span>CDN &nbsp;/&nbsp; SCI-FI ARCHIVE</span>
-      <span>${currentVideoIndex + 1}&nbsp;/&nbsp;${sciFiVideos.length}</span>
+      <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
+      <span>${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
     </div>
   `;
 }
@@ -289,7 +289,7 @@ function applyTVState() {
   setHologramVisible(!playing);
 }
 
-updateHologram(sciFiVideos[currentVideoIndex]);
+updateHologram(aiArtVideos[currentVideoIndex]);
 applyTVState();
 
 window.__toggleTV = () => { tvPlaying = !tvPlaying; applyTVState(); };
@@ -325,10 +325,10 @@ addUpdateCallback((delta) => {
 });
 
 function loadVideo(index) {
-  currentVideoIndex = (index + sciFiVideos.length) % sciFiVideos.length;
-  tvVideoIframe.src = buildTVSrc(sciFiVideos[currentVideoIndex].id, 1);
+  currentVideoIndex = (index + aiArtVideos.length) % aiArtVideos.length;
+  tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1);
   tvPlaying = true;
-  updateHologram(sciFiVideos[currentVideoIndex]);
+  updateHologram(aiArtVideos[currentVideoIndex]);
   applyTVState();
 }
 
