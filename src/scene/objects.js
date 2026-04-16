@@ -1204,7 +1204,8 @@ function createMusicNotes(scene) {
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0 })
     );
-    // Start at radio position
+    // Spawn origin for music note sprites — position will be reconsidered
+    // in a later observatory-redesign task when the audio source is re-homed.
     sprite.position.set(-0.4 + (Math.random() - 0.5) * 0.3, 0.7, 1.5);
     sprite.scale.set(0.15, 0.15, 0.15);
     sprite.userData = {
