@@ -1379,6 +1379,56 @@ function buildPortal() {
   return group;
 }
 
+function buildCentralPedestal() {
+  const group = new THREE.Group();
+  group.position.set(0, 0, 0);
+
+  const whiteMat = new THREE.MeshStandardMaterial({
+    color: 0xf4f6f8, metalness: 0.15, roughness: 0.55
+  });
+  const cyanMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
+  });
+
+  // Outer base ring — 1.2 m diameter, 0.1 m tall
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.6, 0.65, 0.1, 48),
+    whiteMat
+  );
+  base.position.y = 0.05;
+  base.receiveShadow = true;
+  base.castShadow = true;
+  group.add(base);
+
+  // Inner pillar — 0.6 m diameter, 0.6 m tall
+  const pillar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.3, 0.6, 48),
+    whiteMat
+  );
+  pillar.position.y = 0.4;
+  pillar.castShadow = true;
+  group.add(pillar);
+
+  // Cyan seam around the pillar at mid-height
+  const seam = new THREE.Mesh(
+    new THREE.TorusGeometry(0.3, 0.012, 8, 48),
+    cyanMat
+  );
+  seam.rotation.x = Math.PI / 2;
+  seam.position.y = 0.4;
+  group.add(seam);
+
+  // Flat emissive cap on top where the projection beam emerges
+  const cap = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.28, 0.28, 0.02, 48),
+    cyanMat
+  );
+  cap.position.y = 0.71;
+  group.add(cap);
+
+  return group;
+}
+
 export function createObjects(scene) {
   const arcadeLeft  = buildArcadeCabinet(0, 0x00d4ff);
   const arcadeRight = buildArcadeCabinet(0, 0x00d4ff);
@@ -1479,6 +1529,7 @@ export function createObjects(scene) {
   const chair       = buildGamingChair();
   const bookshelf   = buildBookshelf();
   const fridge      = buildMiniFridge();
+  const centralPedestal = buildCentralPedestal();
   const pedestal    = buildPedestal();
   const rabbitHole  = buildRabbitHole();
   const tv          = buildTV();
@@ -1562,7 +1613,7 @@ export function createObjects(scene) {
   scene.add(
     arcadeLeft, arcadeRight, table, beanBag1, beanBag2,
     desk, chair, bookshelf, fridge,
-    pedestal, rabbitHole, tv, globe, ...posters,
+    centralPedestal, pedestal, rabbitHole, tv, globe, ...posters,
     portal
   );
 
