@@ -3,15 +3,16 @@ import { describe, it, expect } from 'vitest';
 import { BOOK_PAGES, getNextPageIndex, getPrevPageIndex } from '../ui.js';
 
 describe('Book overlay', () => {
-  it('exposes at least 3 pages', () => {
-    expect(BOOK_PAGES.length).toBeGreaterThanOrEqual(3);
+  it('exposes a cover and interactive page', () => {
+    expect(BOOK_PAGES.length).toBe(2);
+    expect(BOOK_PAGES[0].type).toBe('cover');
+    expect(BOOK_PAGES[1].type).toBe('interactive');
   });
 
-  it('each page has an image path or is interactive', () => {
+  it('each page declares a known type', () => {
+    const VALID_TYPES = new Set(['cover', 'interactive']);
     for (const page of BOOK_PAGES) {
-      const hasImage = typeof page.image === 'string';
-      const isInteractive = page.type === 'interactive';
-      expect(hasImage || isInteractive).toBe(true);
+      expect(VALID_TYPES.has(page.type)).toBe(true);
     }
   });
 
@@ -21,7 +22,7 @@ describe('Book overlay', () => {
   });
 
   it('getPrevPageIndex clamps at zero', () => {
-    expect(getPrevPageIndex(2)).toBe(1);
+    expect(getPrevPageIndex(1)).toBe(0);
     expect(getPrevPageIndex(0)).toBe(0);
   });
 });

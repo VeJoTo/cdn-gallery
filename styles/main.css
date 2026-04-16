@@ -662,16 +662,32 @@ body {
 
 .book-page {
   flex: 1;
-  background: #f5e6c8;
+  background: #fdfcf8;
   box-shadow: 0 0 30px rgba(224,232,240,0.4);
   padding: 0;
-  font-family: 'Georgia', serif;
-  color: #3a2818;
-  line-height: 1.7;
-  font-size: 17px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  color: #1a1a1a;
+  line-height: 1.55;
+  font-size: 15px;
   border-radius: 0;
   overflow-y: auto;
 }
+
+/* Leather spine running down both outer edges of the book */
+#book-container::before,
+#book-container::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 14px;
+  background: linear-gradient(90deg, #5a3a1a 0%, #8a5a28 50%, #5a3a1a 100%);
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 2px;
+}
+#book-container::before { left: -14px;  box-shadow: inset -2px 0 4px rgba(0,0,0,0.4); }
+#book-container::after  { right: -14px; box-shadow: inset  2px 0 4px rgba(0,0,0,0.4); }
 
 .book-page h2 {
   font-size: 26px;
@@ -757,22 +773,22 @@ body {
 
 /* ── Book interactive pages ──────────────────────── */
 .book-intro, .book-deviation, .book-intro-right, .book-deviation-right {
-  padding: 48px 40px;
+  padding: 56px 48px;
   height: 100%;
   box-sizing: border-box;
-  font-family: 'Georgia', serif;
-  color: #1a1a2a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  color: #1a1a1a;
 }
 
 .book-intro h2, .book-deviation h2 {
-  font-size: 22px;
-  color: #1a1a2a;
-  margin-bottom: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  color: #1a1a1a;
+  margin-bottom: 22px;
+  font-weight: 400;
   line-height: 1.4;
 }
 
-.book-intro p { font-size: 15px; line-height: 1.6; margin-bottom: 14px; color: #3a3a4a; }
+.book-intro p { font-size: 13.5px; line-height: 1.55; margin-bottom: 14px; color: #1a1a1a; }
 
 .book-intro-right {
   display: flex;
@@ -781,20 +797,31 @@ body {
 }
 
 .book-topics {
-  padding: 48px 40px;
+  padding: 56px 48px;
   height: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 22px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+}
+
+.topics-heading {
+  font-size: 19px;
+  font-weight: 400;
+  color: #1a1a1a;
+  text-align: center;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
 }
 
 .book-topics .book-big-btn {
-  max-width: 100%;
+  max-width: 320px;
   width: 100%;
-  padding: 20px 24px;
-  font-size: 17px;
+  padding: 14px 22px;
+  font-size: 14px;
   margin: 0;
 }
 
@@ -890,24 +917,24 @@ body {
 
 .book-big-btn {
   background: #eaf2fb;
-  border: none;
-  border-radius: 16px;
-  padding: 28px 40px;
-  font-size: 20px;
-  font-family: 'Georgia', serif;
-  color: #1a1a2a;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  padding: 14px 22px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-weight: 400;
+  color: #1a1a1a;
   cursor: pointer;
   text-align: center;
-  line-height: 1.4;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  max-width: 340px;
+  line-height: 1.35;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: background 0.2s, transform 0.15s;
+  max-width: 320px;
 }
 
 .book-big-btn:hover {
   background: #c8d8ec;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
 .dive-rows {
@@ -934,12 +961,12 @@ body {
 
 .dive-btn {
   background: #eaf2fb;
-  border: none;
+  border: 1px solid #1a1a1a;
   border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-family: 'Georgia', serif;
-  color: #1a1a2a;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  color: #1a1a1a;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.2s, transform 0.15s;
@@ -952,20 +979,21 @@ body {
 }
 
 .dive-btn.active {
-  background: #9ab5d2;
-  color: #fff;
+  background: #c8d8ec;
+  color: #1a1a1a;
 }
 
 .book-back-btn {
   background: #eaf2fb;
-  border: none;
+  border: 1px solid #1a1a1a;
   border-radius: 8px;
-  padding: 10px 22px;
-  font-size: 14px;
-  font-family: 'Georgia', serif;
-  color: #1a1a2a;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  color: #1a1a1a;
   cursor: pointer;
   transition: background 0.2s;
+  margin-top: 24px;
 }
 
 .book-back-btn:hover { background: #c8d8ec; }
@@ -975,33 +1003,111 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  padding: 20px;
-  border: 1px solid rgba(0,0,0,0.15);
-  border-radius: 6px;
+  padding: 28px;
+  border: 1.5px solid #1a1a1a;
+  border-radius: 0;
   color: #6a6a7a;
-  font-style: italic;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 
 .dive-content {
-  padding: 20px;
-  border: 1px solid rgba(0,0,0,0.15);
-  border-radius: 6px;
-  background: rgba(234,242,251,0.2);
+  padding: 28px;
+  border: 1.5px solid #1a1a1a;
+  border-radius: 0;
+  background: #fdfcf8;
 }
 
 .dive-content h3 {
-  font-size: 18px;
-  color: #1a1a2a;
-  margin-bottom: 12px;
-  font-weight: 600;
+  font-size: 15px;
+  color: #1a1a1a;
+  margin-bottom: 14px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .dive-content p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #2a2a3a;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #1a1a1a;
   margin-bottom: 10px;
+}
+
+/* ── Cover page (Once upon a Time) ──────────────── */
+.book-cover-left {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.cover-figure {
+  width: 140px;
+  height: auto;
+  opacity: 0.92;
+}
+
+.book-cover-right {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.cover-title {
+  font-family: 'UnifrakturCook', 'UnifrakturMaguntia', 'Cinzel Decorative', 'Luminari', 'Papyrus', serif;
+  color: #c9a14a;
+  text-align: center;
+  line-height: 0.95;
+  margin: 0;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(201, 161, 74, 0.25);
+  letter-spacing: 0.02em;
+}
+
+.cover-title-line {
+  display: block;
+  font-size: 68px;
+}
+.cover-title-line:nth-child(1) { transform: translateX(-12px); }
+.cover-title-line:nth-child(2) { transform: translateX(6px); }
+.cover-title-line:nth-child(3) { font-size: 52px; transform: translateX(-4px); font-style: italic; }
+.cover-title-line:nth-child(4) { transform: translateX(10px); }
+
+/* ── Methodology bullet list ────────────────────── */
+.book-bullets {
+  list-style: disc;
+  padding-left: 22px;
+  margin: 14px 0;
+}
+
+.book-bullets li {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #1a1a1a;
+  margin-bottom: 14px;
+}
+
+.book-methodology-right {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 56px;
+}
+
+.book-methodology-right .book-bullets {
+  margin: 0;
+}
+
+/* Override book-body color to match observatory palette */
+.book-body {
+  color: #1a1a1a;
+  font-size: 13.5px;
+  line-height: 1.55;
 }
 
 .quiz-item {
@@ -1097,32 +1203,52 @@ body {
   }
 }
 
-/* Page flipping */
+/* Page flipping — two-stage peel (right → spine → left)
+   Phase 1: current page rotates away toward the spine
+   Phase 2: new page rotates in from the spine, settling flat */
 .book-page {
   transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
-.book-page.flipping-next {
+/* NEXT direction: right page swings LEFT toward the spine */
+.book-page.flipping-out-right {
   transform-origin: left center;
-  animation: flipNext 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: flipOutRight 0.32s cubic-bezier(0.55, 0, 0.65, 0.3) forwards;
+  z-index: 3;
 }
-
-.book-page.flipping-prev {
+.book-page.flipping-in-left {
   transform-origin: right center;
-  animation: flipPrev 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: flipInLeft 0.32s cubic-bezier(0.35, 0.7, 0.45, 1) forwards;
+  z-index: 3;
+}
+@keyframes flipOutRight {
+  0%   { transform: rotateY(0deg);   box-shadow: inset 0 0 20px rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0); }
+  100% { transform: rotateY(-92deg); box-shadow: inset -50px 0 60px rgba(0,0,0,0.45), -10px 0 30px rgba(0,0,0,0.35); }
+}
+@keyframes flipInLeft {
+  0%   { transform: rotateY(92deg);  box-shadow: inset 50px 0 60px rgba(0,0,0,0.45), 10px 0 30px rgba(0,0,0,0.35); }
+  100% { transform: rotateY(0deg);   box-shadow: inset 0 0 20px rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0); }
 }
 
-/* Flip goes edge-on (invisible at 90deg) and back — content swaps at midpoint */
-@keyframes flipNext {
-  0%   { transform: rotateY(0deg);    box-shadow: inset 0 0 30px rgba(0,0,0,0); }
-  50%  { transform: rotateY(-90deg);  box-shadow: inset -40px 0 40px rgba(0,0,0,0.4); }
-  100% { transform: rotateY(0deg);    box-shadow: inset 0 0 30px rgba(0,0,0,0); }
+/* PREV direction: left page swings RIGHT toward the spine */
+.book-page.flipping-out-left {
+  transform-origin: right center;
+  animation: flipOutLeft 0.32s cubic-bezier(0.55, 0, 0.65, 0.3) forwards;
+  z-index: 3;
 }
-
-@keyframes flipPrev {
-  0%   { transform: rotateY(0deg);    box-shadow: inset 0 0 30px rgba(0,0,0,0); }
-  50%  { transform: rotateY(90deg);   box-shadow: inset 40px 0 40px rgba(0,0,0,0.4); }
-  100% { transform: rotateY(0deg);    box-shadow: inset 0 0 30px rgba(0,0,0,0); }
+.book-page.flipping-in-right {
+  transform-origin: left center;
+  animation: flipInRight 0.32s cubic-bezier(0.35, 0.7, 0.45, 1) forwards;
+  z-index: 3;
+}
+@keyframes flipOutLeft {
+  0%   { transform: rotateY(0deg);   box-shadow: inset 0 0 20px rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0); }
+  100% { transform: rotateY(92deg);  box-shadow: inset 50px 0 60px rgba(0,0,0,0.45), 10px 0 30px rgba(0,0,0,0.35); }
+}
+@keyframes flipInRight {
+  0%   { transform: rotateY(-92deg); box-shadow: inset -50px 0 60px rgba(0,0,0,0.45), -10px 0 30px rgba(0,0,0,0.35); }
+  100% { transform: rotateY(0deg);   box-shadow: inset 0 0 20px rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0); }
 }
 
 /* Alive image pages — gentle breathing */
@@ -1135,15 +1261,7 @@ body {
   50%      { filter: brightness(1.06); }
 }
 
-/* Content fade-in for interactive pages */
-.book-intro, .book-topics, .book-deviation, .book-deviation-right, .book-folklore-right {
-  animation: bookContentFadeIn 0.45s ease-out;
-}
-
-@keyframes bookContentFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+/* Content fade-in handled by page flip animation */
 
 /* Magical floating particles */
 .book-particle {

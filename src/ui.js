@@ -5,18 +5,7 @@ function escapeHtml(str) {
 }
 
 export const BOOK_PAGES = [
-  { image: 'bok-1.jpg'  },
-  { image: 'bok-2.jpg'  },
-  { image: 'bok-3.jpg'  },
-  { image: 'bok-4.jpg'  },
-  { image: 'bok-5.jpg'  },
-  { image: 'bok-6.jpg'  },
-  { image: 'bok-7.jpg'  },
-  { image: 'bok-8.jpg'  },
-  { image: 'bok-9.jpg'  },
-  { image: 'bok-10.jpg' },
-  { image: 'bok-11.jpg' },
-  { image: 'bok-12.jpg' },
+  { type: 'cover' },
   { type: 'interactive' }
 ];
 
@@ -353,20 +342,49 @@ export function createUI(camera, renderer, controls) {
     bookPageR.style.backgroundImage = '';
   }
 
-  function renderImagePage(image) {
-    const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + image;
-    bookPageL.innerHTML = '';
-    bookPageR.innerHTML = '';
-    bookPageL.classList.add('book-page-alive');
-    bookPageR.classList.add('book-page-alive');
-    bookPageL.style.backgroundImage = `url("${imgPath}")`;
-    bookPageL.style.backgroundSize = '200% 100%';
-    bookPageL.style.backgroundPosition = 'left center';
-    bookPageL.style.backgroundRepeat = 'no-repeat';
-    bookPageR.style.backgroundImage = `url("${imgPath}")`;
-    bookPageR.style.backgroundSize = '200% 100%';
-    bookPageR.style.backgroundPosition = 'right center';
-    bookPageR.style.backgroundRepeat = 'no-repeat';
+  function renderCoverPage() {
+    bookPageL.classList.remove('book-page-alive');
+    bookPageR.classList.remove('book-page-alive');
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      <div class="book-cover-left">
+        <svg class="cover-figure" viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Ground -->
+          <path d="M10 180 Q40 172 60 178 T112 178 L112 182 L10 182 Z" fill="#1a1a1a" opacity="0.85"/>
+          <path d="M14 184 L108 184" stroke="#1a1a1a" stroke-width="1" opacity="0.5"/>
+          <!-- Grass tufts -->
+          <path d="M20 180 l2 -6 M24 180 l1 -4 M30 182 l2 -5 M80 180 l1 -5 M86 182 l2 -6 M94 181 l1 -4" stroke="#1a1a1a" stroke-width="0.8" fill="none"/>
+          <!-- Staff -->
+          <line x1="78" y1="50" x2="80" y2="180" stroke="#1a1a1a" stroke-width="2"/>
+          <!-- Body silhouette -->
+          <path d="M50 60
+                   Q46 58 46 52 Q46 42 54 40 Q62 38 66 46 Q68 52 64 58
+                   L66 68
+                   L76 72 L82 80 L80 100 L76 108
+                   L78 140 L76 170 L72 180
+                   L58 180 L54 168 L50 140
+                   L46 120 L44 100 L42 88
+                   L40 78 L44 70 L50 66 Z"
+                fill="#1a1a1a"/>
+          <!-- Hat -->
+          <path d="M40 44 Q46 38 56 38 Q66 38 70 44 L72 46 L38 46 Z" fill="#1a1a1a"/>
+          <path d="M36 46 L74 46" stroke="#1a1a1a" stroke-width="2"/>
+          <!-- Satchel -->
+          <path d="M52 90 L68 90 L72 108 L48 108 Z" fill="#1a1a1a"/>
+          <path d="M52 90 Q60 82 68 90" stroke="#1a1a1a" stroke-width="1.2" fill="none"/>
+        </svg>
+      </div>
+    `;
+    bookPageR.innerHTML = `
+      <div class="book-cover-right">
+        <h1 class="cover-title">
+          <span class="cover-title-line">Once</span>
+          <span class="cover-title-line">upon</span>
+          <span class="cover-title-line">a</span>
+          <span class="cover-title-line">Time</span>
+        </h1>
+      </div>
+    `;
   }
 
   // Interactive state: 'start' | 'folklore' | 'deviation' | 'methodology'
@@ -379,19 +397,20 @@ export function createUI(camera, renderer, controls) {
     clearPageBackgrounds();
     bookPageL.innerHTML = `
       <div class="book-intro">
-        <h2>Dig deeper</h2>
-        <p>What would happen if you asked a large language model to retell a Norwegian folktale?</p>
-        <p>This is the story of Anne Sigrid Refsum's research into "The Sweetheart in the Forest" — a tale first recorded from a woman named Karen in 1847 — and what happens when AI tries to tell it again.</p>
-        <p class="book-meta">Centre for Digital Narrative, University of Bergen</p>
+        <h2>What would happen if you asked a large language model to tell you a well known norwegian folktale?</h2>
+        <p>This research explores how large language models (LLMs) generate and reshape stories, and how they tend to overuse and mix recurring narrative elements, known as &ldquo;floating motifs.&rdquo;</p>
+        <p>To avoid influencing the results, the models were given no extra context and only simple prompts like: &ldquo;Tell the folktale &lsquo;The Sweetheart in the Forest.&rsquo;&rdquo;</p>
+        <p>Explore the magic book and experience how an LLM tells the story.</p>
       </div>
     `;
     bookPageR.innerHTML = `
       <div class="book-topics">
+        <h2 class="topics-heading">Choose a topic to explore further</h2>
         <button class="book-big-btn" data-action="go-folklore">
-          What is the original<br>folklore like?
+          What is the original folkelore like?
         </button>
         <button class="book-big-btn" data-action="go-deviation">
-          What mistakes does AI do<br>when retelling the folklore?
+          What mistakes does AI do when retelling the folklore?
         </button>
         <button class="book-big-btn" data-action="go-methodology">
           How was the research done?
@@ -468,64 +487,66 @@ export function createUI(camera, renderer, controls) {
     bookPageL.innerHTML = `
       <div class="book-deviation">
         <h2>How was the research done?</h2>
-        <p class="book-body">Researcher <strong>Anne Sigrid Refsum</strong> asked three large language models — ChatGPT, Claude, and Gemini — to retell the Norwegian folktale "Kjæresten i skogen" ("The Sweetheart in the Forest").</p>
-        <p class="book-body">Between September 10th and 22nd, 2025, she collected <strong>32 AI retellings</strong> using two simple prompts:</p>
-        <ul class="book-list">
-          <li>"Fortell eventyret 'Kjæresten i skogen'"</li>
-          <li>"Fortell en norsk versjon av eventyrtypen ATU 955"</li>
+        <p class="book-body">32 Tales where generated using different LLM&rsquo;s, at different times, without any prior context. The prompts used where simple and short, as to not cause interference with how the LLM would tell the stories. The prompts were as follows:</p>
+        <ul class="book-bullets">
+          <li>&ldquo;Fortell eventyret &lsquo;Kjæresten i skogen&rsquo;&rdquo;, or the relatively similar &ldquo;Fortell det norske folkeeventyret &lsquo;Kjæresten i skogen&rsquo;&rdquo; (Literal translation: &ldquo;Tell the folktale &lsquo;The Sweetheart in the forest&rsquo;&rdquo;, &ldquo;Tell the Norwegian folktale &lsquo;The Sweetheart in the Forest&rsquo;&rdquo;).</li>
         </ul>
-        <p class="book-body">She accessed each model through its public website without logging in, and used Claude's incognito mode — to see what the AIs produce without personalization or fine-tuned context.</p>
         <button class="book-back-btn" data-action="go-start">Go back</button>
       </div>
     `;
     bookPageR.innerHTML = `
-      <div class="book-deviation-right">
-        <div class="dive-content">
-          <h3>The corpus</h3>
-          <p>32 tales total. Results varied wildly — few matched the original, most were fabrications in "folktale style."</p>
-          <p>The ATU-number prompt produced more consistent results, closely resembling the Grimm Brothers' <em>"The Robber Bridegroom"</em> — a related tale often confused with the Norwegian variant.</p>
-          <h3>Analysis method</h3>
-          <p>Refsum used literary scholarship and folkloristics to compare the AI tales to the 1847 variant recorded from Karen, analyzing style, cultural specificity, and what she calls "floating motifs."</p>
-          <p class="book-meta">Published: <em>Humanities</em> 14, 230 (2025)</p>
-        </div>
+      <div class="book-deviation-right book-methodology-right">
+        <ul class="book-bullets">
+          <li>&ldquo;Fortell en norsk versjon av eventyrtypen ATU 955&rdquo; (Literal translation: &ldquo;Tell a Norwegian version of the folktale type ATU 955&rdquo;).</li>
+        </ul>
       </div>
     `;
   }
 
   function renderBookPage() {
     const page = BOOK_PAGES[bookPageIndex];
-    if (page.type === 'interactive') {
+    if (page.type === 'cover') {
+      renderCoverPage();
+    } else if (page.type === 'interactive') {
       if (bookTopic === 'folklore')         renderFolklorePage();
       else if (bookTopic === 'deviation')   renderDeviationPage(deviationSelectedKey);
       else if (bookTopic === 'methodology') renderMethodologyPage();
       else                                   renderStartState();
-    } else {
-      renderImagePage(page.image);
     }
     bookPrev.disabled = bookPageIndex === 0;
     bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
   }
 
-  function goToInteractive(topic) {
+  function goToInteractive(topic, direction = 'next') {
     const idx = BOOK_PAGES.findIndex(p => p.type === 'interactive');
     if (idx >= 0) bookPageIndex = idx;
-    bookTopic = topic;
-    deviationSelectedKey = null;
-    renderBookPage();
+    animatePageFlip(direction, () => {
+      bookTopic = topic;
+      deviationSelectedKey = null;
+      renderBookPage();
+    });
   }
 
   // Delegate clicks inside the book pages
   function handleBookPageClick(e) {
+    // Cover page: any click advances the book
+    if (BOOK_PAGES[bookPageIndex].type === 'cover') {
+      flipPage('next');
+      return;
+    }
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
-    if (action === 'go-start')         goToInteractive('start');
-    else if (action === 'go-folklore')    goToInteractive('folklore');
-    else if (action === 'go-deviation')   goToInteractive('deviation');
-    else if (action === 'go-methodology') goToInteractive('methodology');
+    if (action === 'go-start')         goToInteractive('start', 'prev');
+    else if (action === 'go-folklore')    goToInteractive('folklore',    'next');
+    else if (action === 'go-deviation')   goToInteractive('deviation',   'next');
+    else if (action === 'go-methodology') goToInteractive('methodology', 'next');
     else if (action === 'dive') {
-      deviationSelectedKey = btn.dataset.key;
-      renderBookPage();
+      const key = btn.dataset.key;
+      animatePageFlip('next', () => {
+        deviationSelectedKey = key;
+        renderBookPage();
+      });
     }
   }
   bookPageL.addEventListener('click', handleBookPageClick);
@@ -548,25 +569,42 @@ export function createUI(camera, renderer, controls) {
   }
 
   let isFlipping = false;
-  function flipPage(direction) {
+  // Two-stage book flip:
+  //   Phase 1: the "outgoing" page rotates away toward the spine (~0→90°)
+  //   Phase 2: the "incoming" page rotates in from the spine back to flat
+  function animatePageFlip(direction, onMidpoint) {
     if (isFlipping) return;
-    const newIndex = direction === 'next' ? getNextPageIndex(bookPageIndex) : getPrevPageIndex(bookPageIndex);
-    if (newIndex === bookPageIndex) return;
     isFlipping = true;
 
-    const flipPageEl = direction === 'next' ? bookPageR : bookPageL;
-    const flipClass = direction === 'next' ? 'flipping-next' : 'flipping-prev';
-    flipPageEl.classList.add(flipClass);
+    const PHASE_MS = 320;
+    const outEl = direction === 'next' ? bookPageR : bookPageL;
+    const inEl  = direction === 'next' ? bookPageL : bookPageR;
+    const outClass = direction === 'next' ? 'flipping-out-right' : 'flipping-out-left';
+    const inClass  = direction === 'next' ? 'flipping-in-left'   : 'flipping-in-right';
+
+    outEl.classList.add(outClass);
 
     setTimeout(() => {
+      outEl.classList.remove(outClass);
+      onMidpoint();
+      requestAnimationFrame(() => {
+        inEl.classList.add(inClass);
+      });
+    }, PHASE_MS);
+
+    setTimeout(() => {
+      inEl.classList.remove(inClass);
+      isFlipping = false;
+    }, PHASE_MS * 2);
+  }
+
+  function flipPage(direction) {
+    const newIndex = direction === 'next' ? getNextPageIndex(bookPageIndex) : getPrevPageIndex(bookPageIndex);
+    if (newIndex === bookPageIndex) return;
+    animatePageFlip(direction, () => {
       bookPageIndex = newIndex;
       renderBookPage();
-    }, 250);
-
-    setTimeout(() => {
-      flipPageEl.classList.remove(flipClass);
-      isFlipping = false;
-    }, 500);
+    });
   }
 
   bookPrev.addEventListener('click', () => flipPage('prev'));
