@@ -7,10 +7,11 @@ describe('Book overlay', () => {
     expect(BOOK_PAGES.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('each page has left and right HTML', () => {
+  it('each page has an image path or is interactive', () => {
     for (const page of BOOK_PAGES) {
-      expect(typeof page.left).toBe('string');
-      expect(typeof page.right).toBe('string');
+      const hasImage = typeof page.image === 'string';
+      const isInteractive = page.type === 'interactive';
+      expect(hasImage || isInteractive).toBe(true);
     }
   });
 

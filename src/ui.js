@@ -329,6 +329,25 @@ export function createUI(camera, renderer, controls) {
 
   let bookPageIndex = 0;
 
+  function spawnBookParticles() {
+    bookOverlay.querySelectorAll('.book-particle').forEach(p => p.remove());
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'book-particle';
+      p.style.left = (Math.random() * 100) + '%';
+      p.style.bottom = (Math.random() * -20) + '%';
+      p.style.animationDuration = (10 + Math.random() * 10) + 's';
+      p.style.animationDelay = (Math.random() * -20) + 's';
+      p.style.setProperty('--drift', ((Math.random() - 0.5) * 100) + 'px');
+      p.style.width = p.style.height = (4 + Math.random() * 6) + 'px';
+      bookOverlay.appendChild(p);
+    }
+  }
+
+  function clearBookParticles() {
+    bookOverlay.querySelectorAll('.book-particle').forEach(p => p.remove());
+  }
+
   function clearPageBackgrounds() {
     bookPageL.style.backgroundImage = '';
     bookPageR.style.backgroundImage = '';
@@ -338,6 +357,8 @@ export function createUI(camera, renderer, controls) {
     const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + image;
     bookPageL.innerHTML = '';
     bookPageR.innerHTML = '';
+    bookPageL.classList.add('book-page-alive');
+    bookPageR.classList.add('book-page-alive');
     bookPageL.style.backgroundImage = `url("${imgPath}")`;
     bookPageL.style.backgroundSize = '200% 100%';
     bookPageL.style.backgroundPosition = 'left center';
@@ -353,6 +374,8 @@ export function createUI(camera, renderer, controls) {
   let deviationSelectedKey = null;
 
   function renderStartState() {
+    bookPageL.classList.remove('book-page-alive');
+    bookPageR.classList.remove('book-page-alive');
     clearPageBackgrounds();
     bookPageL.innerHTML = `
       <div class="book-intro">
@@ -378,6 +401,8 @@ export function createUI(camera, renderer, controls) {
   }
 
   function renderFolklorePage() {
+    bookPageL.classList.remove('book-page-alive');
+    bookPageR.classList.remove('book-page-alive');
     clearPageBackgrounds();
     bookPageL.innerHTML = `
       <div class="book-deviation">
@@ -405,6 +430,8 @@ export function createUI(camera, renderer, controls) {
   }
 
   function renderDeviationPage(selectedKey) {
+    bookPageL.classList.remove('book-page-alive');
+    bookPageR.classList.remove('book-page-alive');
     clearPageBackgrounds();
     const points = [
       { key: 'creepier', label: 'The AI version is told in a "creepier" way.' },
@@ -435,6 +462,8 @@ export function createUI(camera, renderer, controls) {
   }
 
   function renderMethodologyPage() {
+    bookPageL.classList.remove('book-page-alive');
+    bookPageR.classList.remove('book-page-alive');
     clearPageBackgrounds();
     bookPageL.innerHTML = `
       <div class="book-deviation">
@@ -508,16 +537,40 @@ export function createUI(camera, renderer, controls) {
     deviationSelectedKey = null;
     renderBookPage();
     bookOverlay.classList.remove('hidden');
+    spawnBookParticles();
     unlockForOverlay();
   }
 
   function closeBook() {
+    clearBookParticles();
     bookOverlay.classList.add('hidden');
     relockAfterOverlay();
   }
 
-  bookPrev.addEventListener('click',  () => { bookPageIndex = getPrevPageIndex(bookPageIndex); renderBookPage(); });
-  bookNext.addEventListener('click',  () => { bookPageIndex = getNextPageIndex(bookPageIndex); renderBookPage(); });
+  let isFlipping = false;
+  function flipPage(direction) {
+    if (isFlipping) return;
+    const newIndex = direction === 'next' ? getNextPageIndex(bookPageIndex) : getPrevPageIndex(bookPageIndex);
+    if (newIndex === bookPageIndex) return;
+    isFlipping = true;
+
+    const flipPageEl = direction === 'next' ? bookPageR : bookPageL;
+    const flipClass = direction === 'next' ? 'flipping-next' : 'flipping-prev';
+    flipPageEl.classList.add(flipClass);
+
+    setTimeout(() => {
+      bookPageIndex = newIndex;
+      renderBookPage();
+    }, 250);
+
+    setTimeout(() => {
+      flipPageEl.classList.remove(flipClass);
+      isFlipping = false;
+    }, 500);
+  }
+
+  bookPrev.addEventListener('click', () => flipPage('prev'));
+  bookNext.addEventListener('click', () => flipPage('next'));
   bookClose.addEventListener('click', closeBook);
   bookOverlay.addEventListener('click', (e) => { if (e.target === bookOverlay) closeBook(); });
 
