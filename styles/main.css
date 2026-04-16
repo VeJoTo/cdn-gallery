@@ -863,32 +863,15 @@ body {
 }
 
 .folklore-image-1 {
-  background: linear-gradient(180deg, #2a3a4a 0%, #0a0a1a 60%), radial-gradient(circle at 30% 40%, rgba(100,120,80,0.3), transparent 60%);
-  background-blend-mode: overlay;
-}
-
-.folklore-image-1::before {
-  content: '🌲';
-  position: absolute;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 70px;
-  filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+  background-image: url("/cdn-gallery/book/folklore-1.jpg");
+  background-size: cover;
+  background-position: center;
 }
 
 .folklore-image-2 {
-  background: linear-gradient(180deg, #4a2020 0%, #1a0a0a 70%);
-}
-
-.folklore-image-2::before {
-  content: '💀';
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 60px;
-  filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+  background-image: url("/cdn-gallery/book/folklore-2.jpg");
+  background-size: cover;
+  background-position: center;
 }
 
 .folklore-caption {

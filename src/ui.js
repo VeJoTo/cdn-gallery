@@ -438,10 +438,10 @@ export function createUI(camera, renderer, controls) {
     bookPageR.innerHTML = `
       <div class="book-folklore-right">
         <div class="folklore-image folklore-image-1">
-          <div class="folklore-caption">The suitor waits in the forest</div>
+          <div class="folklore-caption">The maiden approaches the house in the forest</div>
         </div>
         <div class="folklore-image folklore-image-2">
-          <div class="folklore-caption">The chamber of bones</div>
+          <div class="folklore-caption">Rich rooms, and the caged bird that warns her</div>
         </div>
         <p class="folklore-note">AI-generated illustrations based on the 1847 folktale recorded from Karen.</p>
       </div>
