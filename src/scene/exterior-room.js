@@ -370,13 +370,50 @@ export function createExteriorRoom(scene) {
   addHedge(-(WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // left
   addHedge( (WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // right
 
-  // ── 3 white wooden houses behind the glasshus ──
-  const houseMat = new THREE.MeshStandardMaterial({ color: 0xf0f0ec, roughness: 0.8 });
-  const roofMat  = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.7 });
+  // ── 3 white wooden plank houses behind the glasshus ──
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.7 });
 
-  function addHouse(x, z, w, h, d) {
+  // Canvas texture for white wooden planks
+  function makePlankTexture() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#f0ece4';
+    ctx.fillRect(0, 0, 256, 256);
+    // Horizontal plank lines
+    for (let y = 0; y < 256; y += 20) {
+      ctx.strokeStyle = '#d8d0c4';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke();
+      // Wood grain within plank
+      ctx.strokeStyle = '#e4dcd0';
+      ctx.lineWidth = 0.5;
+      for (let g = 0; g < 3; g++) {
+        const gy = y + 5 + Math.random() * 10;
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(256, gy + (Math.random() - 0.5) * 4); ctx.stroke();
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }
+
+  const plankTex = makePlankTexture();
+  const houseMat = new THREE.MeshStandardMaterial({ map: plankTex, roughness: 0.8 });
+
+  // Window material — dark glass
+  const windowMat = new THREE.MeshStandardMaterial({
+    color: 0x334455,
+    roughness: 0.2,
+    metalness: 0.3
+  });
+  const windowFrameMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.5 });
+
+  function addHouse(x, z, w, h, d, rotY) {
     const hGroup = new THREE.Group();
     hGroup.position.set(ox + x, 0, z);
+    if (rotY) hGroup.rotation.y = rotY;
 
     // Body
     const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), houseMat);
@@ -384,22 +421,58 @@ export function createExteriorRoom(scene) {
     body.castShadow = true;
     hGroup.add(body);
 
-    // Pyramid/gable roof (cone with 4 sides, rotated to align)
-    const hRoofR = Math.sqrt((w / 2) * (w / 2) + (d / 2) * (d / 2)) + 0.1;
-    const hRoofH = h * 0.55;
-    const hRoof  = new THREE.Mesh(new THREE.ConeGeometry(hRoofR, hRoofH, 4), roofMat);
+    // Pyramid/gable roof
+    const hRoofR = Math.sqrt((w / 2) ** 2 + (d / 2) ** 2) + 0.15;
+    const hRoofH = h * 0.5;
+    const hRoof = new THREE.Mesh(new THREE.ConeGeometry(hRoofR, hRoofH, 4), roofMat);
     hRoof.position.y = h + hRoofH / 2;
     hRoof.rotation.y = Math.PI / 4;
     hRoof.castShadow = true;
     hGroup.add(hRoof);
 
+    // Windows on front face (z = +d/2)
+    const winW = 0.5, winH = 0.7;
+    const winSpacing = w / 3;
+    for (let i = 0; i < 2; i++) {
+      const wx = -winSpacing / 2 + i * winSpacing;
+      // Window glass
+      const win = new THREE.Mesh(
+        new THREE.PlaneGeometry(winW, winH),
+        windowMat
+      );
+      win.position.set(wx, h * 0.55, d / 2 + 0.01);
+      hGroup.add(win);
+      // Window frame (4 bars)
+      const frameThick = 0.04;
+      // Top
+      const ft = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.06, frameThick, 0.03), windowFrameMat);
+      ft.position.set(wx, h * 0.55 + winH / 2, d / 2 + 0.02);
+      hGroup.add(ft);
+      // Bottom
+      const fb = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.06, frameThick, 0.03), windowFrameMat);
+      fb.position.set(wx, h * 0.55 - winH / 2, d / 2 + 0.02);
+      hGroup.add(fb);
+      // Left
+      const fl = new THREE.Mesh(new THREE.BoxGeometry(frameThick, winH + 0.06, 0.03), windowFrameMat);
+      fl.position.set(wx - winW / 2, h * 0.55, d / 2 + 0.02);
+      hGroup.add(fl);
+      // Right
+      const fr = new THREE.Mesh(new THREE.BoxGeometry(frameThick, winH + 0.06, 0.03), windowFrameMat);
+      fr.position.set(wx + winW / 2, h * 0.55, d / 2 + 0.02);
+      hGroup.add(fr);
+      // Cross bar (horizontal middle)
+      const fc = new THREE.Mesh(new THREE.BoxGeometry(winW, frameThick * 0.7, 0.03), windowFrameMat);
+      fc.position.set(wx, h * 0.55, d / 2 + 0.02);
+      hGroup.add(fc);
+    }
+
     scene.add(hGroup);
   }
 
-  // Three houses spread behind the glasshus (z < glasshus back face = -2 - WALL_D/2 ≈ -3.75)
-  addHouse(-5.5, -7.0, 3.2, 3.5, 3.0);   // left house
-  addHouse( 0.0, -8.0, 3.8, 4.0, 3.2);   // centre house (larger)
-  addHouse( 5.5, -6.5, 3.0, 3.2, 2.8);   // right house
+  // Three houses spread behind the glasshus — bigger, with slight rotation for depth
+  addHouse(-6, -7.0, 4.5, 5.0, 4.0, 0.2);    // left house
+  addHouse( 0, -9.0, 5.0, 5.5, 4.5, 0);       // centre house (largest)
+  addHouse( 6, -6.5, 4.0, 4.5, 3.5, -0.15);   // right house
 
   // ── CDN signpost ──
   const signGroup = new THREE.Group();
