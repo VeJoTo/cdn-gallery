@@ -243,6 +243,20 @@ clickableObjects.push(...natureRoom.clickables);
 const exteriorRoom = createExteriorRoom(scene);
 clickableObjects.push(...exteriorRoom.clickables);
 
+// Animate exterior enter label (gentle bob + pulse)
+addUpdateCallback(() => {
+  if (currentRoom !== 'exterior') return;
+  const t = performance.now() * 0.001;
+  if (exteriorRoom.enterLabel) {
+    exteriorRoom.enterLabel.position.y = 2.6 + Math.sin(t * 1.5) * 0.06;
+    exteriorRoom.enterLabel.material.opacity = 0.7 + Math.sin(t * 2) * 0.3;
+  }
+  if (exteriorRoom.arrowMesh) {
+    exteriorRoom.arrowMesh.position.y = 2.38 + Math.sin(t * 1.5) * 0.06;
+    exteriorRoom.arrowMesh.material.opacity = 0.7 + Math.sin(t * 2) * 0.3;
+  }
+});
+
 // Animate nature room
 addUpdateCallback((delta) => {
   const elapsed = performance.now() * 0.001;

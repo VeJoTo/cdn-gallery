@@ -303,6 +303,47 @@ export function createExteriorRoom(scene) {
   };
   doorGroup.add(doorClickTarget);
 
+  // Floating "Click to enter" label above door
+  const enterCanvas = document.createElement('canvas');
+  enterCanvas.width = 512;
+  enterCanvas.height = 64;
+  const ectx = enterCanvas.getContext('2d');
+  ectx.clearRect(0, 0, 512, 64);
+  ectx.shadowColor = '#ffffff';
+  ectx.shadowBlur = 6;
+  ectx.font = 'bold 28px Arial, sans-serif';
+  ectx.fillStyle = '#ffffff';
+  ectx.textAlign = 'center';
+  ectx.fillText('▸ Click to enter ◂', 256, 40);
+  const enterTex = new THREE.CanvasTexture(enterCanvas);
+  const enterLabel = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.4, 0.18),
+    new THREE.MeshBasicMaterial({ map: enterTex, transparent: true, side: THREE.DoubleSide })
+  );
+  enterLabel.position.set(0, 2.6, 0);
+  doorGroup.add(enterLabel);
+
+  // Small downward arrow indicator
+  const arrowCanvas = document.createElement('canvas');
+  arrowCanvas.width = 64;
+  arrowCanvas.height = 64;
+  const actx = arrowCanvas.getContext('2d');
+  actx.clearRect(0, 0, 64, 64);
+  actx.fillStyle = '#ffffff';
+  actx.beginPath();
+  actx.moveTo(32, 58);
+  actx.lineTo(12, 28);
+  actx.lineTo(52, 28);
+  actx.closePath();
+  actx.fill();
+  const arrowTex = new THREE.CanvasTexture(arrowCanvas);
+  const arrowMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.2, 0.2),
+    new THREE.MeshBasicMaterial({ map: arrowTex, transparent: true, side: THREE.DoubleSide })
+  );
+  arrowMesh.position.set(0, 2.38, 0);
+  doorGroup.add(arrowMesh);
+
   const clickables = [doorClickTarget];
 
   // ────────────────────────────────────────────────────────────────
@@ -614,5 +655,5 @@ export function createExteriorRoom(scene) {
   addFlowerPatch(-4, -4, 5, 1.5);      // near left house
   addFlowerPatch(4, -4, 5, 1.5);       // near right house
 
-  return { offset: OFFSET, clickables };
+  return { offset: OFFSET, clickables, enterLabel, arrowMesh };
 }
