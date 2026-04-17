@@ -164,13 +164,19 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
 
     if (hotspot !== 'tv') window.__setHologramVisible?.(false);
 
+    // Capture whether we're already at this hotspot before nav changes state
+    const alreadyAtHotspot = hotspot && navState.current === hotspot && navState.canNavigate();
+
     // Zoom in if there's a hotspot
     if (hotspot) nav.goTo(hotspot);
 
     // Fire actions directly
     if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
-    if (action === 'openBook')        ui.openBook();
+    if (action === 'openBook' && alreadyAtHotspot) {
+      if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
+      else ui.openBook();
+    }
     if (action === 'enterRabbitHole') ui.openRabbitHole();
     if (action === 'openReport')      ui.openReport();
     if (action === 'openFinDuMonde')  ui.openFinDuMonde();

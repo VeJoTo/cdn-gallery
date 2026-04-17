@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { aiArtVideos } from './videoData.js';
@@ -168,6 +169,136 @@ function animate() {
 createRoom(scene);
 const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv, globe, musicNotes } = createObjects(scene);
 addUpdateCallback(sceneUpdate);
+
+// ── Book particle burst ───────────────────────────────────────────────────────
+function spawnBookParticles(scene, worldPos) {
+  const count = 180;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    pos[i * 3]     = worldPos.x;
+    pos[i * 3 + 1] = worldPos.y;
+    pos[i * 3 + 2] = worldPos.z;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+  const mat = new THREE.PointsMaterial({
+    color: 0x00cfff, size: 0.028, transparent: true, opacity: 1,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+
+  // Random outward velocities — stronger burst upward
+  const vel = Array.from({ length: count }, () => ({
+    x: (Math.random() - 0.5) * 1.4,
+    y:  Math.random() * 1.2 + 0.3,
+    z: (Math.random() - 0.5) * 1.4,
+  }));
+
+  let elapsed = 0;
+  const duration = 1.6;
+  function tick(_time, deltaTime) {
+    elapsed += deltaTime / 1000;
+    const t = Math.min(elapsed / duration, 1);
+    const attr = geo.getAttribute('position');
+    for (let i = 0; i < count; i++) {
+      attr.array[i * 3]     = worldPos.x + vel[i].x * elapsed;
+      attr.array[i * 3 + 1] = worldPos.y + vel[i].y * elapsed;
+      attr.array[i * 3 + 2] = worldPos.z + vel[i].z * elapsed;
+    }
+    attr.needsUpdate = true;
+    mat.opacity = Math.max(0, 1 - t * 1.4);
+    if (t >= 1) {
+      gsap.ticker.remove(tick);
+      scene.remove(points);
+      geo.dispose();
+      mat.dispose();
+    }
+  }
+  gsap.ticker.add(tick);
+}
+
+// ── Book open animation ───────────────────────────────────────────────────────
+window.__openBookWithAnimation = (openBookFn) => {
+  const bookGroup = pedestal.userData.bookGroup;
+  if (!bookGroup) { openBookFn(); return; }
+
+  bookGroup.userData.isAnimating = true;
+  const model    = bookGroup.userData.model;
+  const origY    = bookGroup.position.y;
+  const origRotZ = Math.PI / 2 - 0.4;
+
+  // Clone materials for fade/glow — save original emissive intensities to restore after
+  const meshes = bookGroup.userData.bookMeshes ?? [];
+  meshes.forEach(m => {
+    if (m.material && !m.material._fadeable) {
+      m.material = m.material.clone();
+      m.material.transparent = true;
+      m.material._fadeable = true;
+    }
+    if (m.material?.emissive) {
+      m.material._origEmissiveIntensity = m.material.emissiveIntensity;
+      m.material.emissive.set(0x00cfff);
+      m.material.emissiveIntensity = 0;
+    }
+  });
+
+  // Pre-compute facing angle toward camera
+  const bookWorldPos = new THREE.Vector3(-2.8, origY, 2.6);
+  const facingY = Math.atan2(
+    camera.position.x - bookWorldPos.x,
+    camera.position.z - bookWorldPos.z
+  ) - Math.PI / 2;
+
+  const tl = gsap.timeline();
+
+  // 1. Float up + spin
+  tl.to(bookGroup.position, { y: origY + 0.15, duration: 0.5, ease: 'power2.out' });
+  tl.to(bookGroup.rotation, { y: bookGroup.rotation.y + Math.PI * 2, duration: 1.0, ease: 'power2.inOut' }, '<');
+
+  // 2. Rise clear of cube, then stand up + face camera
+  tl.to(bookGroup.position, { y: origY + 0.3, duration: 0.4, ease: 'power2.out' });
+  if (model) {
+    tl.add(() => console.log('[stand-up] bookGroup.y =', bookGroup.position.y, 'origY =', origY));
+    tl.to(model.rotation,     { z: 0,       duration: 0.55, ease: 'power2.inOut' });
+    tl.to(bookGroup.rotation, { y: facingY, duration: 0.35, ease: 'power2.out' }, '<0.15');
+  }
+
+  // 3. Glow builds
+  meshes.forEach(m => {
+    if (m.material?.emissive)
+      tl.to(m.material, { emissiveIntensity: 8.0, duration: 0.55, ease: 'power2.in' }, '<');
+  });
+
+  // 4. Scale up + dissolve + particle burst
+  tl.to(bookGroup.scale, { x: 1.5, y: 1.5, z: 1.5, duration: 0.4, ease: 'power2.in' }, '+=0.1');
+  meshes.forEach(m => {
+    tl.to(m.material, { opacity: 0, duration: 0.4, ease: 'power2.in' }, '<');
+  });
+  tl.add(() => {
+    const wp = new THREE.Vector3();
+    bookGroup.getWorldPosition(wp);
+    spawnBookParticles(scene, wp);
+  }, '<');
+
+  // 5. Open reader, reset book silently behind overlay
+  tl.add(() => {
+    openBookFn();
+    bookGroup.position.y = origY;
+    bookGroup.rotation.y = 0.9;
+    bookGroup.rotation.x = 0;
+    bookGroup.scale.set(1, 1, 1);
+    if (model) model.rotation.z = origRotZ;
+    meshes.forEach(m => {
+      m.material.opacity = 1;
+      if (m.material?.emissive)
+        m.material.emissiveIntensity = m.material._origEmissiveIntensity ?? 0;
+    });
+    bookGroup.userData.isAnimating = false;
+  }, '+=0.1');
+};
 
 // ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
 let currentVideoIndex = 0;
