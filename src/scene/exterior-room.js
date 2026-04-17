@@ -128,9 +128,9 @@ export function createExteriorRoom(scene) {
 
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xc8d8e8,
-    transparent: true,
-    opacity: 0.7,
-    roughness: 0.6,
+    transparent: false,
+    opacity: 1.0,
+    roughness: 0.8,
     metalness: 0.05,
     side: THREE.DoubleSide
   });
