@@ -605,15 +605,38 @@ export function createExteriorRoom(scene) {
     scene.add(tree);
   }
 
-  // Trees scattered around the scene
-  addTree(-8, -3, 3.0, 1.8);    // far left
+  // Trees scattered around the clearing
   addTree(-5, 2, 2.5, 1.5);     // left of path
   addTree(5, 3, 2.8, 1.6);      // right of path
-  addTree(8, -2, 3.2, 2.0);     // far right
   addTree(-3, 7, 2.2, 1.3);     // behind spawn left
   addTree(4, 8, 2.6, 1.4);      // behind spawn right
-  addTree(-7, -8, 3.5, 2.2);    // behind houses left
-  addTree(8, -8, 3.0, 1.9);     // behind houses right
+
+  // ── Dense forest ring around the perimeter ──
+  // Creates a natural tree line so the scene doesn't look like it ends
+  const forestRadius = 13;
+  const forestTrees = 50;
+  for (let i = 0; i < forestTrees; i++) {
+    const angle = (i / forestTrees) * Math.PI * 2;
+    // Vary radius so it's not a perfect circle
+    const r = forestRadius + (Math.random() - 0.5) * 4;
+    const fx = Math.cos(angle) * r;
+    const fz = Math.sin(angle) * r;
+    // Taller trees at the edge, varied heights
+    const h = 3.5 + Math.random() * 3.0;
+    const cr = 1.5 + Math.random() * 1.5;
+    addTree(fx, fz, h, cr);
+  }
+
+  // Second, denser inner ring to fill gaps
+  for (let i = 0; i < 30; i++) {
+    const angle = (i / 30) * Math.PI * 2 + 0.1;
+    const r = forestRadius - 1.5 + (Math.random() - 0.5) * 3;
+    const fx = Math.cos(angle) * r;
+    const fz = Math.sin(angle) * r;
+    const h = 2.5 + Math.random() * 2.5;
+    const cr = 1.2 + Math.random() * 1.2;
+    addTree(fx, fz, h, cr);
+  }
 
   // ── Flower patches ──
   const flowerColors = [0xff4466, 0xffaa22, 0xcc44ff, 0xff6699, 0xffdd44, 0x4488ff];
