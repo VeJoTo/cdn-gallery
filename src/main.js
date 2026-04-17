@@ -40,7 +40,7 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(-20, 1.6, 5);
+camera.position.set(-20, 1.6, 8);
 camera.lookAt(-20, 1.6, 2);
 
 // ── Resize ────────────────────────────────────────
@@ -115,7 +115,7 @@ function updateRotation(delta) {
     camera.position.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, camera.position.x));
     controls.target.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, controls.target.x));
     const zMin = currentRoom === 'exterior' ? 0.5 : -2.5;
-    const zMax = currentRoom === 'exterior' ? 8 : 2.5;
+    const zMax = currentRoom === 'exterior' ? 10 : 2.5;
     camera.position.z = Math.max(zMin, Math.min(zMax, camera.position.z));
     controls.target.z = Math.max(zMin, Math.min(zMax, controls.target.z));
   }
@@ -340,7 +340,7 @@ function transitionToRoom(targetRoom) {
       scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else if (targetRoom === 'exterior') {
-      camera.position.set(-20, 1.6, 5);
+      camera.position.set(-20, 1.6, 8);
       controls.target.set(-20, 1.6, 2);
       currentRoom = 'exterior';
       cssRenderer.domElement.style.display = 'none';
