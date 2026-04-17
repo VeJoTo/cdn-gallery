@@ -181,13 +181,15 @@ tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 0);
 tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
 tvVideoIframe.style.width = '1280px';
 tvVideoIframe.style.height = '720px';
+tvVideoIframe.style.borderRadius = '23px';
+tvVideoIframe.style.overflow = 'hidden';
 
 const tvCSS3D = new CSS3DObject(tvVideoIframe);
 // Screen mesh in buildTV is at local (0, 0, 0.071) inside the TV group.
-// TV group is at (3.49, 2.85, 0) with rotation.y = -Math.PI/2.
-// Local +Z maps to world -X after that rotation, so world position is:
-//   (3.49 - 0.071, 2.85, 0) = (3.419, 2.85, 0)
-tvCSS3D.position.set(3.419, 2.85, 0);
+// TV group is at (3.49, 2.45, 0) with rotation.y = -Math.PI/2.
+// Local +Z maps to world -X after that rotation.
+// Place iframe inside the bezel (local z=0.04 → world x=3.45)
+tvCSS3D.position.set(3.45, 2.45, 0);
 // Face world -X: starting orientation (+Z facing) rotated by +π/2 about Y.
 tvCSS3D.rotation.y = -Math.PI / 2;
 // Iframe CSS size is 1280 × 720 px; target world size is 1.92 × 1.08 units.
@@ -235,27 +237,47 @@ function updateHologram(video) {
 }
 
 const infoCss3D = new CSS3DObject(hologramDiv);
-// Position hologram above and slightly in front of the TV screen
-infoCss3D.position.set(3.0, 3.75, 0);
+// Position hologram down in front of the TV screen
+infoCss3D.position.set(2.8, 2.5, 0);
 infoCss3D.rotation.y = -Math.PI / 2;
 infoCss3D.scale.setScalar(1.5 / 500);
 cssScene.add(infoCss3D);
+
+// Hologram starts hidden; fades in/out via opacity
+hologramDiv.style.opacity = '0';
+hologramDiv.style.transition = 'opacity 0.4s ease';
+let _hologramHideTimer = null;
+
+window.__setHologramVisible = (show, autohideMs = 0) => {
+  if (_hologramHideTimer) { clearTimeout(_hologramHideTimer); _hologramHideTimer = null; }
+  hologramDiv.style.opacity = show ? '0.95' : '0';
+  if (show && autohideMs > 0) {
+    _hologramHideTimer = setTimeout(() => {
+      hologramDiv.style.opacity = '0';
+    }, autohideMs);
+  }
+};
 
 updateHologram(aiArtVideos[currentVideoIndex]);
 
 let hologramTime = 0;
 addUpdateCallback((delta) => {
   hologramTime += delta;
-  infoCss3D.position.y = 3.75 + Math.sin(hologramTime * 0.25) * 0.015;
-  // Subtle flicker
-  if (Math.random() < 0.02)
-    hologramDiv.style.opacity = (0.88 + Math.random() * 0.12).toFixed(2);
+  infoCss3D.position.y = 2.5 + Math.sin(hologramTime * 0.25) * 0.015;
 });
+
+let isPlaying = false; // first video loads with autoplay=0
 
 function loadVideo(index) {
   currentVideoIndex = (index + aiArtVideos.length) % aiArtVideos.length;
-  tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1);
   updateHologram(aiArtVideos[currentVideoIndex]);
+  window.__setHologramVisible(true, 6000);
+  // Short delay so user sees the info panel before the video starts
+  setTimeout(() => {
+    tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1);
+    isPlaying = true;
+    if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '⏸';
+  }, 1500);
 }
 
 window.__nextVideo = () => loadVideo(currentVideoIndex + 1);
@@ -462,17 +484,48 @@ const stepbackBtn = document.getElementById('stepback-btn');
 stepbackBtn.addEventListener('click', () => {
   nav.goBack();
   stepbackBtn.classList.add('hidden');
+  tvControls.classList.add('hidden');
+  window.__setHologramVisible(false);
   // Close any open panel drawer
   const drawer = document.getElementById('panel-drawer');
   drawer.classList.remove('open');
   setTimeout(() => drawer.classList.add('hidden'), 350);
 });
 
+// TV controls
+const tvControls      = document.getElementById('tv-controls');
+const tvPlayPauseBtn  = document.getElementById('tv-playpause');
+const tvPrevBtn       = document.getElementById('tv-prev');
+const tvNextBtn       = document.getElementById('tv-next');
+
+tvPlayPauseBtn.addEventListener('click', () => {
+  if (isPlaying) {
+    tvVideoIframe.contentWindow.postMessage(
+      JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+    isPlaying = false;
+    tvPlayPauseBtn.textContent = '▶';
+  } else {
+    tvVideoIframe.contentWindow.postMessage(
+      JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
+    isPlaying = true;
+    tvPlayPauseBtn.textContent = '⏸';
+  }
+});
+tvPrevBtn.addEventListener('click', () => loadVideo(currentVideoIndex - 1));
+tvNextBtn.addEventListener('click', () => loadVideo(currentVideoIndex + 1));
+
 // Show step-back button when zooming into a hotspot
 const _origGoTo = nav.goTo;
 nav.goTo = (id) => {
   _origGoTo(id);
   stepbackBtn.classList.remove('hidden');
+  if (id === 'tv') {
+    tvControls.classList.remove('hidden');
+    window.__setHologramVisible(true, 5000);
+  } else {
+    tvControls.classList.add('hidden');
+    window.__setHologramVisible(false);
+  }
 };
 
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
