@@ -534,5 +534,88 @@ export function createExteriorRoom(scene) {
   signPanel.position.set(0.75, 1.9, 0);
   signGroup.add(signPanel);
 
+  // ── Trees ──
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.9 });
+
+  function addTree(x, z, trunkH, canopyR) {
+    const tree = new THREE.Group();
+    tree.position.set(ox + x, 0, z);
+
+    // Trunk
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.18, trunkH, 8),
+      trunkMat
+    );
+    trunk.position.y = trunkH / 2;
+    tree.add(trunk);
+
+    // Canopy — layered spheres for a full look
+    const canopyColors = [0x2a6a1a, 0x3a7a2a, 0x2a5a18];
+    for (let i = 0; i < 3; i++) {
+      const canopy = new THREE.Mesh(
+        new THREE.SphereGeometry(canopyR * (1 - i * 0.15), 8, 6),
+        new THREE.MeshStandardMaterial({ color: canopyColors[i], roughness: 0.85 })
+      );
+      canopy.position.set(
+        (Math.random() - 0.5) * canopyR * 0.4,
+        trunkH + canopyR * 0.4 + i * canopyR * 0.3,
+        (Math.random() - 0.5) * canopyR * 0.4
+      );
+      tree.add(canopy);
+    }
+
+    scene.add(tree);
+  }
+
+  // Trees scattered around the scene
+  addTree(-8, -3, 3.0, 1.8);    // far left
+  addTree(-5, 2, 2.5, 1.5);     // left of path
+  addTree(5, 3, 2.8, 1.6);      // right of path
+  addTree(8, -2, 3.2, 2.0);     // far right
+  addTree(-3, 7, 2.2, 1.3);     // behind spawn left
+  addTree(4, 8, 2.6, 1.4);      // behind spawn right
+  addTree(-7, -8, 3.5, 2.2);    // behind houses left
+  addTree(8, -8, 3.0, 1.9);     // behind houses right
+
+  // ── Flower patches ──
+  const flowerColors = [0xff4466, 0xffaa22, 0xcc44ff, 0xff6699, 0xffdd44, 0x4488ff];
+
+  function addFlowerPatch(cx, cz, count, spread) {
+    for (let i = 0; i < count; i++) {
+      const fx = cx + (Math.random() - 0.5) * spread;
+      const fz = cz + (Math.random() - 0.5) * spread;
+      const color = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+
+      const flower = new THREE.Group();
+      flower.position.set(ox + fx, 0, fz);
+
+      // Stem
+      const stem = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.015, 0.015, 0.25 + Math.random() * 0.15, 4),
+        new THREE.MeshLambertMaterial({ color: 0x2a6a1a })
+      );
+      stem.position.y = 0.15;
+      flower.add(stem);
+
+      // Petals (small sphere)
+      const petal = new THREE.Mesh(
+        new THREE.SphereGeometry(0.06 + Math.random() * 0.04, 6, 4),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.6 })
+      );
+      petal.position.y = 0.3 + Math.random() * 0.1;
+      flower.add(petal);
+
+      scene.add(flower);
+    }
+  }
+
+  // Flower patches around the grounds
+  addFlowerPatch(-3.5, 1.5, 8, 1.5);   // left of path near hedge
+  addFlowerPatch(3.5, 1.5, 8, 1.5);    // right of path near hedge
+  addFlowerPatch(-6, 4, 6, 2.0);       // left garden area
+  addFlowerPatch(6, 4, 6, 2.0);        // right garden area
+  addFlowerPatch(-4, -4, 5, 1.5);      // near left house
+  addFlowerPatch(4, -4, 5, 1.5);       // near right house
+
   return { offset: OFFSET, clickables };
 }
