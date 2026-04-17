@@ -18,7 +18,6 @@ export function createExteriorRoom(scene) {
   skyGrad.addColorStop(1,   '#ccd8e0');
   sctx.fillStyle = skyGrad;
   sctx.fillRect(0, 0, 256, 256);
-  // Overcast cloud ellipses — soft, diffuse
   sctx.fillStyle = 'rgba(255,255,255,0.25)';
   sctx.beginPath(); sctx.ellipse(50,  40, 55, 22, 0, 0, Math.PI * 2); sctx.fill();
   sctx.fillStyle = 'rgba(255,255,255,0.18)';
@@ -152,7 +151,6 @@ export function createExteriorRoom(scene) {
   });
 
   // ── Front wall: 3 glass panels with vertical mullions ──
-  // Front face is at local z = +WALL_D/2 (facing +Z, toward player spawn)
   const panelW = WALL_W / 3;
   for (let p = 0; p < 3; p++) {
     const panelX = -WALL_W / 2 + panelW * p + panelW / 2;
@@ -164,7 +162,6 @@ export function createExteriorRoom(scene) {
     panel.raycast = () => {};
     glasshus.add(panel);
   }
-  // Vertical mullions between front panels
   for (let m = 1; m <= 2; m++) {
     const mullion = new THREE.Mesh(
       new THREE.BoxGeometry(0.05, WALL_H, 0.05),
@@ -185,7 +182,6 @@ export function createExteriorRoom(scene) {
     sidePanel.raycast = () => {};
     glasshus.add(sidePanel);
 
-    // Centre mullion on each side wall
     const sideMullion = new THREE.Mesh(
       new THREE.BoxGeometry(0.05, WALL_H, 0.05),
       frameMat
@@ -194,7 +190,7 @@ export function createExteriorRoom(scene) {
     glasshus.add(sideMullion);
   }
 
-  // ── Back wall — opaque grey (transitions to AI room) ──
+  // ── Back wall — opaque grey ──
   const backWall = new THREE.Mesh(
     new THREE.PlaneGeometry(WALL_W, WALL_H),
     backWallMat
@@ -203,7 +199,7 @@ export function createExteriorRoom(scene) {
   backWall.rotation.y = Math.PI;
   glasshus.add(backWall);
 
-  // ── Frame: horizontal beams (top + bottom), vertical corner posts ──
+  // ── Frame: horizontal beams, vertical corner posts ──
   const beamGeomFront = new THREE.BoxGeometry(WALL_W, 0.06, 0.06);
   const beamGeomSide  = new THREE.BoxGeometry(0.06, 0.06, WALL_D);
   for (const bz of [-WALL_D / 2, WALL_D / 2]) {
@@ -220,7 +216,6 @@ export function createExteriorRoom(scene) {
       glasshus.add(beam);
     }
   }
-  // Vertical corner posts
   const postGeom = new THREE.BoxGeometry(0.06, WALL_H, 0.06);
   const cornerDefs = [
     [-WALL_W / 2, -WALL_D / 2],
@@ -234,41 +229,36 @@ export function createExteriorRoom(scene) {
     glasshus.add(post);
   }
 
-  // ── Pyramid roof — 4-sided cone, glass ──
-  // Radius large enough to reach all four corners
+  // ── Pyramid roof — 4-sided cone ──
   const roofRadius = Math.sqrt((WALL_W / 2) * (WALL_W / 2) + (WALL_D / 2) * (WALL_D / 2)) + 0.12;
   const roofHeight = 1.6;
-  const roofGeom = new THREE.ConeGeometry(roofRadius, roofHeight, 4);
+  const roofGeom   = new THREE.ConeGeometry(roofRadius, roofHeight, 4);
   const roof = new THREE.Mesh(roofGeom, glassMat);
   roof.position.set(0, WALL_H + roofHeight / 2, 0);
-  roof.rotation.y = Math.PI / 4;  // align faces to building axes
+  roof.rotation.y = Math.PI / 4;
   roof.raycast = () => {};
   glasshus.add(roof);
 
-  // Ridge frame edges (apex to each corner — thin box per edge)
-  const apexY  = WALL_H + roofHeight;
-  const baseY  = WALL_H;
+  // Ridge frame edges
+  const apexY = WALL_H + roofHeight;
+  const baseY = WALL_H;
   for (const [rcx, rcz] of cornerDefs) {
-    const dx  = -rcx;  // direction from corner to apex (apex is at 0,0 in XZ)
-    const dz  = -rcz;
     const len = Math.sqrt(rcx * rcx + rcz * rcz + roofHeight * roofHeight);
     const ridge = new THREE.Mesh(
       new THREE.BoxGeometry(0.04, len, 0.04),
       frameMat
     );
-    // Place midpoint between corner base and apex
     ridge.position.set(rcx / 2, (baseY + apexY) / 2, rcz / 2);
-    // Point toward apex: compute pitch and yaw
     const horizDist = Math.sqrt(rcx * rcx + rcz * rcz);
-    const pitch = Math.atan2(roofHeight, horizDist);  // angle up from horizontal
-    const yaw   = Math.atan2(rcx, rcz);               // rotation around Y
+    const pitch = Math.atan2(roofHeight, horizDist);
+    const yaw   = Math.atan2(rcx, rcz);
     ridge.rotation.order = 'YXZ';
     ridge.rotation.y = yaw;
     ridge.rotation.x = -pitch;
     glasshus.add(ridge);
   }
 
-  // ── Glass double doors — front face, centred ──
+  // ── Glass double doors ──
   const doorGroup = new THREE.Group();
   doorGroup.position.set(0, 0, WALL_D / 2);
   glasshus.add(doorGroup);
@@ -279,7 +269,6 @@ export function createExteriorRoom(scene) {
     metalness: 0.7
   });
 
-  // Door frame: top beam + two side posts
   const doorFrameTop = new THREE.Mesh(
     new THREE.BoxGeometry(1.1, 0.07, 0.07),
     doorFrameMat
@@ -296,7 +285,6 @@ export function createExteriorRoom(scene) {
     doorGroup.add(sidePost);
   }
 
-  // Two door panels — glass
   const doorPanelMat = new THREE.MeshPhysicalMaterial({
     color: 0xddeeff,
     transparent: true,
@@ -315,7 +303,6 @@ export function createExteriorRoom(scene) {
     doorPanel.raycast = () => {};
     doorGroup.add(doorPanel);
 
-    // Door handle bar
     const handle = new THREE.Mesh(
       new THREE.BoxGeometry(0.03, 0.4, 0.03),
       doorFrameMat
@@ -324,7 +311,7 @@ export function createExteriorRoom(scene) {
     doorGroup.add(handle);
   }
 
-  // INVISIBLE click target — this is what the raycaster hits
+  // INVISIBLE click target
   const doorClickTarget = new THREE.Mesh(
     new THREE.BoxGeometry(1.0, 2.2, 0.2),
     new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
@@ -338,6 +325,159 @@ export function createExteriorRoom(scene) {
   doorGroup.add(doorClickTarget);
 
   const clickables = [doorClickTarget];
+
+  // ────────────────────────────────────────────────────────────────
+  // ── Surroundings ──
+  // ────────────────────────────────────────────────────────────────
+
+  // ── Grey stone walls flanking the glasshus ──
+  // Reference: concrete/stone blocks on both sides of the glass volume
+  const stoneMat = new THREE.MeshStandardMaterial({
+    color: 0x8a8878,
+    roughness: 0.9,
+    metalness: 0.0
+  });
+
+  // Helper: build one stone wall section as a simple box
+  function addStoneWall(group, x, y, z, w, h, d) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), stoneMat);
+    mesh.position.set(x, y, z);
+    mesh.receiveShadow = true;
+    mesh.castShadow = true;
+    group.add(mesh);
+  }
+
+  const wallsGroup = new THREE.Group();
+  wallsGroup.position.set(ox, 0, -2);  // same world-space anchor as glasshus
+  scene.add(wallsGroup);
+
+  const sWallH = WALL_H;          // same height as glasshus
+  const sWallD = WALL_D + 0.1;    // flush with glasshus depth
+  const sWallW = 1.8;             // how wide the flanking wall is
+
+  // Left flanking wall (glasshus left = -WALL_W/2, so stone wall extends further left)
+  addStoneWall(wallsGroup, -(WALL_W / 2 + sWallW / 2), sWallH / 2, 0, sWallW, sWallH, sWallD);
+  // Left side-return wall (perpendicular, runs back away from viewer)
+  addStoneWall(wallsGroup, -(WALL_W / 2 + sWallW), sWallH / 2, -sWallD / 2 - 0.9, 0.3, sWallH, 2.0);
+
+  // Right flanking wall
+  addStoneWall(wallsGroup,  (WALL_W / 2 + sWallW / 2), sWallH / 2, 0, sWallW, sWallH, sWallD);
+  // Right side-return wall
+  addStoneWall(wallsGroup,  (WALL_W / 2 + sWallW), sWallH / 2, -sWallD / 2 - 0.9, 0.3, sWallH, 2.0);
+
+  // ── Brown hedge with green top ──
+  // Flanks both sides of the path, in front of the building
+  const hedgeStemMat = new THREE.MeshStandardMaterial({ color: 0x4a2a0a, roughness: 0.9 });
+  const hedgeTopMat  = new THREE.MeshStandardMaterial({ color: 0x2a5a18, roughness: 0.8 });
+
+  function addHedge(x, z, w, d) {
+    const hedgeGroup = new THREE.Group();
+    hedgeGroup.position.set(ox + x, 0, z);
+    // Brown base (dead twigs / stems)
+    const stem = new THREE.Mesh(new THREE.BoxGeometry(w, 0.6, d), hedgeStemMat);
+    stem.position.y = 0.3;
+    hedgeGroup.add(stem);
+    // Green leafy top
+    const top = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, d), hedgeTopMat);
+    top.position.y = 0.85;
+    hedgeGroup.add(top);
+    scene.add(hedgeGroup);
+  }
+
+  // Hedges left and right of the path, positioned in front of stone walls
+  addHedge(-(WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // left
+  addHedge( (WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // right
+
+  // ── 3 white wooden houses behind the glasshus ──
+  const houseMat = new THREE.MeshStandardMaterial({ color: 0xf0f0ec, roughness: 0.8 });
+  const roofMat  = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.7 });
+
+  function addHouse(x, z, w, h, d) {
+    const hGroup = new THREE.Group();
+    hGroup.position.set(ox + x, 0, z);
+
+    // Body
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), houseMat);
+    body.position.y = h / 2;
+    body.castShadow = true;
+    hGroup.add(body);
+
+    // Pyramid/gable roof (cone with 4 sides, rotated to align)
+    const hRoofR = Math.sqrt((w / 2) * (w / 2) + (d / 2) * (d / 2)) + 0.1;
+    const hRoofH = h * 0.55;
+    const hRoof  = new THREE.Mesh(new THREE.ConeGeometry(hRoofR, hRoofH, 4), roofMat);
+    hRoof.position.y = h + hRoofH / 2;
+    hRoof.rotation.y = Math.PI / 4;
+    hRoof.castShadow = true;
+    hGroup.add(hRoof);
+
+    scene.add(hGroup);
+  }
+
+  // Three houses spread behind the glasshus (z < glasshus back face = -2 - WALL_D/2 ≈ -3.75)
+  addHouse(-5.5, -7.0, 3.2, 3.5, 3.0);   // left house
+  addHouse( 0.0, -8.0, 3.8, 4.0, 3.2);   // centre house (larger)
+  addHouse( 5.5, -6.5, 3.0, 3.2, 2.8);   // right house
+
+  // ── CDN signpost ──
+  const signGroup = new THREE.Group();
+  // Positioned left of path, close to the front
+  signGroup.position.set(ox - 2.2, 0, 3.0);
+  scene.add(signGroup);
+
+  // Metal pole
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x999999, roughness: 0.4, metalness: 0.7 });
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 2.2, 8), poleMat);
+  pole.position.y = 1.1;
+  signGroup.add(pole);
+
+  // Sign panel — canvas texture with text
+  const signCanvas = document.createElement('canvas');
+  signCanvas.width  = 512;
+  signCanvas.height = 192;
+  const sgnctx = signCanvas.getContext('2d');
+
+  // Background
+  sgnctx.fillStyle = '#1a2a3a';
+  sgnctx.fillRect(0, 0, 512, 192);
+
+  // Border
+  sgnctx.strokeStyle = '#cccccc';
+  sgnctx.lineWidth = 4;
+  sgnctx.strokeRect(6, 6, 500, 180);
+
+  // CDN logo-ish stripe
+  sgnctx.fillStyle = '#3366aa';
+  sgnctx.fillRect(6, 6, 500, 40);
+
+  // Text: CDN abbreviation in stripe
+  sgnctx.fillStyle = '#ffffff';
+  sgnctx.font = 'bold 26px Arial, sans-serif';
+  sgnctx.textAlign = 'center';
+  sgnctx.fillText('CDN', 256, 34);
+
+  // Main line
+  sgnctx.fillStyle = '#e8eef5';
+  sgnctx.font = 'bold 20px Arial, sans-serif';
+  sgnctx.fillText('Center for Digital Narrative', 256, 90);
+
+  // Sub line
+  sgnctx.fillStyle = '#aabbcc';
+  sgnctx.font = '16px Arial, sans-serif';
+  sgnctx.fillText('University of Bergen', 256, 120);
+
+  // Small arrow hint
+  sgnctx.fillStyle = '#7799bb';
+  sgnctx.font = '13px Arial, sans-serif';
+  sgnctx.fillText('▶  Enter to explore', 256, 158);
+
+  const signTex  = new THREE.CanvasTexture(signCanvas);
+  const signPanel = new THREE.Mesh(
+    new THREE.BoxGeometry(1.4, 0.52, 0.04),
+    new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.5 })
+  );
+  signPanel.position.y = 1.9;
+  signGroup.add(signPanel);
 
   return { offset: OFFSET, clickables };
 }
