@@ -37,8 +37,8 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(-20, 1.6, 6);
-camera.lookAt(-20, 1.6, -2);
+camera.position.set(-20, 1.6, 5);
+camera.lookAt(-20, 1.6, 2);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -58,7 +58,7 @@ controls.minDistance = 0.5;
 controls.maxDistance = 4;
 controls.minPolarAngle = Math.PI / 3;
 controls.maxPolarAngle = Math.PI / 2;
-controls.target.set(-20, 1.6, -2);
+controls.target.set(-20, 1.6, 2);
 
 // Hide the first-person overlay and crosshair (not used anymore)
 const fpOverlay = document.getElementById('fp-overlay');
@@ -288,8 +288,8 @@ function transitionToRoom(targetRoom) {
       currentRoom = 'nature';
       cssRenderer.domElement.style.display = 'none';
     } else if (targetRoom === 'exterior') {
-      camera.position.set(-20, 1.6, 6);
-      controls.target.set(-20, 1.6, -2);
+      camera.position.set(-20, 1.6, 5);
+      controls.target.set(-20, 1.6, 2);
       currentRoom = 'exterior';
       cssRenderer.domElement.style.display = 'none';
     } else {
