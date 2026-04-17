@@ -1014,7 +1014,8 @@ body {
   z-index: 2;
 }
 #css3d-layer iframe,
-#css3d-layer div {
+#css3d-layer div,
+#css3d-layer button {
   pointer-events: auto;
 }
 

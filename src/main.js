@@ -238,7 +238,8 @@ hologramDiv.style.cssText = `
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  overflow-y: auto;
   padding: 80px 100px;
   backdrop-filter: blur(2px);
 `;
@@ -253,11 +254,11 @@ function updateHologram(video) {
     </div>
     <div style="font-size:28px;color:rgba(168,216,234,0.85);margin-bottom:28px">${video.artist}</div>
     ${video.description
-      ? `<div style="font-size:22px;color:rgba(0,212,255,0.85);border-top:1px solid rgba(255,255,255,0.2);padding-top:28px;line-height:1.6;text-shadow:0 0 8px rgba(0,212,255,0.5);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+      ? `<div style="font-size:22px;color:rgba(0,212,255,0.85);border-top:1px solid rgba(255,255,255,0.2);padding-top:28px;line-height:1.6;text-shadow:0 0 8px rgba(0,212,255,0.5)">
            ${video.description}
          </div>`
       : ''}
-    <div style="margin-top:48px;font-size:18px;color:rgba(255,255,255,0.7);letter-spacing:4px;display:flex;justify-content:space-between;text-shadow:0 0 8px rgba(255,255,255,0.5)">
+    <div style="margin-top:auto;padding-top:32px;font-size:18px;color:rgba(255,255,255,0.7);letter-spacing:4px;display:flex;justify-content:space-between;text-shadow:0 0 8px rgba(255,255,255,0.5)">
       <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
       <span>${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
     </div>
@@ -270,6 +271,129 @@ infoCss3D.position.set(3.3, 2.45, 0);
 infoCss3D.rotation.y = -Math.PI / 2;
 infoCss3D.scale.setScalar(1.6 / 1280);
 cssScene.add(infoCss3D);
+
+// ── Floating Read More button (separate CSS3DObject) ──────────────────────────
+const readMoreBtnDiv = document.createElement('div');
+readMoreBtnDiv.style.cssText = `
+  padding: 18px 52px;
+  background: linear-gradient(135deg, rgba(2,0,28,0.92) 0%, rgba(10,0,40,0.88) 100%);
+  border: 1px solid rgba(0,212,255,0.6);
+  border-top: 2px solid rgba(0,212,255,0.95);
+  border-radius: 6px;
+  color: rgba(0,212,255,0.95);
+  font-family: 'Courier New', monospace;
+  font-size: 28px;
+  letter-spacing: 5px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: 0 0 20px rgba(0,212,255,0.2), inset 0 0 30px rgba(0,212,255,0.05);
+  transition: background 0.2s, box-shadow 0.2s;
+`;
+readMoreBtnDiv.textContent = 'READ MORE ▾';
+readMoreBtnDiv.addEventListener('mouseenter', () => {
+  readMoreBtnDiv.style.background = 'linear-gradient(135deg, rgba(0,40,80,0.95) 0%, rgba(0,20,60,0.92) 100%)';
+  readMoreBtnDiv.style.boxShadow = '0 0 30px rgba(0,212,255,0.4), inset 0 0 40px rgba(0,212,255,0.1)';
+});
+readMoreBtnDiv.addEventListener('mouseleave', () => {
+  readMoreBtnDiv.style.background = 'linear-gradient(135deg, rgba(2,0,28,0.92) 0%, rgba(10,0,40,0.88) 100%)';
+  readMoreBtnDiv.style.boxShadow = '0 0 20px rgba(0,212,255,0.2), inset 0 0 30px rgba(0,212,255,0.05)';
+});
+
+const readMoreBtnCSS3D = new CSS3DObject(readMoreBtnDiv);
+// Bottom-left of the hologram panel, slightly in front (hologram at x=3.3, bottom y≈2.0)
+readMoreBtnCSS3D.position.set(3.28, 2.08, -0.55);
+readMoreBtnCSS3D.rotation.y = -Math.PI / 2;
+readMoreBtnCSS3D.scale.setScalar(1.6 / 1280);
+cssScene.add(readMoreBtnCSS3D);
+
+// ── Floating More Info text panel — same size & style as the hologram ─────────
+const readMorePanelDiv = document.createElement('div');
+readMorePanelDiv.style.cssText = `
+  width: 1280px;
+  height: 720px;
+  box-sizing: border-box;
+  background: linear-gradient(160deg, rgba(2,0,28,0.94) 0%, rgba(10,0,40,0.90) 100%);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-top: 2px solid rgba(0,212,255,0.9);
+  border-bottom: 2px solid rgba(255,255,255,0.5);
+  border-radius: 23px;
+  box-shadow: inset 0 0 80px rgba(255,255,255,0.06), inset 0 0 160px rgba(0,212,255,0.06);
+  font-family: 'Courier New', monospace;
+  font-size: 26px;
+  color: rgba(200,230,255,0.92);
+  line-height: 1.75;
+  white-space: pre-line;
+  padding: 80px 100px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+`;
+
+// Close icon inside the panel
+const readMoreCloseDiv = document.createElement('div');
+readMoreCloseDiv.style.cssText = `
+  position: absolute;
+  top: 36px;
+  right: 52px;
+  font-size: 52px;
+  color: rgba(0,212,255,0.7);
+  cursor: pointer;
+  line-height: 1;
+  user-select: none;
+  transition: color 0.2s;
+`;
+readMoreCloseDiv.textContent = '×';
+readMoreCloseDiv.addEventListener('mouseenter', () => { readMoreCloseDiv.style.color = 'rgba(0,212,255,1)'; });
+readMoreCloseDiv.addEventListener('mouseleave', () => { readMoreCloseDiv.style.color = 'rgba(0,212,255,0.7)'; });
+readMorePanelDiv.appendChild(readMoreCloseDiv);
+
+const readMoreTextDiv = document.createElement('div');
+readMorePanelDiv.appendChild(readMoreTextDiv);
+
+const readMorePanelCSS3D = new CSS3DObject(readMorePanelDiv);
+readMorePanelCSS3D.position.set(3.2, 2.45, 0);
+readMorePanelCSS3D.rotation.y = -Math.PI / 2;
+readMorePanelCSS3D.scale.setScalar(1.6 / 1280);
+cssScene.add(readMorePanelCSS3D);
+
+// Hidden until button is clicked
+readMoreBtnDiv.style.opacity = '0';
+readMoreBtnDiv.style.pointerEvents = 'none';
+readMoreBtnDiv.style.transition = 'opacity 0.3s ease';
+readMorePanelDiv.style.opacity = '0';
+readMorePanelDiv.style.pointerEvents = 'none';
+readMorePanelDiv.style.transition = 'opacity 0.3s ease';
+let _readMoreOpen = false;
+
+function _closeReadMore() {
+  _readMoreOpen = false;
+  readMorePanelDiv.style.opacity = '0';
+  readMorePanelDiv.style.pointerEvents = 'none';
+  readMoreBtnDiv.style.opacity = '1';
+  readMoreBtnDiv.style.pointerEvents = 'auto';
+}
+
+readMoreBtnDiv.addEventListener('click', () => {
+  _readMoreOpen = true;
+  readMorePanelDiv.style.opacity = '1';
+  readMorePanelDiv.style.pointerEvents = 'auto';
+  readMoreBtnDiv.style.opacity = '0';
+  readMoreBtnDiv.style.pointerEvents = 'none';
+});
+
+readMoreCloseDiv.addEventListener('click', _closeReadMore);
+
+// Call this whenever the video changes to update button/panel visibility and content
+function updateReadMore(video) {
+  const hasMore = !!video.moreInfo;
+  _readMoreOpen = false;
+  readMoreTextDiv.textContent = video.moreInfo || '';
+  readMorePanelDiv.style.opacity = '0';
+  readMorePanelDiv.style.pointerEvents = 'none';
+  readMoreBtnDiv.style.opacity = (_hologramVisible && hasMore) ? '1' : '0';
+  readMoreBtnDiv.style.pointerEvents = (_hologramVisible && hasMore) ? 'auto' : 'none';
+}
 
 // Hologram starts hidden; fades in/out via opacity
 hologramDiv.style.opacity = '0';
@@ -291,6 +415,8 @@ window.__setHologramVisible = (show) => {
   // Show info icon only when panel is hidden
   const infoBtn = document.getElementById('tv-info');
   if (infoBtn) infoBtn.classList.toggle('hidden', show);
+  // Show/hide the floating Read More button with the hologram
+  updateReadMore(aiArtVideos[currentVideoIndex]);
   updateTVOverlay?.();
 };
 
@@ -570,7 +696,11 @@ tvPlayPauseBtn.addEventListener('click', () => {
 });
 tvPrevBtn.addEventListener('click', () => loadVideo(currentVideoIndex - 1));
 tvNextBtn.addEventListener('click', () => loadVideo(currentVideoIndex + 1));
-tvOverlayDiv.addEventListener('click', () => tvPlayPauseBtn.click());
+let _tvNavigating = false;
+tvOverlayDiv.addEventListener('click', () => {
+  if (_tvNavigating) return;
+  tvPlayPauseBtn.click();
+});
 
 tvInfoBtn.addEventListener('click', () => {
   if (isPlaying) {
@@ -689,6 +819,9 @@ nav.goTo = (id) => {
   _origGoTo(id);
   stepbackBtn.classList.remove('hidden');
   if (id === 'tv') {
+    // Block overlay clicks during the zoom-in transition (0.6s) + buffer
+    _tvNavigating = true;
+    setTimeout(() => { _tvNavigating = false; }, 900);
     tvControls.classList.remove('hidden');
     tvMagBtn.classList.remove('hidden');
     window.__setHologramVisible(true);

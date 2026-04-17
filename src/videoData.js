@@ -1,3 +1,5 @@
+const algoMutatingMoreInfo = `These works, including Machine City and Mechanical Treehouse, explore how AI can redefine digital writing. Through the ULDN process, artists Dr. Jason Nelson and Dr. Alinta Krauth create immersive, interactive worlds where organic creatures and fantastic machines collide with emerging story fragments.\n\nMoving far beyond simple "prompt and generate" methods, their process involves stitching together hundreds of individual image fragments into complex visual concepts. The result is a unique fusion of AI's painterly possibilities and intricate digital storytelling.`;
+
 export const aiArtVideos = [
   {
     id: "oMngEHXiGqg",
@@ -6,6 +8,7 @@ export const aiArtVideos = [
     artist: "Jason Nelson & Alina Kraut",
     description:
       "This video is part of the Ultra Large Digital Narrative Series, showcasing the fascinating world of AlgoMutating Digital Creatures",
+    moreInfo: algoMutatingMoreInfo,
   },
   {
     id: "pGXdy8JAFew",
@@ -14,6 +17,7 @@ export const aiArtVideos = [
     artist: "Jason Nelson & Alina Kraut",
     description:
       "This video is part of the Ultra Large Digital Narrative Series, featuring the intriguing world of AlgoMutating Digital Creatures",
+    moreInfo: algoMutatingMoreInfo,
   },
   {
     id: "NKKS769trzA",
@@ -22,6 +26,7 @@ export const aiArtVideos = [
     artist: "Jason Nelson & Alina Kraut",
     description:
       "This video is part of the Ultra Large Digital Narrative Series, showcasing the fascinating world of AlgoMutating Digital Creatures.",
+    moreInfo: algoMutatingMoreInfo,
   },
   {
     id: "M5YsS2ohuE8",
