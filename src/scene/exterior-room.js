@@ -12,22 +12,19 @@ export function createExteriorRoom(scene) {
   skyCanvas.height = 256;
   const sctx = skyCanvas.getContext('2d');
   const skyGrad = sctx.createLinearGradient(0, 0, 0, 256);
-  skyGrad.addColorStop(0,   '#7a8899');
-  skyGrad.addColorStop(0.4, '#9aaabb');
-  skyGrad.addColorStop(0.7, '#b8c8d4');
-  skyGrad.addColorStop(1,   '#ccd8e0');
+  skyGrad.addColorStop(0,   '#3a7bd5');
+  skyGrad.addColorStop(0.3, '#5a9ae5');
+  skyGrad.addColorStop(0.6, '#88bbf0');
+  skyGrad.addColorStop(1,   '#c8e0f8');
   sctx.fillStyle = skyGrad;
   sctx.fillRect(0, 0, 256, 256);
-  sctx.fillStyle = 'rgba(255,255,255,0.25)';
-  sctx.beginPath(); sctx.ellipse(50,  40, 55, 22, 0, 0, Math.PI * 2); sctx.fill();
-  sctx.fillStyle = 'rgba(255,255,255,0.18)';
-  sctx.beginPath(); sctx.ellipse(160, 60, 65, 20, 0, 0, Math.PI * 2); sctx.fill();
-  sctx.fillStyle = 'rgba(255,255,255,0.20)';
-  sctx.beginPath(); sctx.ellipse(210, 30, 40, 14, 0, 0, Math.PI * 2); sctx.fill();
-  sctx.fillStyle = 'rgba(255,255,255,0.15)';
-  sctx.beginPath(); sctx.ellipse(95,  90, 50, 18, 0, 0, Math.PI * 2); sctx.fill();
-  sctx.fillStyle = 'rgba(200,210,220,0.20)';
-  sctx.beginPath(); sctx.ellipse(130, 120, 80, 25, 0, 0, Math.PI * 2); sctx.fill();
+  // Fluffy white clouds
+  sctx.fillStyle = 'rgba(255,255,255,0.6)';
+  sctx.beginPath(); sctx.ellipse(50,  45, 40, 16, 0, 0, Math.PI * 2); sctx.fill();
+  sctx.beginPath(); sctx.ellipse(75,  40, 30, 14, 0, 0, Math.PI * 2); sctx.fill();
+  sctx.fillStyle = 'rgba(255,255,255,0.5)';
+  sctx.beginPath(); sctx.ellipse(180, 55, 45, 18, 0, 0, Math.PI * 2); sctx.fill();
+  sctx.beginPath(); sctx.ellipse(205, 50, 30, 14, 0, 0, Math.PI * 2); sctx.fill();
 
   const skyTex = new THREE.CanvasTexture(skyCanvas);
   const sky = new THREE.Mesh(
@@ -100,10 +97,10 @@ export function createExteriorRoom(scene) {
   scene.add(stonePath);
 
   // ── Lighting — flat overcast Bergen day ──
-  const ambient = new THREE.AmbientLight(0xb0b8c0, 0.7);
+  const ambient = new THREE.AmbientLight(0xf0eedc, 0.8);
   scene.add(ambient);
 
-  const dirLight = new THREE.DirectionalLight(0xc8d0d8, 0.4);
+  const dirLight = new THREE.DirectionalLight(0xfff8e0, 1.0);
   dirLight.position.set(ox - 4, 10, 5);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near   = 0.5;
