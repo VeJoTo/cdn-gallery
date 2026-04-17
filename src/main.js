@@ -172,29 +172,30 @@ addUpdateCallback(sceneUpdate);
 
 // ── Book particle burst ───────────────────────────────────────────────────────
 function spawnBookParticles(scene, worldPos) {
-  const count = 180;
+  const count = 1400;
   const geo = new THREE.BufferGeometry();
   const pos = new Float32Array(count * 3);
+  // Spawn spread across the book volume so they burst from all around it
   for (let i = 0; i < count; i++) {
-    pos[i * 3]     = worldPos.x;
-    pos[i * 3 + 1] = worldPos.y;
-    pos[i * 3 + 2] = worldPos.z;
+    pos[i * 3]     = worldPos.x + (Math.random() - 0.5) * 0.3;
+    pos[i * 3 + 1] = worldPos.y + (Math.random() - 0.5) * 0.4;
+    pos[i * 3 + 2] = worldPos.z + (Math.random() - 0.5) * 0.2;
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 
   const mat = new THREE.PointsMaterial({
-    color: 0x00cfff, size: 0.028, transparent: true, opacity: 1,
+    color: 0x00cfff, size: 0.004, transparent: true, opacity: 1,
     blending: THREE.AdditiveBlending, depthWrite: false,
   });
 
   const points = new THREE.Points(geo, mat);
   scene.add(points);
 
-  // Random outward velocities — stronger burst upward
+  // Random outward velocities — burst in all directions with strong spread
   const vel = Array.from({ length: count }, () => ({
-    x: (Math.random() - 0.5) * 1.4,
-    y:  Math.random() * 1.2 + 0.3,
-    z: (Math.random() - 0.5) * 1.4,
+    x: (Math.random() - 0.5) * 3.0,
+    y: (Math.random() - 0.3) * 2.5,
+    z: (Math.random() - 0.5) * 3.0,
   }));
 
   let elapsed = 0;

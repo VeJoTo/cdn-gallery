@@ -1235,8 +1235,8 @@ function buildPedestal() {
 
   // Colour palette: purple, cyan, violet, teal
   const smokePalette = [
-    [0.55, 0.0, 1.0], [0.0, 0.8, 1.0],
-    [0.8,  0.0, 1.0], [0.0, 1.0, 0.7],
+    [0.0, 0.2, 0.8], [0.0, 0.8, 1.0],
+    [0.0, 0.3, 0.9], [0.0, 1.0, 0.7],
   ];
 
   const smokeParticles = Array.from({ length: SMOKE_COUNT }, () => ({
@@ -1291,7 +1291,91 @@ function buildPedestal() {
     ca.needsUpdate = true;
   }
 
-  group.userData = { bookGroup, smokePoints, updateSmoke };
+  // ── Tiny magical smoke creeping up the cube sides ────────────────────────
+  const CUBE_SMOKE_COUNT = 50;
+  const cubeSmokeGeo = new THREE.BufferGeometry();
+  const cubeSmokePos = new Float32Array(CUBE_SMOKE_COUNT * 3);
+  const cubeSmokeCol = new Float32Array(CUBE_SMOKE_COUNT * 3);
+  cubeSmokeGeo.setAttribute('position', new THREE.BufferAttribute(cubeSmokePos, 3));
+  cubeSmokeGeo.setAttribute('color',    new THREE.BufferAttribute(cubeSmokeCol, 3));
+
+  const cubeSmokeMat = new THREE.PointsMaterial({
+    size: 0.008, vertexColors: true, transparent: true,
+    opacity: 1.0, blending: THREE.AdditiveBlending,
+    depthWrite: false, sizeAttenuation: true,
+  });
+  const cubeSmokePoints = new THREE.Points(cubeSmokeGeo, cubeSmokeMat);
+
+  // World position of the cube: group is at (-2.8, 0, 2.6), cube.position.y = 0.84
+  const CUBE_WX = -2.8, CUBE_WZ = 2.6;
+  const CUBE_HALF = 0.21; // half of 0.42
+  const CUBE_BOTTOM = 0.63, CUBE_TOP = 1.05;
+
+  // Palette: teal, cyan, dark blue, dark blue
+  const cubeSmokePalette = [
+    [0.0, 1.0, 0.8], [0.0, 0.8, 1.0],
+    [0.0, 0.2, 0.8], [0.0, 0.3, 0.9],
+  ];
+
+  const cubeSmokeParticles = Array.from({ length: CUBE_SMOKE_COUNT }, () => ({
+    x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
+    life: 0, maxLife: 1.0, r: 0, g: 0, b: 0,
+  }));
+
+  function resetCubeSmokeParticle(p) {
+    // Spawn on one of the four cube sides or the top face
+    const side = Math.floor(Math.random() * 5);
+    const along = (Math.random() - 0.5) * CUBE_HALF * 2;
+    const h = CUBE_BOTTOM + Math.random() * (CUBE_TOP - CUBE_BOTTOM);
+    const offset = 0.03;
+    if (side === 0) { p.x = CUBE_WX - CUBE_HALF - offset; p.z = CUBE_WZ + along; p.y = h; }
+    else if (side === 1) { p.x = CUBE_WX + CUBE_HALF + offset; p.z = CUBE_WZ + along; p.y = h; }
+    else if (side === 2) { p.x = CUBE_WX + along; p.z = CUBE_WZ - CUBE_HALF - offset; p.y = h; }
+    else if (side === 3) { p.x = CUBE_WX + along; p.z = CUBE_WZ + CUBE_HALF + offset; p.y = h; }
+    else {
+      // Top face
+      p.x = CUBE_WX + (Math.random() - 0.5) * CUBE_HALF * 2;
+      p.z = CUBE_WZ + (Math.random() - 0.5) * CUBE_HALF * 2;
+      p.y = CUBE_TOP + 0.01;
+    }
+    p.vx  = (Math.random() - 0.5) * 0.01;
+    p.vy  = 0.02 + Math.random() * 0.03;
+    p.vz  = (Math.random() - 0.5) * 0.01;
+    p.life    = 0;
+    p.maxLife = 0.8 + Math.random() * 0.8;
+    const c = cubeSmokePalette[Math.floor(Math.random() * cubeSmokePalette.length)];
+    [p.r, p.g, p.b] = c;
+  }
+
+  cubeSmokeParticles.forEach(p => { resetCubeSmokeParticle(p); p.life = Math.random() * p.maxLife; });
+
+  function updateCubeSmoke(delta) {
+    const pa = cubeSmokeGeo.getAttribute('position');
+    const ca = cubeSmokeGeo.getAttribute('color');
+    for (let i = 0; i < CUBE_SMOKE_COUNT; i++) {
+      const p = cubeSmokeParticles[i];
+      p.life += delta;
+      if (p.life >= p.maxLife) resetCubeSmokeParticle(p);
+      const t = p.life / p.maxLife;
+      const fade = t < 0.15 ? t / 0.15 : t > 0.6 ? 1 - (t - 0.6) / 0.4 : 1.0;
+      const brightness = Math.max(0, fade) * 1.0;
+      p.x += p.vx * delta;
+      p.y += p.vy * delta;
+      p.z += p.vz * delta;
+      p.vx += (Math.random() - 0.5) * 0.005;
+      p.vz += (Math.random() - 0.5) * 0.005;
+      pa.array[i * 3]     = p.x;
+      pa.array[i * 3 + 1] = p.y;
+      pa.array[i * 3 + 2] = p.z;
+      ca.array[i * 3]     = p.r * brightness;
+      ca.array[i * 3 + 1] = p.g * brightness;
+      ca.array[i * 3 + 2] = p.b * brightness;
+    }
+    pa.needsUpdate = true;
+    ca.needsUpdate = true;
+  }
+
+  group.userData = { bookGroup, smokePoints, updateSmoke, cubeSmokePoints, updateCubeSmoke };
 
   return group;
 }
@@ -2112,9 +2196,12 @@ export function createObjects(scene) {
   // ── Animation: spin globe + bob book ──
   const globeMesh  = globe.userData.globeMesh;
   const bookGroup  = pedestal.userData.bookGroup;
-  const updateSmoke = pedestal.userData.updateSmoke;
-  const smokePoints = pedestal.userData.smokePoints;
-  if (smokePoints) scene.add(smokePoints);
+  const updateSmoke      = pedestal.userData.updateSmoke;
+  const smokePoints      = pedestal.userData.smokePoints;
+  const updateCubeSmoke  = pedestal.userData.updateCubeSmoke;
+  const cubeSmokePoints  = pedestal.userData.cubeSmokePoints;
+  if (smokePoints)     scene.add(smokePoints);
+  if (cubeSmokePoints) scene.add(cubeSmokePoints);
 
   let elapsed = 0;
   function sceneUpdate(delta) {
@@ -2123,7 +2210,8 @@ export function createObjects(scene) {
     if (bookGroup && !bookGroup.userData.isAnimating) {
       bookGroup.position.y = 1.18 + Math.sin(elapsed * 1.5) * 0.04;
     }
-    if (updateSmoke && !bookGroup?.userData?.isAnimating) updateSmoke(delta);
+    if (updateSmoke) updateSmoke(delta);
+    if (updateCubeSmoke) updateCubeSmoke(delta);
     if (holoDiamond) {
       holoDiamond.rotation.y += delta * 1.5;
       holoDiamond.position.y = 0.82 + Math.sin(elapsed * 2) * 0.03;
