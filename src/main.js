@@ -4,6 +4,7 @@ import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom } from './scene/nature-room.js';
+import { createExteriorRoom } from './scene/exterior-room.js';
 import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
 import { createUI } from './ui.js';
 
@@ -36,8 +37,8 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, 1.6, 2);
-camera.lookAt(0, 1.6, 0);
+camera.position.set(-20, 1.6, 6);
+camera.lookAt(-20, 1.6, -2);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -57,7 +58,7 @@ controls.minDistance = 0.5;
 controls.maxDistance = 4;
 controls.minPolarAngle = Math.PI / 3;
 controls.maxPolarAngle = Math.PI / 2;
-controls.target.set(0, 1.6, 0);
+controls.target.set(-20, 1.6, -2);
 
 // Hide the first-person overlay and crosshair (not used anymore)
 const fpOverlay = document.getElementById('fp-overlay');
@@ -105,11 +106,14 @@ function updateRotation(delta) {
     controls.target.add(move);
 
     // Clamp to current room bounds
-    const roomX0 = currentRoom === 'nature' ? 20 : 0;
-    camera.position.x = Math.max(roomX0 - 3.0, Math.min(roomX0 + 3.0, camera.position.x));
-    camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
-    controls.target.x = Math.max(roomX0 - 3.0, Math.min(roomX0 + 3.0, controls.target.x));
-    controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
+    const roomX0 = currentRoom === 'nature' ? 20 : currentRoom === 'exterior' ? -20 : 0;
+    const xBound0 = currentRoom === 'exterior' ? 5 : 3.0;
+    camera.position.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, camera.position.x));
+    controls.target.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, controls.target.x));
+    const zMin = currentRoom === 'exterior' ? -4 : -2.5;
+    const zMax = currentRoom === 'exterior' ? 8 : 2.5;
+    camera.position.z = Math.max(zMin, Math.min(zMax, camera.position.z));
+    controls.target.z = Math.max(zMin, Math.min(zMax, controls.target.z));
   }
 
   // A/D also move the camera + target sideways (strafe)
@@ -124,11 +128,14 @@ function updateRotation(delta) {
     camera.position.add(move);
     controls.target.add(move);
 
-    const roomX1 = currentRoom === 'nature' ? 20 : 0;
-    camera.position.x = Math.max(roomX1 - 3.0, Math.min(roomX1 + 3.0, camera.position.x));
-    camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
-    controls.target.x = Math.max(roomX1 - 3.0, Math.min(roomX1 + 3.0, controls.target.x));
-    controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
+    const roomX1 = currentRoom === 'nature' ? 20 : currentRoom === 'exterior' ? -20 : 0;
+    const xBound1 = currentRoom === 'exterior' ? 5 : 3.0;
+    camera.position.x = Math.max(roomX1 - xBound1, Math.min(roomX1 + xBound1, camera.position.x));
+    controls.target.x = Math.max(roomX1 - xBound1, Math.min(roomX1 + xBound1, controls.target.x));
+    const zMinS = currentRoom === 'exterior' ? -4 : -2.5;
+    const zMaxS = currentRoom === 'exterior' ? 8 : 2.5;
+    camera.position.z = Math.max(zMinS, Math.min(zMaxS, camera.position.z));
+    controls.target.z = Math.max(zMinS, Math.min(zMaxS, controls.target.z));
   }
 }
 
@@ -225,6 +232,10 @@ soundToggleDiv.style.display = 'flex';
 const natureRoom = createNatureRoom(scene);
 clickableObjects.push(...natureRoom.clickables);
 
+// ── Exterior room ──
+const exteriorRoom = createExteriorRoom(scene);
+clickableObjects.push(...exteriorRoom.clickables);
+
 // Animate nature room
 addUpdateCallback((delta) => {
   const elapsed = performance.now() * 0.001;
@@ -263,7 +274,7 @@ addUpdateCallback((delta) => {
 
 // ── Room transitions ──
 const fadeOverlay = document.getElementById('fade-overlay');
-let currentRoom = 'ai'; // 'ai' or 'nature'
+let currentRoom = 'exterior'; // 'ai', 'nature', or 'exterior'
 
 function transitionToRoom(targetRoom) {
   // Clear saved zoom position without moving the camera
@@ -275,6 +286,11 @@ function transitionToRoom(targetRoom) {
       camera.position.set(20, 1.6, -3);
       controls.target.set(20, 1.6, 0);
       currentRoom = 'nature';
+      cssRenderer.domElement.style.display = 'none';
+    } else if (targetRoom === 'exterior') {
+      camera.position.set(-20, 1.6, 6);
+      controls.target.set(-20, 1.6, -2);
+      currentRoom = 'exterior';
       cssRenderer.domElement.style.display = 'none';
     } else {
       camera.position.set(0, 1.6, 2);
