@@ -530,6 +530,7 @@ stepbackBtn.addEventListener('click', () => {
   tvControls.classList.add('hidden');
   tvMagBtn.classList.add('hidden');
   magnifierActive = false;
+  if (_magSyncInterval) { clearInterval(_magSyncInterval); _magSyncInterval = null; }
   magDiv.style.display = 'none';
   magIframe.src = '';
   tvMagBtn.style.color = '';
@@ -646,6 +647,18 @@ document.addEventListener('mousemove', e => {
   if (magnifierActive) moveMagnifier(e.clientX, e.clientY);
 });
 
+let _magSyncInterval = null;
+
+function _startMagSync() {
+  if (_magSyncInterval) clearInterval(_magSyncInterval);
+  _magSyncInterval = setInterval(() => {
+    if (!magnifierActive) { clearInterval(_magSyncInterval); _magSyncInterval = null; return; }
+    const seek = Math.floor(getVideoTimeSec());
+    magIframe.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'seekTo', args: [seek, true] }), '*');
+  }, 1000);
+}
+
 const tvMagBtn = document.getElementById('tv-mag-btn');
 tvMagBtn.addEventListener('click', () => {
   magnifierActive = !magnifierActive;
@@ -654,13 +667,15 @@ tvMagBtn.addEventListener('click', () => {
     magIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1) + `&start=${t}`;
     magDiv.style.display = 'block';
     tvMagBtn.style.color = '#00aaff';
-    // After iframe loads, seek precisely to current time
+    // After iframe loads, do an initial seek then start continuous sync
     magIframe.onload = () => {
       const seek = Math.floor(getVideoTimeSec());
       magIframe.contentWindow?.postMessage(
         JSON.stringify({ event: 'command', func: 'seekTo', args: [seek, true] }), '*');
+      _startMagSync();
     };
   } else {
+    if (_magSyncInterval) { clearInterval(_magSyncInterval); _magSyncInterval = null; }
     magDiv.style.display = 'none';
     magIframe.src = '';
     magIframe.onload = null;
@@ -681,6 +696,7 @@ nav.goTo = (id) => {
     tvControls.classList.add('hidden');
     tvMagBtn.classList.add('hidden');
     magnifierActive = false;
+    if (_magSyncInterval) { clearInterval(_magSyncInterval); _magSyncInterval = null; }
     magDiv.style.display = 'none';
     magIframe.src = '';
     tvMagBtn.style.color = '';
