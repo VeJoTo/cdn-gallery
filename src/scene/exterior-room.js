@@ -458,7 +458,7 @@ export function createExteriorRoom(scene) {
     new THREE.BoxGeometry(1.4, 0.52, 0.04),
     new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.5 })
   );
-  signPanel.position.y = 1.9;
+  signPanel.position.set(0.75, 1.9, 0);
   signGroup.add(signPanel);
 
   return { offset: OFFSET, clickables };
