@@ -469,10 +469,10 @@ export function createExteriorRoom(scene) {
     scene.add(hGroup);
   }
 
-  // Three houses spread behind the glasshus — bigger, with slight rotation for depth
-  addHouse(-6, -7.0, 4.5, 5.0, 4.0, 0.2);    // left house
-  addHouse( 0, -9.0, 5.0, 5.5, 4.5, 0);       // centre house (largest)
-  addHouse( 6, -6.5, 4.0, 4.5, 3.5, -0.15);   // right house
+  // Houses flanking the glasshus — attached to the stone walls on each side
+  addHouse(-5.5, -2.0, 4.5, 5.0, 4.0, 0);     // left side of glasshus
+  addHouse( 5.5, -2.0, 4.5, 5.0, 4.0, 0);     // right side of glasshus
+  addHouse( 0,  -9.0, 5.0, 5.5, 4.5, 0);      // one behind centre for depth
 
   // ── CDN signpost ──
   const signGroup = new THREE.Group();
