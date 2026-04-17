@@ -1013,8 +1013,8 @@ body {
   pointer-events: none;
   z-index: 2;
 }
-#css3d-layer iframe {
-  border: 0;
+#css3d-layer iframe,
+#css3d-layer div {
   pointer-events: auto;
 }
 

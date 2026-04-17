@@ -1228,17 +1228,14 @@ function buildTV() {
     clearcoatRoughness: 0.05
   });
   const body = new THREE.Mesh(
-    new RoundedBoxGeometry(2.08, 1.22, 0.10, 4, 0.08),
+    new RoundedBoxGeometry(2.08, 1.22, 0.05, 4, 0.08),
     glossMat
   );
   body.position.z = -0.02;
   body.castShadow = true;
   group.add(body);
 
-  // Glow ring directly around the video (1.92 × 1.08, border-radius ≈ 0.034)
-  const glowMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2.5
-  });
+  // Holographic dual glow ring — cyan front + purple back, matching info panel colors
   const _gw = 1.93, _gh = 1.09, _gr = 0.034;
   const _hw = _gw / 2, _hh = _gh / 2;
   const _shape = new THREE.Shape();
@@ -1253,14 +1250,23 @@ function buildTV() {
   _shape.absarc(-_hw + _gr, -_hh + _gr, _gr, Math.PI, Math.PI * 1.5, false);
   const _pts = _shape.getPoints(256).map(p => new THREE.Vector3(p.x, p.y, 0));
   const _curve = new THREE.CatmullRomCurve3(_pts, true);
-  const glowRing = new THREE.Mesh(
-    new THREE.TubeGeometry(_curve, 512, 0.004, 8, true),
-    glowMat
-  );
-  glowRing.position.z = 0.042;
-  group.add(glowRing);
+  const _tubeGeo = new THREE.TubeGeometry(_curve, 512, 0.004, 8, true);
 
-  // Click action: zooms in and opens a panel describing the video
+  // Cyan ring (front) — matches info panel top border
+  const cyanRing = new THREE.Mesh(_tubeGeo, new THREE.MeshStandardMaterial({
+    color: 0x0055ff, emissive: 0x0055ff, emissiveIntensity: 5.0
+  }));
+  cyanRing.position.z = 0.044;
+  group.add(cyanRing);
+
+  // White ring (behind) — matches info panel side border
+  const purpleRing = new THREE.Mesh(_tubeGeo, new THREE.MeshStandardMaterial({
+    color: 0x4499ff, emissive: 0x4499ff, emissiveIntensity: 4.0
+  }));
+  purpleRing.position.z = 0.038;
+  group.add(purpleRing);
+
+  // Click action: zooms in
   group.userData = {
     clickable: true,
     hotspot: 'tv'

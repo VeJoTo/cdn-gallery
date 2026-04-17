@@ -173,7 +173,7 @@ addUpdateCallback(sceneUpdate);
 let currentVideoIndex = 0;
 
 function buildTVSrc(id, autoplay = 1) {
-  return `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+  return `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&showinfo=0&fs=0&disablekb=1&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 }
 
 const tvVideoIframe = document.createElement('iframe');
@@ -198,38 +198,66 @@ const tvScale = 1.92 / 1280;
 tvCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvCSS3D);
 
-// ── Hologram info-panel (CSS3DObject) ──
+// ── TV click overlay — sits just in front of the iframe, catches clicks and hides YouTube's play button ──
+const tvOverlayDiv = document.createElement('div');
+tvOverlayDiv.style.cssText = `
+  width: 1280px;
+  height: 720px;
+  border-radius: 23px;
+  cursor: pointer;
+  pointer-events: auto;
+  background: transparent;
+  transition: background 0.3s ease;
+`;
+const tvOverlayCSS3D = new CSS3DObject(tvOverlayDiv);
+tvOverlayCSS3D.position.set(3.44, 2.45, 0); // just in front of iframe at 3.45
+tvOverlayCSS3D.rotation.y = -Math.PI / 2;
+tvOverlayCSS3D.scale.set(tvScale, tvScale, tvScale);
+cssScene.add(tvOverlayCSS3D);
+
+function updateTVOverlay() {
+  // Always nearly transparent — just painted enough to catch pointer events
+  tvOverlayDiv.style.background = 'rgba(0,0,0,0.001)';
+}
+
+// ── Hologram info-panel (CSS3DObject) — same dimensions as video (1280×720) ──
 const hologramDiv = document.createElement('div');
 hologramDiv.style.cssText = `
-  width: 500px;
-  max-height: 310px;
-  overflow: hidden;
-  padding: 22px 28px;
+  width: 1280px;
+  height: 720px;
   box-sizing: border-box;
-  background: rgba(2, 0, 14, 0.88);
-  border: 1px solid rgba(106, 13, 170, 0.7);
-  border-top: 2px solid rgba(0, 212, 255, 0.9);
-  border-radius: 8px;
+  background: linear-gradient(160deg, rgba(2,0,28,0.94) 0%, rgba(10,0,40,0.90) 100%);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-top: 2px solid rgba(0,212,255,0.9);
+  border-bottom: 2px solid rgba(255,255,255,0.5);
+  border-radius: 23px;
+  box-shadow: inset 0 0 80px rgba(255,255,255,0.06), inset 0 0 160px rgba(0,212,255,0.06);
   font-family: 'Courier New', monospace;
   color: #fff;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 100px;
+  backdrop-filter: blur(2px);
 `;
 
 function updateHologram(video) {
   hologramDiv.innerHTML = `
-    <div style="color:#b833ff;font-size:9px;letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 10px #b833ff,0 0 20px #b833ff">
+    <div style="color:#ffffff;font-size:22px;letter-spacing:6px;text-transform:uppercase;margin-bottom:32px;text-shadow:0 0 10px #ffffff,0 0 20px rgba(255,255,255,0.6)">
       ◈ &nbsp;NOW PLAYING &nbsp;◈
     </div>
-    <div style="font-size:15px;font-weight:bold;color:#ffffff;margin-bottom:6px;line-height:1.35;text-shadow:0 0 10px #6a0daa,0 0 20px #6a0daa">
+    <div style="font-size:42px;font-weight:bold;color:#ffffff;margin-bottom:16px;line-height:1.25;text-shadow:0 0 20px rgba(255,255,255,0.5),0 0 40px rgba(255,255,255,0.3)">
       ${video.title}
     </div>
-    <div style="font-size:11px;color:rgba(168,216,234,0.8);margin-bottom:10px">${video.artist}</div>
+    <div style="font-size:28px;color:rgba(168,216,234,0.85);margin-bottom:28px">${video.artist}</div>
     ${video.description
-      ? `<div style="font-size:11px;color:rgba(0,212,255,0.8);border-top:1px solid rgba(106,13,170,0.4);padding-top:10px;line-height:1.5;text-shadow:0 0 8px rgba(0,212,255,0.6);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+      ? `<div style="font-size:22px;color:rgba(0,212,255,0.85);border-top:1px solid rgba(255,255,255,0.2);padding-top:28px;line-height:1.6;text-shadow:0 0 8px rgba(0,212,255,0.5);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
            ${video.description}
          </div>`
       : ''}
-    <div style="margin-top:14px;font-size:9px;color:rgba(106,13,170,0.9);letter-spacing:3px;display:flex;justify-content:space-between;text-shadow:0 0 8px #6a0daa">
+    <div style="margin-top:48px;font-size:18px;color:rgba(255,255,255,0.7);letter-spacing:4px;display:flex;justify-content:space-between;text-shadow:0 0 8px rgba(255,255,255,0.5)">
       <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
       <span>${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
     </div>
@@ -237,47 +265,62 @@ function updateHologram(video) {
 }
 
 const infoCss3D = new CSS3DObject(hologramDiv);
-// Position hologram down in front of the TV screen
-infoCss3D.position.set(2.8, 2.5, 0);
+// Same position and scale as the video — placed just in front of it (local z=0.07 → world x=3.42)
+infoCss3D.position.set(3.3, 2.45, 0);
 infoCss3D.rotation.y = -Math.PI / 2;
-infoCss3D.scale.setScalar(1.5 / 500);
+infoCss3D.scale.setScalar(1.6 / 1280);
 cssScene.add(infoCss3D);
 
 // Hologram starts hidden; fades in/out via opacity
 hologramDiv.style.opacity = '0';
+hologramDiv.style.pointerEvents = 'none';
 hologramDiv.style.transition = 'opacity 0.4s ease';
-let _hologramHideTimer = null;
+let _hologramVisible = false;
 
-window.__setHologramVisible = (show, autohideMs = 0) => {
-  if (_hologramHideTimer) { clearTimeout(_hologramHideTimer); _hologramHideTimer = null; }
-  hologramDiv.style.opacity = show ? '0.95' : '0';
-  if (show && autohideMs > 0) {
-    _hologramHideTimer = setTimeout(() => {
-      hologramDiv.style.opacity = '0';
-    }, autohideMs);
+window.__setHologramVisible = (show) => {
+  _hologramVisible = show;
+  hologramDiv.style.opacity = show ? '1' : '0';
+  hologramDiv.style.pointerEvents = show ? 'auto' : 'none';
+  // Pause video while info panel is visible
+  if (show && isPlaying) {
+    tvVideoIframe.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+    isPlaying = false; _onPause();
+    if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '▶';
   }
+  // Show info icon only when panel is hidden
+  const infoBtn = document.getElementById('tv-info');
+  if (infoBtn) infoBtn.classList.toggle('hidden', show);
+  updateTVOverlay?.();
 };
 
+window.__isHologramVisible = () => _hologramVisible;
+
 updateHologram(aiArtVideos[currentVideoIndex]);
+hologramDiv.addEventListener('click', () => tvPlayPauseBtn?.click());
 
-let hologramTime = 0;
-addUpdateCallback((delta) => {
-  hologramTime += delta;
-  infoCss3D.position.y = 2.5 + Math.sin(hologramTime * 0.25) * 0.015;
-});
+let isPlaying = false;
+let _videoPlayStart = null;   // Date.now() when play began
+let _videoAccSecs   = 0;      // seconds accumulated before last pause
 
-let isPlaying = false; // first video loads with autoplay=0
+function getVideoTimeSec() {
+  return _videoAccSecs + (_videoPlayStart ? (Date.now() - _videoPlayStart) / 1000 : 0);
+}
+
+function _onPlay()  { _videoPlayStart = Date.now(); }
+function _onPause() { if (_videoPlayStart) { _videoAccSecs += (Date.now() - _videoPlayStart) / 1000; _videoPlayStart = null; } }
 
 function loadVideo(index) {
   currentVideoIndex = (index + aiArtVideos.length) % aiArtVideos.length;
+  _videoAccSecs = 0; _videoPlayStart = null;
+  // Load paused — user must press play to start
+  tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 0);
+  isPlaying = false;
+  if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '▶';
   updateHologram(aiArtVideos[currentVideoIndex]);
-  window.__setHologramVisible(true, 6000);
-  // Short delay so user sees the info panel before the video starts
-  setTimeout(() => {
-    tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1);
-    isPlaying = true;
-    if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '⏸';
-  }, 1500);
+  // Force hologram visible (reset even if already showing)
+  _hologramVisible = false;
+  window.__setHologramVisible(true);
 }
 
 window.__nextVideo = () => loadVideo(currentVideoIndex + 1);
@@ -485,6 +528,11 @@ stepbackBtn.addEventListener('click', () => {
   nav.goBack();
   stepbackBtn.classList.add('hidden');
   tvControls.classList.add('hidden');
+  tvMagBtn.classList.add('hidden');
+  magnifierActive = false;
+  magDiv.style.display = 'none';
+  magIframe.src = '';
+  tvMagBtn.style.color = '';
   window.__setHologramVisible(false);
   // Close any open panel drawer
   const drawer = document.getElementById('panel-drawer');
@@ -497,22 +545,128 @@ const tvControls      = document.getElementById('tv-controls');
 const tvPlayPauseBtn  = document.getElementById('tv-playpause');
 const tvPrevBtn       = document.getElementById('tv-prev');
 const tvNextBtn       = document.getElementById('tv-next');
+const tvInfoBtn       = document.getElementById('tv-info');
 
 tvPlayPauseBtn.addEventListener('click', () => {
-  if (isPlaying) {
+  if (window.__isHologramVisible()) {
+    window.__setHologramVisible(false);
+    tvVideoIframe.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
+    isPlaying = true; _onPlay();
+    tvPlayPauseBtn.textContent = '▮▮';
+  } else if (isPlaying) {
     tvVideoIframe.contentWindow.postMessage(
       JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
-    isPlaying = false;
+    isPlaying = false; _onPause();
     tvPlayPauseBtn.textContent = '▶';
   } else {
     tvVideoIframe.contentWindow.postMessage(
       JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
-    isPlaying = true;
-    tvPlayPauseBtn.textContent = '⏸';
+    isPlaying = true; _onPlay();
+    tvPlayPauseBtn.textContent = '▮▮';
   }
+  updateTVOverlay();
 });
 tvPrevBtn.addEventListener('click', () => loadVideo(currentVideoIndex - 1));
 tvNextBtn.addEventListener('click', () => loadVideo(currentVideoIndex + 1));
+tvOverlayDiv.addEventListener('click', () => tvPlayPauseBtn.click());
+
+tvInfoBtn.addEventListener('click', () => {
+  if (isPlaying) {
+    tvVideoIframe.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+    isPlaying = false;
+    tvPlayPauseBtn.textContent = '▶';
+  }
+  window.__setHologramVisible(true);
+});
+
+// ── TV Magnifier ─────────────────────────────────────────────────────────────
+const MAG_SIZE = 180;
+const MAG_SCALE = 1.8;
+let magnifierActive = false;
+
+const magDiv = document.createElement('div');
+magDiv.style.cssText = `
+  position: fixed;
+  width: ${MAG_SIZE}px;
+  height: ${MAG_SIZE}px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(0,170,255,0.9);
+  box-shadow: 0 0 15px rgba(0,170,255,0.5), 0 0 30px rgba(0,170,255,0.2);
+  display: none;
+  pointer-events: none;
+  z-index: 200;
+`;
+const magIframe = document.createElement('iframe');
+magIframe.style.cssText = `
+  position: absolute;
+  left: 0; top: 0;
+  width: 1280px; height: 720px;
+  border: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+`;
+magIframe.allow = 'autoplay; encrypted-media';
+magDiv.appendChild(magIframe);
+document.body.appendChild(magDiv);
+
+function getVideoScreenRect() {
+  // Video world position: center (3.45, 2.45, 0), half-width 0.96 along Z, half-height 0.54 along Y
+  const pts = [
+    new THREE.Vector3(3.45, 2.99,  0.96),
+    new THREE.Vector3(3.45, 2.99, -0.96),
+    new THREE.Vector3(3.45, 1.91,  0.96),
+    new THREE.Vector3(3.45, 1.91, -0.96),
+  ].map(p => {
+    const v = p.clone().project(camera);
+    return { x: (v.x * 0.5 + 0.5) * window.innerWidth,
+             y: (-v.y * 0.5 + 0.5) * window.innerHeight };
+  });
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  return { left: Math.min(...xs), top: Math.min(...ys),
+           width: Math.max(...xs) - Math.min(...xs),
+           height: Math.max(...ys) - Math.min(...ys) };
+}
+
+function moveMagnifier(clientX, clientY) {
+  const r = getVideoScreenRect();
+  const fx = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+  const fy = Math.max(0, Math.min(1, (clientY - r.top) / r.height));
+  // Translate so that point (fx*1280, fy*720) is centred in the lens
+  const tx = fx * 1280 - MAG_SIZE / (2 * MAG_SCALE);
+  const ty = fy * 720  - MAG_SIZE / (2 * MAG_SCALE);
+  magIframe.style.transform = `scale(${MAG_SCALE}) translate(${-tx}px, ${-ty}px)`;
+  magDiv.style.left = (clientX - MAG_SIZE / 2) + 'px';
+  magDiv.style.top  = (clientY - MAG_SIZE / 2) + 'px';
+}
+
+document.addEventListener('mousemove', e => {
+  if (magnifierActive) moveMagnifier(e.clientX, e.clientY);
+});
+
+const tvMagBtn = document.getElementById('tv-mag-btn');
+tvMagBtn.addEventListener('click', () => {
+  magnifierActive = !magnifierActive;
+  if (magnifierActive) {
+    const t = Math.floor(getVideoTimeSec());
+    magIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1) + `&start=${t}`;
+    magDiv.style.display = 'block';
+    tvMagBtn.style.color = '#00aaff';
+    // After iframe loads, seek precisely to current time
+    magIframe.onload = () => {
+      const seek = Math.floor(getVideoTimeSec());
+      magIframe.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'seekTo', args: [seek, true] }), '*');
+    };
+  } else {
+    magDiv.style.display = 'none';
+    magIframe.src = '';
+    magIframe.onload = null;
+    tvMagBtn.style.color = '';
+  }
+});
 
 // Show step-back button when zooming into a hotspot
 const _origGoTo = nav.goTo;
@@ -521,9 +675,15 @@ nav.goTo = (id) => {
   stepbackBtn.classList.remove('hidden');
   if (id === 'tv') {
     tvControls.classList.remove('hidden');
-    window.__setHologramVisible(true, 5000);
+    tvMagBtn.classList.remove('hidden');
+    window.__setHologramVisible(true);
   } else {
     tvControls.classList.add('hidden');
+    tvMagBtn.classList.add('hidden');
+    magnifierActive = false;
+    magDiv.style.display = 'none';
+    magIframe.src = '';
+    tvMagBtn.style.color = '';
     window.__setHologramVisible(false);
   }
 };
@@ -662,3 +822,6 @@ spotifyClose.addEventListener('click', stopPodcast);
 addUpdateCallback(() => ui.updateHints());
 
 animate();
+
+// Show info panel for the first video on startup
+loadVideo(0);
