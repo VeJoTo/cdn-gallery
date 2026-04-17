@@ -239,24 +239,6 @@ export function createExteriorRoom(scene) {
   roof.raycast = () => {};
   glasshus.add(roof);
 
-  // Ridge frame edges
-  const apexY = WALL_H + roofHeight;
-  const baseY = WALL_H;
-  for (const [rcx, rcz] of cornerDefs) {
-    const len = Math.sqrt(rcx * rcx + rcz * rcz + roofHeight * roofHeight);
-    const ridge = new THREE.Mesh(
-      new THREE.BoxGeometry(0.04, len, 0.04),
-      frameMat
-    );
-    ridge.position.set(rcx / 2, (baseY + apexY) / 2, rcz / 2);
-    const horizDist = Math.sqrt(rcx * rcx + rcz * rcz);
-    const pitch = Math.atan2(roofHeight, horizDist);
-    const yaw   = Math.atan2(rcx, rcz);
-    ridge.rotation.order = 'YXZ';
-    ridge.rotation.y = yaw;
-    ridge.rotation.x = -pitch;
-    glasshus.add(ridge);
-  }
 
   // ── Glass double doors ──
   const doorGroup = new THREE.Group();

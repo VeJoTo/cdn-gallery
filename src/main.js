@@ -171,8 +171,14 @@ function animate() {
   if (showCSS3D) cssRenderer.render(cssScene, camera);
 }
 
+// Track AI room objects for visibility toggling
+const aiRoomChildrenBefore = scene.children.length;
 createRoom(scene);
 const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv, globe, musicNotes } = createObjects(scene);
+const aiRoomChildren = scene.children.slice(aiRoomChildrenBefore);
+
+// Start with AI room hidden (player spawns in exterior)
+for (const child of aiRoomChildren) child.visible = false;
 addUpdateCallback(sceneUpdate);
 
 // ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
@@ -287,16 +293,19 @@ function transitionToRoom(targetRoom) {
       controls.target.set(20, 1.6, 0);
       currentRoom = 'nature';
       cssRenderer.domElement.style.display = 'none';
+      for (const c of aiRoomChildren) c.visible = false;
     } else if (targetRoom === 'exterior') {
       camera.position.set(-20, 1.6, 5);
       controls.target.set(-20, 1.6, 2);
       currentRoom = 'exterior';
       cssRenderer.domElement.style.display = 'none';
+      for (const c of aiRoomChildren) c.visible = false;
     } else {
       camera.position.set(0, 1.6, 2);
       controls.target.set(0, 1.6, 0);
       currentRoom = 'ai';
       cssRenderer.domElement.style.display = '';
+      for (const c of aiRoomChildren) c.visible = true;
     }
     controls.update();
 
