@@ -7,6 +7,8 @@ import { createNatureRoom } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
 import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
 import { createUI } from './ui.js';
+import { EffectComposer, RenderPass } from 'postprocessing';
+import { GodraysPass } from 'three-good-godrays';
 
 const canvas = document.getElementById('gallery-canvas');
 
@@ -48,6 +50,7 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   cssRenderer.setSize(window.innerWidth, window.innerHeight);
+  if (window.__godraysComposer) window.__godraysComposer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ── OrbitControls (free cursor, drag to rotate, A/D to rotate) ──
@@ -155,7 +158,11 @@ function animate() {
   updateRotation(delta);
   controls.update();
   updateHoverHighlight();
-  renderer.render(scene, camera);
+  if (currentRoom === 'exterior') {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
 
   // Only show CSS3D iframes when camera is close to the screens and facing them
   // TV is at (3.419, 2.85, 0), monitor at ~(2.35, 1.22, -2.9)
@@ -242,6 +249,27 @@ clickableObjects.push(...natureRoom.clickables);
 // ── Exterior room ──
 const exteriorRoom = createExteriorRoom(scene);
 clickableObjects.push(...exteriorRoom.clickables);
+
+// ── Godrays composer for exterior sunlight ──
+const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
+const renderPass = new RenderPass(scene, camera);
+renderPass.renderToScreen = false;
+composer.addPass(renderPass);
+
+const godraysPass = new GodraysPass(exteriorRoom.sunLight, camera, {
+  density: 0.04,
+  maxDensity: 0.1,
+  edgeStrength: 2,
+  edgeRadius: 2,
+  distanceAttenuation: 2,
+  color: new THREE.Color(0xfff5dd),
+  raymarchSteps: 60,
+  blur: true,
+  gammaCorrection: true,
+});
+godraysPass.renderToScreen = true;
+composer.addPass(godraysPass);
+window.__godraysComposer = composer;
 
 // Animate exterior enter label (gentle bob + pulse)
 addUpdateCallback(() => {

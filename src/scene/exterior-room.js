@@ -655,5 +655,5 @@ export function createExteriorRoom(scene) {
   addFlowerPatch(-4, -4, 5, 1.5);      // near left house
   addFlowerPatch(4, -4, 5, 1.5);       // near right house
 
-  return { offset: OFFSET, clickables, enterLabel, arrowMesh };
+  return { offset: OFFSET, clickables, enterLabel, arrowMesh, sunLight: dirLight };
 }
