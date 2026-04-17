@@ -27,8 +27,9 @@ export const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0f1a);
-scene.fog = new THREE.FogExp2(0x0a0f1a, 0.04);
+// Start with exterior sky (overridden per room in transitions)
+scene.background = new THREE.Color(0x88bbf0);
+scene.fog = null;
 
 // ── Camera ────────────────────────────────────────
 export const camera = new THREE.PerspectiveCamera(
@@ -294,18 +295,24 @@ function transitionToRoom(targetRoom) {
       currentRoom = 'nature';
       cssRenderer.domElement.style.display = 'none';
       for (const c of aiRoomChildren) c.visible = false;
+      scene.background = new THREE.Color(0x88bbf0);
+      scene.fog = null;
     } else if (targetRoom === 'exterior') {
       camera.position.set(-20, 1.6, 5);
       controls.target.set(-20, 1.6, 2);
       currentRoom = 'exterior';
       cssRenderer.domElement.style.display = 'none';
       for (const c of aiRoomChildren) c.visible = false;
+      scene.background = new THREE.Color(0x88bbf0);
+      scene.fog = null;
     } else {
       camera.position.set(0, 1.6, 2);
       controls.target.set(0, 1.6, 0);
       currentRoom = 'ai';
       cssRenderer.domElement.style.display = '';
       for (const c of aiRoomChildren) c.visible = true;
+      scene.background = new THREE.Color(0x0a0f1a);
+      scene.fog = new THREE.FogExp2(0x0a0f1a, 0.04);
     }
     controls.update();
 
