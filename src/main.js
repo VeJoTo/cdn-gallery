@@ -111,7 +111,7 @@ function updateRotation(delta) {
     const xBound0 = currentRoom === 'exterior' ? 5 : 3.0;
     camera.position.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, camera.position.x));
     controls.target.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, controls.target.x));
-    const zMin = currentRoom === 'exterior' ? -4 : -2.5;
+    const zMin = currentRoom === 'exterior' ? 0.5 : -2.5;
     const zMax = currentRoom === 'exterior' ? 8 : 2.5;
     camera.position.z = Math.max(zMin, Math.min(zMax, camera.position.z));
     controls.target.z = Math.max(zMin, Math.min(zMax, controls.target.z));
