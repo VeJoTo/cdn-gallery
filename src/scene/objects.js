@@ -1071,10 +1071,44 @@ function buildPedestal() {
       reflectivity: 1.0,
     })
   );
-  cube.position.y = 0.84;
+  cube.position.y = 0.86;
+  cube.scale.setScalar(0.82);
+  cube.rotation.y = 0.9 + Math.PI / 2;
   cube.castShadow = true;
   cube.userData = { clickable: true, hotspot: 'pedestal' };
   group.add(cube);
+
+  // ── Holographic wireframe bookstand ──────────────────────────────────────
+  const holoMat = new THREE.LineBasicMaterial({
+    color: 0x00eeff,
+    transparent: true,
+    opacity: 0.75,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  const holoStand = new THREE.Group();
+  holoStand.position.set(0, 1.06, 0); // flat between cube top and book
+  holoStand.rotation.y = 0.9 + Math.PI / 2;
+
+  function wireBox(w, h, d) {
+    return new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d)),
+      holoMat.clone()
+    );
+  }
+
+  // Flat platform surface — matches cube top face (0.42 * 0.82 = 0.344)
+  const platform = wireBox(0.344, 0.006, 0.344);
+  holoStand.add(platform);
+
+
+  // Disable raycasting on holoStand so clicks pass through to cube and book
+  holoStand.traverse(child => {
+    child.raycast = () => {};
+  });
+
+  group.add(holoStand);
 
   // Book group (will bob — referenced via userData for the update loop)
   const bookGroup = new THREE.Group();
