@@ -1,5 +1,6 @@
 // src/scene/objects.js
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 function buildArcadeCabinet(xPos, screenColor) {
   const group = new THREE.Group();
@@ -1215,81 +1216,60 @@ function buildRabbitHole() {
 
 function buildTV() {
   const group = new THREE.Group();
-  // Right wall, mounted high up
-  group.position.set(3.49, 2.85, 0);
+  group.position.set(3.49, 2.45, 0);
   group.rotation.y = -Math.PI / 2; // facing into the room (toward -x)
 
-  // CRT body — much deeper than a flat panel, with chunky beige plastic
+  // Futuristic flatscreen body — crisp white high-gloss finish, rounded corners
+  const glossMat = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    metalness: 0.1,
+    roughness: 0.05,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05
+  });
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(2.4, 1.55, 0.55),
-    new THREE.MeshLambertMaterial({ color: 0xd4c8a8 })
+    new RoundedBoxGeometry(2.08, 1.22, 0.05, 4, 0.08),
+    glossMat
   );
-  body.position.z = -0.25;
+  body.position.z = -0.02;
   body.castShadow = true;
   group.add(body);
 
-  // Wood-grain trim along the bottom
-  const trim = new THREE.Mesh(
-    new THREE.BoxGeometry(2.4, 0.12, 0.56),
-    new THREE.MeshLambertMaterial({ color: 0x6b4423 })
-  );
-  trim.position.set(0, -0.65, -0.25);
-  group.add(trim);
+  // Holographic dual glow ring — cyan front + purple back, matching info panel colors
+  const _gw = 1.93, _gh = 1.09, _gr = 0.034;
+  const _hw = _gw / 2, _hh = _gh / 2;
+  const _shape = new THREE.Shape();
+  _shape.moveTo(-_hw + _gr, -_hh);
+  _shape.lineTo( _hw - _gr, -_hh);
+  _shape.absarc( _hw - _gr, -_hh + _gr, _gr, -Math.PI / 2, 0, false);
+  _shape.lineTo( _hw,  _hh - _gr);
+  _shape.absarc( _hw - _gr,  _hh - _gr, _gr, 0, Math.PI / 2, false);
+  _shape.lineTo(-_hw + _gr,  _hh);
+  _shape.absarc(-_hw + _gr,  _hh - _gr, _gr, Math.PI / 2, Math.PI, false);
+  _shape.lineTo(-_hw, -_hh + _gr);
+  _shape.absarc(-_hw + _gr, -_hh + _gr, _gr, Math.PI, Math.PI * 1.5, false);
+  const _pts = _shape.getPoints(256).map(p => new THREE.Vector3(p.x, p.y, 0));
+  const _curve = new THREE.CatmullRomCurve3(_pts, true);
+  const _tubeGeo = new THREE.TubeGeometry(_curve, 512, 0.004, 8, true);
 
-  // Inner black bezel surrounding the screen
-  const bezel = new THREE.Mesh(
-    new THREE.BoxGeometry(2.1, 1.25, 0.06),
-    new THREE.MeshLambertMaterial({ color: 0x0a0a0a })
-  );
-  bezel.position.z = 0.04;
-  group.add(bezel);
+  // Cyan ring (front) — matches info panel top border
+  const cyanRing = new THREE.Mesh(_tubeGeo, new THREE.MeshStandardMaterial({
+    color: 0x0055ff, emissive: 0x0055ff, emissiveIntensity: 5.0
+  }));
+  cyanRing.position.z = 0.044;
+  group.add(cyanRing);
 
-  // Plain dark screen — the YouTube iframe is overlaid in screen space by ui.js.
-  // Keep this mesh's local geometry (1.92, 1.08) and position so iframe corners still match.
-  const screen = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.92, 1.08),
-    new THREE.MeshBasicMaterial({ color: 0x050d14 })
-  );
-  screen.position.z = 0.071;
-  group.add(screen);
+  // White ring (behind) — matches info panel side border
+  const purpleRing = new THREE.Mesh(_tubeGeo, new THREE.MeshStandardMaterial({
+    color: 0x4499ff, emissive: 0x4499ff, emissiveIntensity: 4.0
+  }));
+  purpleRing.position.z = 0.038;
+  group.add(purpleRing);
 
-  // Neon emissive border strips
-  const glowMat = new THREE.MeshStandardMaterial({
-    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
-  });
-  const stripT = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
-  stripT.position.set(0,  0.585, 0.072);
-  group.add(stripT);
-  const stripB = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
-  stripB.position.set(0, -0.585, 0.072);
-  group.add(stripB);
-  const stripL = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.15, 0.01), glowMat);
-  stripL.position.set(-0.99, 0, 0.072);
-  group.add(stripL);
-  const stripR = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.15, 0.01), glowMat);
-  stripR.position.set(0.99, 0, 0.072);
-  group.add(stripR);
-
-  // Two chunky control knobs on the right side
-  const knobMat = new THREE.MeshLambertMaterial({ color: 0x9a9a92 });
-  for (const ky of [-0.2, -0.45]) {
-    const knob = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 0.04, 12),
-      knobMat
-    );
-    knob.position.set(1.04, ky, 0.05);
-    knob.rotation.x = Math.PI / 2;
-    group.add(knob);
-  }
-
-  // Click action: zooms in and opens a panel describing the video
+  // Click action: zooms in
   group.userData = {
     clickable: true,
-    hotspot: 'tv',
-    action: 'openPanel',
-    panelId: 'tv',
-    panelTitle: 'CDN Video Archive',
-    screenMesh: screen
+    hotspot: 'tv'
   };
 
   return group;
