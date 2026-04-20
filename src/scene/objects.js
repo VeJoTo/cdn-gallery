@@ -1,5 +1,7 @@
 // src/scene/objects.js
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 function buildArcadeCabinet(xPos, screenColor) {
   const group = new THREE.Group();
@@ -1057,72 +1059,357 @@ function buildPedestal() {
   const group = new THREE.Group();
   group.position.set(-2.8, 0, 2.6);
 
-  // Column
-  const column = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.22, 1.0, 12),
-    new THREE.MeshLambertMaterial({ color: 0x111828 })
-  );
-  column.position.y = 0.5;
-  column.castShadow = true;
-  group.add(column);
-
-  // Top plate
-  const topPlate = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.25, 0.04, 12),
-    new THREE.MeshLambertMaterial({ color: 0x0a1a28 })
-  );
-  topPlate.position.y = 1.02;
-  group.add(topPlate);
-
-  // Glow ring
-  const glowRing = new THREE.Mesh(
-    new THREE.TorusGeometry(0.22, 0.012, 8, 24),
-    new THREE.MeshStandardMaterial({
-      color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.4
+  // White glossy cube stand
+  const cube = new THREE.Mesh(
+    new RoundedBoxGeometry(0.42, 0.42, 0.42, 4, 0.04),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      roughness: 0.05,
+      metalness: 0.0,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      reflectivity: 1.0,
     })
   );
-  glowRing.position.y = 1.04;
-  glowRing.rotation.x = -Math.PI / 2;
-  group.add(glowRing);
+  cube.position.y = 0.86;
+  cube.scale.setScalar(0.82);
+  cube.rotation.y = 0.9 + Math.PI / 2;
+  cube.castShadow = true;
+  cube.userData = { clickable: true, hotspot: 'pedestal' };
+  group.add(cube);
 
-  // Pedestal point light
-  const halo = new THREE.PointLight(0x00d4ff, 0.6, 2.5);
-  halo.position.y = 1.2;
-  group.add(halo);
+  // ── Holographic wireframe bookstand ──────────────────────────────────────
+  const holoMat = new THREE.LineBasicMaterial({
+    color: 0x00eeff,
+    transparent: true,
+    opacity: 0.75,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  const holoStand = new THREE.Group();
+  holoStand.position.set(0, 1.06, 0); // flat between cube top and book
+  holoStand.rotation.y = 0.9 + Math.PI / 2;
+
+  function wireBox(w, h, d) {
+    return new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d)),
+      holoMat.clone()
+    );
+  }
+
+  // Flat platform surface — matches cube top face (0.42 * 0.82 = 0.344)
+  const platform = wireBox(0.344, 0.006, 0.344);
+  holoStand.add(platform);
+
+
+  // Disable raycasting on holoStand so clicks pass through to cube and book
+  holoStand.traverse(child => {
+    child.raycast = () => {};
+  });
+
+  group.add(holoStand);
 
   // Book group (will bob — referenced via userData for the update loop)
   const bookGroup = new THREE.Group();
   bookGroup.position.y = 1.18;
+  bookGroup.rotation.y = 0.9; // face toward viewer at pedestal hotspot
 
-  const pageMat = new THREE.MeshStandardMaterial({
-    color: 0xf5d0a9, emissive: 0xddd0c0, emissiveIntensity: 0.4
+  const loader = new GLTFLoader();
+  const bookUrl = '/cdn-gallery/models/SketchFab/magic_book.glb';
+  console.log('Trying to load book from:', bookUrl);
+  loader.load(bookUrl, (gltf) => {
+    const model = gltf.scene;
+    model.scale.setScalar(0.0005);
+    model.rotation.z = Math.PI / 2 - 0.4; // tilt front cover toward viewer
+
+    // Set clickable on all meshes; log names so we can identify parts
+    model.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.userData = { clickable: true, hotspot: 'pedestal', action: 'openBook' };
+        const mat = child.material;
+        const bbox = new THREE.Box3().setFromObject(child);
+        const center = bbox.getCenter(new THREE.Vector3());
+        console.log(
+          'Book mesh:', child.name,
+          '| transparent:', mat?.transparent,
+          '| center:', center.x.toFixed(2), center.y.toFixed(2), center.z.toFixed(2),
+          '| size:', (bbox.max.x-bbox.min.x).toFixed(3), (bbox.max.y-bbox.min.y).toFixed(3), (bbox.max.z-bbox.min.z).toFixed(3)
+        );
+      }
+    });
+
+    // Neon blue glow on cover
+    model.traverse(child => {
+      if (child.isMesh && child.name.toLowerCase().includes('cover')) {
+        const old = child.material;
+        child.material = new THREE.MeshStandardMaterial({
+          map:               old.map,
+          emissiveMap:       old.map,
+          emissive:          new THREE.Color(0x88ddff),
+          emissiveIntensity: 5.0,
+          roughness:         0.4,
+          metalness:         0.2,
+          side:              old.side,
+        });
+      }
+    });
+
+    // Light blue glow on pages
+    model.traverse(child => {
+      if (child.isMesh && child.name.toLowerCase().includes('pages')) {
+        const old = child.material;
+        child.material = new THREE.MeshStandardMaterial({
+          map:               old.map,
+          emissiveMap:       old.map,
+          emissive:          new THREE.Color(0x88ddff),
+          emissiveIntensity: 3.5,
+          roughness:         0.6,
+          metalness:         0.0,
+          side:              old.side,
+        });
+      }
+    });
+
+    // Pull transparent decorations flush with the cover (local X = world Y after z-rotation)
+    const movedParents = new Set();
+    model.traverse(child => {
+      if (child.isMesh && child.material?.transparent && !movedParents.has(child.parent)) {
+        child.parent.position.x -= 20;
+        movedParents.add(child.parent);
+      }
+    });
+    // Fine-tune individual pieces
+    model.traverse(child => {
+      if (!child.isMesh) return;
+      const n = child.name.toLowerCase();
+      if (n.includes('tri'))    child.parent.position.x += 20;  // triangle up
+      if (n.includes('m1_'))    child.parent.position.x -= 8;  // small circle down
+      if (n.includes('middle')) child.parent.position.x -= 14;  // big circle down
+      if (n.includes('top_') || n.includes('bot_')) child.parent.position.x += 5; // push corner fittings in front of cover
+    });
+
+    // Cyan glow on corner fittings and middle band — match by name OR by Y position
+    model.traverse(child => {
+      if (!child.isMesh || child.material?.transparent) return;
+      const n = child.name.toLowerCase();
+      const bbox = new THREE.Box3().setFromObject(child);
+      const cy = bbox.getCenter(new THREE.Vector3()).y;
+      const isFitting = n.includes('top') || n.includes('bot') || n.includes('middle_')
+                     || cy > 100 || cy < -100;
+      if (!isFitting) return;
+      console.log('Cyan glow applied to:', child.name, 'cy:', cy.toFixed(1));
+      const old = child.material;
+      child.material = new THREE.MeshStandardMaterial({
+        map:               old.map,
+        emissiveMap:       old.map,
+        emissive:          new THREE.Color(0x00ffff),
+        emissiveIntensity: 4.0,
+        roughness:         0.3,
+        metalness:         0.8,
+        side:              old.side,
+      });
+    });
+
+    // Upgrade transparent meshes (pentagrams/decorations) to glowing StandardMaterial
+    model.traverse(child => {
+      if (child.isMesh && child.material?.transparent) {
+        const old = child.material;
+        child.material = new THREE.MeshStandardMaterial({
+          map:               old.map,
+          emissiveMap:       old.map,
+          emissive:          new THREE.Color(0xffffff),
+          emissiveIntensity: 5.0,
+          transparent:       true,
+          alphaTest:         0.01,
+          roughness:         0.3,
+          metalness:         0.1,
+          side:              old.side,
+        });
+      }
+    });
+
+    // Add model, then force matrix update so world positions are valid
+    bookGroup.add(model);
+    bookGroup.updateWorldMatrix(true, true);
+
+    // Collect all meshes for fade-out animation
+    const bookMeshes = [];
+    model.traverse(child => {
+      if (child.isMesh) bookMeshes.push(child);
+    });
+    bookGroup.userData.bookMeshes = bookMeshes;
+    bookGroup.userData.model = model;
+  }, undefined, (err) => {
+    console.error('Failed to load book model:', err);
   });
 
-  const leftPage = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.01, 0.22), pageMat);
-  leftPage.position.set(-0.095, 0.04, 0);
-  leftPage.rotation.z = -0.08;
-  bookGroup.add(leftPage);
-
-  const rightPage = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.01, 0.22), pageMat);
-  rightPage.position.set(0.095, 0.04, 0);
-  rightPage.rotation.z = 0.08;
-  bookGroup.add(rightPage);
-
-  const spine = new THREE.Mesh(
-    new THREE.BoxGeometry(0.01, 0.012, 0.22),
-    new THREE.MeshLambertMaterial({ color: 0x111828 })
-  );
-  spine.position.set(0, 0.035, 0);
-  bookGroup.add(spine);
-
-  group.add(bookGroup);
-
-  group.userData = {
+  bookGroup.userData = {
     clickable: true,
     hotspot: 'pedestal',
     action: 'openBook',
-    bookGroup
   };
+  group.add(bookGroup);
+
+  // ── Coloured smoke rising from the book ──────────────────────────────────
+  const SMOKE_COUNT = 70;
+  const smokeGeo = new THREE.BufferGeometry();
+  const smokePos = new Float32Array(SMOKE_COUNT * 3);
+  const smokeCol = new Float32Array(SMOKE_COUNT * 3);
+  smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePos, 3));
+  smokeGeo.setAttribute('color',    new THREE.BufferAttribute(smokeCol, 3));
+
+  const smokeMat = new THREE.PointsMaterial({
+    size: 0.003, vertexColors: true, transparent: true,
+    opacity: 0.85, blending: THREE.AdditiveBlending,
+    depthWrite: false, sizeAttenuation: true,
+  });
+  const smokePoints = new THREE.Points(smokeGeo, smokeMat);
+
+  // Colour palette: purple, cyan, violet, teal
+  const smokePalette = [
+    [0.0, 0.2, 0.8], [0.0, 0.8, 1.0],
+    [0.0, 0.3, 0.9], [0.0, 1.0, 0.7],
+  ];
+
+  const smokeParticles = Array.from({ length: SMOKE_COUNT }, () => ({
+    x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
+    life: Math.random() * 3, maxLife: 1.8 + Math.random() * 1.4,
+    r: 0, g: 0, b: 0,
+  }));
+
+  function resetSmokeParticle(p) {
+    const wp = new THREE.Vector3();
+    bookGroup.getWorldPosition(wp);
+    p.x  = wp.x + (Math.random() - 0.5) * 0.1;
+    p.y  = wp.y + 0.04 + Math.random() * 0.06;
+    p.z  = wp.z + (Math.random() - 0.5) * 0.1;
+    p.vx = (Math.random() - 0.5) * 0.03;
+    p.vy = 0.04 + Math.random() * 0.07;
+    p.vz = (Math.random() - 0.5) * 0.03;
+    p.life    = 0;
+    p.maxLife = 1.8 + Math.random() * 1.4;
+    const c = smokePalette[Math.floor(Math.random() * smokePalette.length)];
+    [p.r, p.g, p.b] = c;
+  }
+
+  // Stagger initial positions so they don't all burst at once
+  smokeParticles.forEach(p => { resetSmokeParticle(p); p.life = Math.random() * p.maxLife; });
+
+  function updateSmoke(delta) {
+    const pa = smokeGeo.getAttribute('position');
+    const ca = smokeGeo.getAttribute('color');
+    for (let i = 0; i < SMOKE_COUNT; i++) {
+      const p = smokeParticles[i];
+      p.life += delta;
+      if (p.life >= p.maxLife) resetSmokeParticle(p);
+      const t = p.life / p.maxLife;
+      // Fade envelope: ramp up, hold, fade out
+      const fade = t < 0.15 ? t / 0.15 : t > 0.65 ? 1 - (t - 0.65) / 0.35 : 1.0;
+      const brightness = Math.max(0, fade) * 0.55;
+      p.x += p.vx * delta;
+      p.y += p.vy * delta;
+      p.z += p.vz * delta;
+      // Gentle turbulence
+      p.vx += (Math.random() - 0.5) * 0.008;
+      p.vz += (Math.random() - 0.5) * 0.008;
+      pa.array[i * 3]     = p.x;
+      pa.array[i * 3 + 1] = p.y;
+      pa.array[i * 3 + 2] = p.z;
+      ca.array[i * 3]     = p.r * brightness;
+      ca.array[i * 3 + 1] = p.g * brightness;
+      ca.array[i * 3 + 2] = p.b * brightness;
+    }
+    pa.needsUpdate = true;
+    ca.needsUpdate = true;
+  }
+
+  // ── Tiny magical smoke creeping up the cube sides ────────────────────────
+  const CUBE_SMOKE_COUNT = 50;
+  const cubeSmokeGeo = new THREE.BufferGeometry();
+  const cubeSmokePos = new Float32Array(CUBE_SMOKE_COUNT * 3);
+  const cubeSmokeCol = new Float32Array(CUBE_SMOKE_COUNT * 3);
+  cubeSmokeGeo.setAttribute('position', new THREE.BufferAttribute(cubeSmokePos, 3));
+  cubeSmokeGeo.setAttribute('color',    new THREE.BufferAttribute(cubeSmokeCol, 3));
+
+  const cubeSmokeMat = new THREE.PointsMaterial({
+    size: 0.008, vertexColors: true, transparent: true,
+    opacity: 1.0, blending: THREE.AdditiveBlending,
+    depthWrite: false, sizeAttenuation: true,
+  });
+  const cubeSmokePoints = new THREE.Points(cubeSmokeGeo, cubeSmokeMat);
+
+  // World position of the cube: group is at (-2.8, 0, 2.6), cube.position.y = 0.84
+  const CUBE_WX = -2.8, CUBE_WZ = 2.6;
+  const CUBE_HALF = 0.21; // half of 0.42
+  const CUBE_BOTTOM = 0.63, CUBE_TOP = 1.05;
+
+  // Palette: teal, cyan, dark blue, dark blue
+  const cubeSmokePalette = [
+    [0.0, 1.0, 0.8], [0.0, 0.8, 1.0],
+    [0.0, 0.2, 0.8], [0.0, 0.3, 0.9],
+  ];
+
+  const cubeSmokeParticles = Array.from({ length: CUBE_SMOKE_COUNT }, () => ({
+    x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
+    life: 0, maxLife: 1.0, r: 0, g: 0, b: 0,
+  }));
+
+  function resetCubeSmokeParticle(p) {
+    // Spawn on one of the four cube sides or the top face
+    const side = Math.floor(Math.random() * 5);
+    const along = (Math.random() - 0.5) * CUBE_HALF * 2;
+    const h = CUBE_BOTTOM + Math.random() * (CUBE_TOP - CUBE_BOTTOM);
+    const offset = 0.03;
+    if (side === 0) { p.x = CUBE_WX - CUBE_HALF - offset; p.z = CUBE_WZ + along; p.y = h; }
+    else if (side === 1) { p.x = CUBE_WX + CUBE_HALF + offset; p.z = CUBE_WZ + along; p.y = h; }
+    else if (side === 2) { p.x = CUBE_WX + along; p.z = CUBE_WZ - CUBE_HALF - offset; p.y = h; }
+    else if (side === 3) { p.x = CUBE_WX + along; p.z = CUBE_WZ + CUBE_HALF + offset; p.y = h; }
+    else {
+      // Top face
+      p.x = CUBE_WX + (Math.random() - 0.5) * CUBE_HALF * 2;
+      p.z = CUBE_WZ + (Math.random() - 0.5) * CUBE_HALF * 2;
+      p.y = CUBE_TOP + 0.01;
+    }
+    p.vx  = (Math.random() - 0.5) * 0.01;
+    p.vy  = 0.02 + Math.random() * 0.03;
+    p.vz  = (Math.random() - 0.5) * 0.01;
+    p.life    = 0;
+    p.maxLife = 0.8 + Math.random() * 0.8;
+    const c = cubeSmokePalette[Math.floor(Math.random() * cubeSmokePalette.length)];
+    [p.r, p.g, p.b] = c;
+  }
+
+  cubeSmokeParticles.forEach(p => { resetCubeSmokeParticle(p); p.life = Math.random() * p.maxLife; });
+
+  function updateCubeSmoke(delta) {
+    const pa = cubeSmokeGeo.getAttribute('position');
+    const ca = cubeSmokeGeo.getAttribute('color');
+    for (let i = 0; i < CUBE_SMOKE_COUNT; i++) {
+      const p = cubeSmokeParticles[i];
+      p.life += delta;
+      if (p.life >= p.maxLife) resetCubeSmokeParticle(p);
+      const t = p.life / p.maxLife;
+      const fade = t < 0.15 ? t / 0.15 : t > 0.6 ? 1 - (t - 0.6) / 0.4 : 1.0;
+      const brightness = Math.max(0, fade) * 1.0;
+      p.x += p.vx * delta;
+      p.y += p.vy * delta;
+      p.z += p.vz * delta;
+      p.vx += (Math.random() - 0.5) * 0.005;
+      p.vz += (Math.random() - 0.5) * 0.005;
+      pa.array[i * 3]     = p.x;
+      pa.array[i * 3 + 1] = p.y;
+      pa.array[i * 3 + 2] = p.z;
+      ca.array[i * 3]     = p.r * brightness;
+      ca.array[i * 3 + 1] = p.g * brightness;
+      ca.array[i * 3 + 2] = p.b * brightness;
+    }
+    pa.needsUpdate = true;
+    ca.needsUpdate = true;
+  }
+
+  group.userData = { bookGroup, smokePoints, updateSmoke, cubeSmokePoints, updateCubeSmoke };
 
   return group;
 }
@@ -1215,81 +1502,60 @@ function buildRabbitHole() {
 
 function buildTV() {
   const group = new THREE.Group();
-  // Right wall, mounted high up
-  group.position.set(3.49, 2.85, 0);
+  group.position.set(3.49, 2.45, 0);
   group.rotation.y = -Math.PI / 2; // facing into the room (toward -x)
 
-  // CRT body — much deeper than a flat panel, with chunky beige plastic
+  // Futuristic flatscreen body — crisp white high-gloss finish, rounded corners
+  const glossMat = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    metalness: 0.1,
+    roughness: 0.05,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05
+  });
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(2.4, 1.55, 0.55),
-    new THREE.MeshLambertMaterial({ color: 0xd4c8a8 })
+    new RoundedBoxGeometry(2.08, 1.22, 0.05, 4, 0.08),
+    glossMat
   );
-  body.position.z = -0.25;
+  body.position.z = -0.02;
   body.castShadow = true;
   group.add(body);
 
-  // Wood-grain trim along the bottom
-  const trim = new THREE.Mesh(
-    new THREE.BoxGeometry(2.4, 0.12, 0.56),
-    new THREE.MeshLambertMaterial({ color: 0x6b4423 })
-  );
-  trim.position.set(0, -0.65, -0.25);
-  group.add(trim);
+  // Holographic dual glow ring — cyan front + purple back, matching info panel colors
+  const _gw = 1.93, _gh = 1.09, _gr = 0.034;
+  const _hw = _gw / 2, _hh = _gh / 2;
+  const _shape = new THREE.Shape();
+  _shape.moveTo(-_hw + _gr, -_hh);
+  _shape.lineTo( _hw - _gr, -_hh);
+  _shape.absarc( _hw - _gr, -_hh + _gr, _gr, -Math.PI / 2, 0, false);
+  _shape.lineTo( _hw,  _hh - _gr);
+  _shape.absarc( _hw - _gr,  _hh - _gr, _gr, 0, Math.PI / 2, false);
+  _shape.lineTo(-_hw + _gr,  _hh);
+  _shape.absarc(-_hw + _gr,  _hh - _gr, _gr, Math.PI / 2, Math.PI, false);
+  _shape.lineTo(-_hw, -_hh + _gr);
+  _shape.absarc(-_hw + _gr, -_hh + _gr, _gr, Math.PI, Math.PI * 1.5, false);
+  const _pts = _shape.getPoints(256).map(p => new THREE.Vector3(p.x, p.y, 0));
+  const _curve = new THREE.CatmullRomCurve3(_pts, true);
+  const _tubeGeo = new THREE.TubeGeometry(_curve, 512, 0.004, 8, true);
 
-  // Inner black bezel surrounding the screen
-  const bezel = new THREE.Mesh(
-    new THREE.BoxGeometry(2.1, 1.25, 0.06),
-    new THREE.MeshLambertMaterial({ color: 0x0a0a0a })
-  );
-  bezel.position.z = 0.04;
-  group.add(bezel);
+  // Cyan ring (front) — matches info panel top border
+  const cyanRing = new THREE.Mesh(_tubeGeo, new THREE.MeshStandardMaterial({
+    color: 0x0055ff, emissive: 0x0055ff, emissiveIntensity: 5.0
+  }));
+  cyanRing.position.z = 0.044;
+  group.add(cyanRing);
 
-  // Plain dark screen — the YouTube iframe is overlaid in screen space by ui.js.
-  // Keep this mesh's local geometry (1.92, 1.08) and position so iframe corners still match.
-  const screen = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.92, 1.08),
-    new THREE.MeshBasicMaterial({ color: 0x050d14 })
-  );
-  screen.position.z = 0.071;
-  group.add(screen);
+  // White ring (behind) — matches info panel side border
+  const purpleRing = new THREE.Mesh(_tubeGeo, new THREE.MeshStandardMaterial({
+    color: 0x4499ff, emissive: 0x4499ff, emissiveIntensity: 4.0
+  }));
+  purpleRing.position.z = 0.038;
+  group.add(purpleRing);
 
-  // Neon emissive border strips
-  const glowMat = new THREE.MeshStandardMaterial({
-    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.0
-  });
-  const stripT = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
-  stripT.position.set(0,  0.585, 0.072);
-  group.add(stripT);
-  const stripB = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.02, 0.01), glowMat);
-  stripB.position.set(0, -0.585, 0.072);
-  group.add(stripB);
-  const stripL = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.15, 0.01), glowMat);
-  stripL.position.set(-0.99, 0, 0.072);
-  group.add(stripL);
-  const stripR = new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.15, 0.01), glowMat);
-  stripR.position.set(0.99, 0, 0.072);
-  group.add(stripR);
-
-  // Two chunky control knobs on the right side
-  const knobMat = new THREE.MeshLambertMaterial({ color: 0x9a9a92 });
-  for (const ky of [-0.2, -0.45]) {
-    const knob = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 0.04, 12),
-      knobMat
-    );
-    knob.position.set(1.04, ky, 0.05);
-    knob.rotation.x = Math.PI / 2;
-    group.add(knob);
-  }
-
-  // Click action: zooms in and opens a panel describing the video
+  // Click action: zooms in
   group.userData = {
     clickable: true,
-    hotspot: 'tv',
-    action: 'openPanel',
-    panelId: 'tv',
-    panelTitle: 'CDN Video Archive',
-    screenMesh: screen
+    hotspot: 'tv'
   };
 
   return group;
@@ -1962,16 +2228,24 @@ export function createObjects(scene) {
   );
 
   // ── Animation: spin globe + bob book ──
-  const globeMesh = globe.userData.globeMesh;
-  const bookGroup = pedestal.userData.bookGroup;
+  const globeMesh  = globe.userData.globeMesh;
+  const bookGroup  = pedestal.userData.bookGroup;
+  const updateSmoke      = pedestal.userData.updateSmoke;
+  const smokePoints      = pedestal.userData.smokePoints;
+  const updateCubeSmoke  = pedestal.userData.updateCubeSmoke;
+  const cubeSmokePoints  = pedestal.userData.cubeSmokePoints;
+  if (smokePoints)     scene.add(smokePoints);
+  if (cubeSmokePoints) scene.add(cubeSmokePoints);
+
   let elapsed = 0;
   function sceneUpdate(delta) {
     elapsed += delta;
     if (globeMesh) globeMesh.rotation.y += delta * 0.3;
-    if (bookGroup) {
+    if (bookGroup && !bookGroup.userData.isAnimating) {
       bookGroup.position.y = 1.18 + Math.sin(elapsed * 1.5) * 0.04;
-      bookGroup.rotation.y += delta * 0.2;
     }
+    if (updateSmoke) updateSmoke(delta);
+    if (updateCubeSmoke) updateCubeSmoke(delta);
     if (holoDiamond) {
       holoDiamond.rotation.y += delta * 1.5;
       holoDiamond.position.y = 0.82 + Math.sin(elapsed * 2) * 0.03;
