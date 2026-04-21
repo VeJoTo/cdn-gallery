@@ -1,293 +1,105 @@
 // src/scene/room.js
 import * as THREE from 'three';
 
+// Gallery dimensions — museum-hall scale, white cube.
+export const ROOM_WIDTH  = 22;  // X
+export const ROOM_DEPTH  = 30;  // Z
+export const ROOM_HEIGHT = 7;   // Y
+
 export function createRoom(scene) {
-  // ── Observatory shell materials ──
-  const shellWhiteMat = new THREE.MeshStandardMaterial({
-    color: 0xf4f6f8, metalness: 0.1, roughness: 0.7, side: THREE.DoubleSide
+  const wallMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, metalness: 0.0, roughness: 0.95, side: THREE.DoubleSide
   });
-  const ledCyanMat = new THREE.MeshStandardMaterial({
-    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.2
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: 0xf4f4f6, metalness: 0.05, roughness: 0.85
+  });
+  const ceilMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, metalness: 0.0, roughness: 0.9
   });
 
-  // ── Hidden box walls/ceiling/floor ──
-  // Kept as invisible meshes so the scene graph retains the room's nominal
-  // dimensions; the observatory skin (curved panels, dome, hex floor) sits
-  // on top of this box. Shared shellWhiteMat is used because these meshes
-  // never render — the material is just a placeholder.
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), shellWhiteMat);
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
+    floorMat
+  );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
-  floor.visible = false;
   scene.add(floor);
 
-  const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), shellWhiteMat);
-  leftWall.rotation.y = Math.PI / 2;
-  leftWall.position.set(-3.5, 1.75, 0);
-  leftWall.receiveShadow = true;
-  leftWall.visible = false;
-  scene.add(leftWall);
-
-  const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(6, 3.5), shellWhiteMat);
-  rightWall.rotation.y = -Math.PI / 2;
-  rightWall.position.set(3.5, 1.75, 0);
-  rightWall.receiveShadow = true;
-  rightWall.visible = false;
-  scene.add(rightWall);
-
-  const backWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), shellWhiteMat);
-  backWall.position.set(0, 1.75, -3);
-  backWall.receiveShadow = true;
-  backWall.visible = false;
-  scene.add(backWall);
-
-  const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), shellWhiteMat);
-  frontWall.rotation.y = Math.PI;
-  frontWall.position.set(0, 1.75, 3);
-  frontWall.receiveShadow = true;
-  frontWall.raycast = () => {}; // Don't block raycasts to portal
-  frontWall.visible = false;
-  scene.add(frontWall);
-
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), shellWhiteMat);
+  const ceil = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
+    ceilMat
+  );
   ceil.rotation.x = Math.PI / 2;
-  ceil.position.set(0, 3.5, 0);
-  ceil.receiveShadow = true;
-  ceil.visible = false;
+  ceil.position.y = ROOM_HEIGHT;
   scene.add(ceil);
 
-  // ── Curved inner wall panels (observatory skin) ──
-  // Each wall is a shallow cylinder-segment arched inward. The outer box
-  // stays hidden for dimension/collision; this is the visible skin.
-  const WALL_ARC = Math.PI / 3;    // 60°
-  const WALL_RADIUS = 3.3;
-  const WALL_HEIGHT = 3.4;
-
-  // Left wall (concave facing +x)
-  const leftCurved = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      WALL_RADIUS, WALL_RADIUS, WALL_HEIGHT, 48, 1, true,
-      -WALL_ARC / 2, WALL_ARC
-    ),
-    shellWhiteMat
+  const leftWall = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT),
+    wallMat
   );
-  leftCurved.rotation.z = Math.PI / 2;
-  leftCurved.position.set(
-    -3.4 - WALL_RADIUS * (1 - Math.cos(WALL_ARC / 2)),
-    WALL_HEIGHT / 2,
-    0
+  leftWall.rotation.y = Math.PI / 2;
+  leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  leftWall.receiveShadow = true;
+  scene.add(leftWall);
+
+  const rightWall = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT),
+    wallMat
   );
-  scene.add(leftCurved);
+  rightWall.rotation.y = -Math.PI / 2;
+  rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  rightWall.receiveShadow = true;
+  scene.add(rightWall);
 
-  // Right wall (mirror of left)
-  const rightCurved = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      WALL_RADIUS, WALL_RADIUS, WALL_HEIGHT, 48, 1, true,
-      -WALL_ARC / 2, WALL_ARC
-    ),
-    shellWhiteMat
+  const backWall = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT),
+    wallMat
   );
-  rightCurved.rotation.z = -Math.PI / 2;
-  rightCurved.position.set(
-    3.4 + WALL_RADIUS * (1 - Math.cos(WALL_ARC / 2)),
-    WALL_HEIGHT / 2,
-    0
+  backWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+  backWall.receiveShadow = true;
+  scene.add(backWall);
+
+  const frontWall = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT),
+    wallMat
   );
-  scene.add(rightCurved);
+  frontWall.rotation.y = Math.PI;
+  frontWall.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
+  frontWall.receiveShadow = true;
+  scene.add(frontWall);
 
-  // Back wall (concave facing +z)
-  const backCurved = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      WALL_RADIUS, WALL_RADIUS, WALL_HEIGHT, 48, 1, true,
-      -Math.PI / 2 - WALL_ARC / 2, WALL_ARC
-    ),
-    shellWhiteMat
-  );
-  backCurved.position.set(
-    0,
-    WALL_HEIGHT / 2,
-    -3.0 - WALL_RADIUS * (1 - Math.cos(WALL_ARC / 2))
-  );
-  scene.add(backCurved);
+  // ── Lighting ──
+  // Bright, flat, gallery-style. Strong ambient + hemi so walls don't go grey,
+  // plus a grid of soft overhead point lights for subtle falloff.
+  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
 
-  // Front wall (concave facing -z) — doesn't block clicks to the portal
-  const frontCurved = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      WALL_RADIUS, WALL_RADIUS, WALL_HEIGHT, 48, 1, true,
-      Math.PI / 2 - WALL_ARC / 2, WALL_ARC
-    ),
-    shellWhiteMat
-  );
-  frontCurved.position.set(
-    0,
-    WALL_HEIGHT / 2,
-    2.95 + WALL_RADIUS * (1 - Math.cos(WALL_ARC / 2))
-  );
-  frontCurved.raycast = () => {};
-  scene.add(frontCurved);
-
-  // ── Vertical LED seam strips at corners ──
-  const ledSeamGeom = new THREE.BoxGeometry(0.04, WALL_HEIGHT, 0.015);
-  const ledCorners = [
-    [-3.4, -2.95],
-    [ 3.4, -2.95],
-    [-3.4,  2.95],
-    [ 3.4,  2.95]
-  ];
-  for (const [cx, cz] of ledCorners) {
-    const seam = new THREE.Mesh(ledSeamGeom, ledCyanMat);
-    seam.position.set(cx, WALL_HEIGHT / 2, cz);
-    scene.add(seam);
-  }
-
-  // ── Hex-tile floor (observatory) ──
-  const hexCanvas = document.createElement('canvas');
-  hexCanvas.width = 512;
-  hexCanvas.height = 512;
-  const hctx = hexCanvas.getContext('2d');
-  hctx.fillStyle = '#e6e8eb';
-  hctx.fillRect(0, 0, 512, 512);
-  hctx.strokeStyle = '#2a2e38';
-  hctx.lineWidth = 1.5;
-  const hexR = 32;
-  const hexW = Math.sqrt(3) * hexR;
-  const hexH = 1.5 * hexR;
-  function drawHex(cx, cy) {
-    hctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const ang = Math.PI / 6 + (i * Math.PI) / 3;
-      const x = cx + Math.cos(ang) * hexR;
-      const y = cy + Math.sin(ang) * hexR;
-      if (i === 0) hctx.moveTo(x, y);
-      else         hctx.lineTo(x, y);
-    }
-    hctx.closePath();
-    hctx.stroke();
-  }
-  for (let row = -1; row < 10; row++) {
-    for (let col = -1; col < 10; col++) {
-      const cx = col * hexW + (row % 2 ? hexW / 2 : 0);
-      const cy = row * hexH;
-      drawHex(cx, cy);
-    }
-  }
-  const hexTex = new THREE.CanvasTexture(hexCanvas);
-  hexTex.wrapS = THREE.RepeatWrapping;
-  hexTex.wrapT = THREE.RepeatWrapping;
-  hexTex.repeat.set(2.5, 2.2);
-  const hexFloorMat = new THREE.MeshStandardMaterial({
-    map: hexTex, roughness: 0.6, metalness: 0.1
-  });
-  const hexFloor = new THREE.Mesh(new THREE.PlaneGeometry(7, 6), hexFloorMat);
-  hexFloor.rotation.x = -Math.PI / 2;
-  hexFloor.position.y = 0.001;
-  hexFloor.receiveShadow = true;
-  scene.add(hexFloor);
-
-  // Glowing cyan seams — thin LineSegments overlay on a sparse selection
-  // of hex seams (every third hex by row+col parity).
-  const seamPts = [];
-  const floorW = 7, floorD = 6;
-  const tileR = 0.35;
-  const tileW = Math.sqrt(3) * tileR;
-  const tileH = 1.5 * tileR;
-  for (let row = -2; row < 9; row++) {
-    for (let col = -3; col < 9; col++) {
-      if ((row + col) % 3 !== 0) continue;
-      const cx = col * tileW + (row % 2 ? tileW / 2 : 0) - floorW / 2;
-      const cz = row * tileH - floorD / 2;
-      for (let i = 0; i < 6; i++) {
-        const a1 = Math.PI / 6 + (i * Math.PI) / 3;
-        const a2 = Math.PI / 6 + ((i + 1) * Math.PI) / 3;
-        seamPts.push(cx + Math.cos(a1) * tileR, 0.002, cz + Math.sin(a1) * tileR);
-        seamPts.push(cx + Math.cos(a2) * tileR, 0.002, cz + Math.sin(a2) * tileR);
-      }
-    }
-  }
-  const seamGeom = new THREE.BufferGeometry();
-  seamGeom.setAttribute('position', new THREE.Float32BufferAttribute(seamPts, 3));
-  const seamMat = new THREE.LineBasicMaterial({
-    color: 0x00d4ff, transparent: true, opacity: 0.9
-  });
-  const seams = new THREE.LineSegments(seamGeom, seamMat);
-  scene.add(seams);
-
-  // Cyan halo ring around the central pedestal spot
-  const haloMat = new THREE.MeshStandardMaterial({
-    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 1.5,
-    transparent: true, opacity: 0.95
-  });
-  const halo = new THREE.Mesh(new THREE.RingGeometry(0.85, 0.95, 64), haloMat);
-  halo.rotation.x = -Math.PI / 2;
-  halo.position.y = 0.003;
-  scene.add(halo);
-
-  // ── Dome ceiling ──
-  const domeGeom = new THREE.SphereGeometry(3.6, 48, 32, 0, Math.PI * 2, 0, Math.PI / 2);
-  const dome = new THREE.Mesh(domeGeom, shellWhiteMat);
-  dome.rotation.x = Math.PI;   // flip to face downward
-  dome.position.set(0, 3.4, 0);
-  scene.add(dome);
-
-  // ── Ceiling inset light panels (10 discs dotted across the dome) ──
-  const panelDiscMat = new THREE.MeshStandardMaterial({
-    color: 0xf4f6f8, metalness: 0.1, roughness: 0.5
-  });
-  const panelCoreMat = new THREE.MeshStandardMaterial({
-    color: 0xa8e8ff, emissive: 0x9ce0ff, emissiveIntensity: 1.3
-  });
-  // Panel placements as (radius-from-center, angle-around-Y) pairs.
-  // One at apex (r=0), three inner at r=1.2, six outer at r=2.4.
-  const panelSpots = [
-    { r: 0,   a: 0 },
-    { r: 1.2, a: 0 },
-    { r: 1.2, a: (2 * Math.PI) / 3 },
-    { r: 1.2, a: (4 * Math.PI) / 3 },
-    { r: 2.4, a: Math.PI / 6 },
-    { r: 2.4, a: Math.PI / 2 },
-    { r: 2.4, a: (5 * Math.PI) / 6 },
-    { r: 2.4, a: (7 * Math.PI) / 6 },
-    { r: 2.4, a: (3 * Math.PI) / 2 },
-    { r: 2.4, a: (11 * Math.PI) / 6 }
-  ];
-  const panelDiscGeom = new THREE.CircleGeometry(0.3, 24);
-  const panelCoreGeom = new THREE.CircleGeometry(0.15, 24);
-  for (const { r, a } of panelSpots) {
-    const px = Math.cos(a) * r;
-    const pz = Math.sin(a) * r;
-
-    const disc = new THREE.Mesh(panelDiscGeom, panelDiscMat);
-    disc.rotation.x = Math.PI / 2;
-    disc.position.set(px, 3.38, pz);
-    scene.add(disc);
-
-    const core = new THREE.Mesh(panelCoreGeom, panelCoreMat);
-    core.rotation.x = Math.PI / 2;
-    core.position.set(px, 3.381, pz);
-    scene.add(core);
-
-    const panelLight = new THREE.PointLight(0xb8e0ff, 0.4, 5);
-    panelLight.position.set(px, 3.2, pz);
-    scene.add(panelLight);
-  }
-
-  // ── Lighting ────────────────────────────────────
-  const ambient = new THREE.AmbientLight(0xc8d8e8, 0.35);
-  scene.add(ambient);
-
-  // Hemisphere light: warm sky from above, neutral ground from below
-  const hemi = new THREE.HemisphereLight(0xb8d8ec, 0x6a6e78, 0.8);
-  hemi.position.set(0, 4, 0);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xeeeeee, 0.6);
+  hemi.position.set(0, ROOM_HEIGHT, 0);
   scene.add(hemi);
 
-  const dirLight = new THREE.DirectionalLight(0xe0e8f0, 0.4);
-  dirLight.position.set(2, 8, 6);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(0, ROOM_HEIGHT + 4, 0);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near = 0.5;
-  dirLight.shadow.camera.far = 30;
-  dirLight.shadow.camera.left = -8;
-  dirLight.shadow.camera.right = 8;
-  dirLight.shadow.camera.top = 8;
-  dirLight.shadow.camera.bottom = -8;
+  dirLight.shadow.camera.far = ROOM_HEIGHT * 3;
+  dirLight.shadow.camera.left = -ROOM_WIDTH / 2;
+  dirLight.shadow.camera.right = ROOM_WIDTH / 2;
+  dirLight.shadow.camera.top = ROOM_DEPTH / 2;
+  dirLight.shadow.camera.bottom = -ROOM_DEPTH / 2;
+  dirLight.shadow.mapSize.set(1024, 1024);
   scene.add(dirLight);
+
+  // Ceiling point lights — 3×4 grid, soft falloff.
+  const rows = 4, cols = 3;
+  const xStep = ROOM_WIDTH / (cols + 1);
+  const zStep = ROOM_DEPTH / (rows + 1);
+  for (let r = 1; r <= rows; r++) {
+    for (let c = 1; c <= cols; c++) {
+      const px = -ROOM_WIDTH / 2 + c * xStep;
+      const pz = -ROOM_DEPTH / 2 + r * zStep;
+      const lamp = new THREE.PointLight(0xffffff, 0.25, ROOM_HEIGHT * 2.2);
+      lamp.position.set(px, ROOM_HEIGHT - 0.3, pz);
+      scene.add(lamp);
+    }
+  }
 }

@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
-import { createRoom } from './scene/room.js';
+import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
-import { createNatureRoom } from './scene/nature-room.js';
+import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
 import { createUI } from './ui.js';
 
@@ -16,18 +15,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-// ── CSS3D renderer (for the TV's YouTube iframe) ──
-export const cssRenderer = new CSS3DRenderer();
-cssRenderer.setSize(window.innerWidth, window.innerHeight);
-cssRenderer.domElement.id = 'css3d-layer';
-document.body.appendChild(cssRenderer.domElement);
-
-export const cssScene = new THREE.Scene();
-
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0f1a);
-scene.fog = new THREE.FogExp2(0x0a0f1a, 0.04);
+scene.background = new THREE.Color(0xf4f6f8);
 
 // ── Camera ────────────────────────────────────────
 export const camera = new THREE.PerspectiveCamera(
@@ -36,7 +26,7 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, 1.6, 2);
+camera.position.set(0, 1.6, 10);
 camera.lookAt(0, 1.6, 0);
 
 // ── Resize ────────────────────────────────────────
@@ -45,7 +35,6 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  cssRenderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ── OrbitControls (free cursor, drag to rotate, A/D to rotate) ──
@@ -105,11 +94,14 @@ function updateRotation(delta) {
     controls.target.add(move);
 
     // Clamp to current room bounds
-    const roomX0 = currentRoom === 'nature' ? 20 : 0;
-    camera.position.x = Math.max(roomX0 - 3.0, Math.min(roomX0 + 3.0, camera.position.x));
-    camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
-    controls.target.x = Math.max(roomX0 - 3.0, Math.min(roomX0 + 3.0, controls.target.x));
-    controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
+    const inNature = currentRoom === 'nature';
+    const roomCenterX = inNature ? NATURE_CENTER_X : 0;
+    const halfW = inNature ? 3.0 : ROOM_WIDTH / 2 - 1.0;
+    const halfD = inNature ? 2.5 : ROOM_DEPTH / 2 - 1.0;
+    camera.position.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, camera.position.x));
+    camera.position.z = Math.max(-halfD, Math.min(halfD, camera.position.z));
+    controls.target.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, controls.target.x));
+    controls.target.z = Math.max(-halfD, Math.min(halfD, controls.target.z));
   }
 
   // A/D also move the camera + target sideways (strafe)
@@ -124,11 +116,14 @@ function updateRotation(delta) {
     camera.position.add(move);
     controls.target.add(move);
 
-    const roomX1 = currentRoom === 'nature' ? 20 : 0;
-    camera.position.x = Math.max(roomX1 - 3.0, Math.min(roomX1 + 3.0, camera.position.x));
-    camera.position.z = Math.max(-2.5, Math.min(2.5, camera.position.z));
-    controls.target.x = Math.max(roomX1 - 3.0, Math.min(roomX1 + 3.0, controls.target.x));
-    controls.target.z = Math.max(-2.5, Math.min(2.5, controls.target.z));
+    const inNature = currentRoom === 'nature';
+    const roomCenterX = inNature ? NATURE_CENTER_X : 0;
+    const halfW = inNature ? 3.0 : ROOM_WIDTH / 2 - 1.0;
+    const halfD = inNature ? 2.5 : ROOM_DEPTH / 2 - 1.0;
+    camera.position.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, camera.position.x));
+    camera.position.z = Math.max(-halfD, Math.min(halfD, camera.position.z));
+    controls.target.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, controls.target.x));
+    controls.target.z = Math.max(-halfD, Math.min(halfD, controls.target.z));
   }
 }
 
@@ -148,78 +143,17 @@ function animate() {
   controls.update();
   updateHoverHighlight();
   renderer.render(scene, camera);
-
-  // Only show CSS3D iframes when camera is close to the screens and facing them
-  // TV is at (3.419, 2.85, 0), monitor at ~(2.35, 1.22, -2.9)
-  const camPos = camera.position;
-  const camDir = new THREE.Vector3();
-  camera.getWorldDirection(camDir);
-
-  // Show CSS3D in AI room, hide in nature room
-  // Only hide when camera is clearly facing AWAY from the screens (left wall / back toward arcades)
-  const facingAway = camDir.x < -0.5; // facing left wall (away from TV + desk)
-  const showCSS3D = currentRoom === 'ai' && !facingAway;
-
-  cssRenderer.domElement.style.display = showCSS3D ? '' : 'none';
-  if (showCSS3D) cssRenderer.render(cssScene, camera);
 }
 
 createRoom(scene);
-const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv, globe, musicNotes } = createObjects(scene);
+const { pedestal, sceneUpdate, extras } = createObjects(scene);
 addUpdateCallback(sceneUpdate);
 
-// ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
-const tvVideoIframe = document.createElement('iframe');
-tvVideoIframe.src = `https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
-tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
-tvVideoIframe.style.width = '1280px';
-tvVideoIframe.style.height = '720px';
-
-const tvCSS3D = new CSS3DObject(tvVideoIframe);
-// Screen mesh in buildTV is at local (0, 0, 0.071) inside the TV group.
-// TV group is at (3.49, 2.85, 0) with rotation.y = -Math.PI/2.
-// Local +Z maps to world -X after that rotation, so world position is:
-//   (3.49 - 0.071, 2.85, 0) = (3.419, 2.85, 0)
-tvCSS3D.position.set(3.419, 2.85, 0);
-// Face world -X: starting orientation (+Z facing) rotated by +π/2 about Y.
-tvCSS3D.rotation.y = -Math.PI / 2;
-// Iframe CSS size is 1280 × 720 px; target world size is 1.92 × 1.08 units.
-// Uniform scale = 1.92 / 1280 = 0.0015
-const tvScale = 1.92 / 1280;
-tvCSS3D.scale.set(tvScale, tvScale, tvScale);
-cssScene.add(tvCSS3D);
-
-// ── Right monitor: Fin du Monde interactive project via CSS3DRenderer ──
-const fdmIframe = document.createElement('iframe');
-fdmIframe.src = 'https://collection.cdn.uib.no/files/fin-du-monde/index.html';
-fdmIframe.style.width = '640px';
-fdmIframe.style.height = '370px';
-fdmIframe.style.border = '0';
-
-const fdmCSS3D = new CSS3DObject(fdmIframe);
-// Right monitor screen world position: desk(1.8, 0, -2.6) + local(0.513, 1.18, -0.158)
-fdmCSS3D.position.set(2.348, 1.22, -2.905);
-fdmCSS3D.rotation.y = -0.15;
-// Screen is 0.66 × 0.38 world units; iframe is 640 × 370 px — scale to fit height
-const fdmScale = 0.38 / 370;
-fdmCSS3D.scale.set(fdmScale, fdmScale, fdmScale);
-cssScene.add(fdmCSS3D);
-
-const clickableObjects = [
-  ...arcadeLeft.children, ...arcadeRight.children,
-  desk, ...posters,
-  pedestal,
-  ...extras
-];
+const clickableObjects = [pedestal, ...extras];
 
 const ui       = createUI(camera, renderer, controls);
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
-
-// TV sound toggle — always visible in first-person mode
-const soundCheckbox = document.getElementById('sound-checkbox');
-const soundToggleDiv = document.getElementById('sound-toggle');
-soundToggleDiv.style.display = 'flex';
 
 // ── Nature room ──
 const natureRoom = createNatureRoom(scene);
@@ -254,7 +188,7 @@ addUpdateCallback((delta) => {
       // Reset when they fall into the pool
       if (drop.position.y < 0.25) {
         drop.position.y = 0.95 + Math.random() * 0.1;
-        drop.position.x = 20 + Math.cos(drop.userData.angle) * 0.2;
+        drop.position.x = NATURE_CENTER_X + Math.cos(drop.userData.angle) * 0.2;
         drop.position.z = Math.sin(drop.userData.angle) * 0.2;
       }
     }
@@ -272,15 +206,13 @@ function transitionToRoom(targetRoom) {
 
   setTimeout(() => {
     if (targetRoom === 'nature') {
-      camera.position.set(20, 1.6, -3);
-      controls.target.set(20, 1.6, 0);
+      camera.position.set(NATURE_CENTER_X, 1.6, -3);
+      controls.target.set(NATURE_CENTER_X, 1.6, 0);
       currentRoom = 'nature';
-      cssRenderer.domElement.style.display = 'none';
     } else {
-      camera.position.set(0, 1.6, 2);
+      camera.position.set(0, 1.6, 10);
       controls.target.set(0, 1.6, 0);
       currentRoom = 'ai';
-      cssRenderer.domElement.style.display = '';
     }
     controls.update();
 
@@ -379,7 +311,7 @@ renderer.domElement.addEventListener('mousemove', (event) => {
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   nav.goBack();
-  camera.position.set(0, 1.6, 2);
+  camera.position.set(0, 1.6, 10);
   controls.target.set(0, 1.6, 0);
   controls.update();
   document.getElementById('stepback-btn').classList.add('hidden');
@@ -405,134 +337,6 @@ nav.goTo = (id) => {
 
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
-
-soundCheckbox.addEventListener('change', () => {
-  const cmd = soundCheckbox.checked ? 'unMute' : 'mute';
-  tvVideoIframe.contentWindow.postMessage(
-    JSON.stringify({ event: 'command', func: cmd, args: '' }),
-    '*'
-  );
-  // Pause music when video sound is turned on
-  if (soundCheckbox.checked && musicPlaying) {
-    musicCheckbox.checked = false;
-    musicPlaying = false;
-    sendMusicCommand('pauseVideo');
-    musicNotes.setActive(false);
-  }
-});
-
-// ── Radio: Music / Podcast modes ──
-const musicCheckbox = document.getElementById('music-checkbox');
-const trackButtons = document.querySelectorAll('.radio-track');
-const modeTabs = document.querySelectorAll('.radio-mode');
-const musicControls = document.getElementById('radio-music-controls');
-const podcastControls = document.getElementById('radio-podcast-controls');
-const podcastToggle = document.getElementById('podcast-toggle');
-const spotifyPlayer = document.getElementById('spotify-player');
-const spotifyClose = document.getElementById('spotify-close');
-let musicPlaying = false;
-let currentMode = 'music';
-
-const RADIO_TRACKS = [
-  `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
-  `https://www.youtube.com/embed/TQvXEza4fPc?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
-  `https://www.youtube.com/embed/K4Ad2MXKLv8?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`
-];
-let currentTrack = 0;
-
-const musicIframe = document.createElement('iframe');
-musicIframe.allow = 'autoplay; encrypted-media';
-musicIframe.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px';
-musicIframe.src = RADIO_TRACKS[currentTrack];
-document.body.appendChild(musicIframe);
-
-function sendMusicCommand(cmd) {
-  try {
-    musicIframe.contentWindow.postMessage(
-      JSON.stringify({ event: 'command', func: cmd, args: '' }),
-      '*'
-    );
-  } catch (e) { /* ignore */ }
-}
-
-// Mode switching
-modeTabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    const mode = tab.dataset.mode;
-    if (mode === currentMode) return;
-    currentMode = mode;
-    modeTabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-
-    if (mode === 'music') {
-      musicControls.classList.remove('hidden');
-      podcastControls.classList.add('hidden');
-      spotifyPlayer.classList.add('hidden');
-    } else {
-      musicControls.classList.add('hidden');
-      podcastControls.classList.remove('hidden');
-      // Pause YouTube music when switching to podcast
-      if (musicPlaying) {
-        musicCheckbox.checked = false;
-        musicPlaying = false;
-        sendMusicCommand('pauseVideo');
-        musicNotes.setActive(false);
-      }
-    }
-  });
-});
-
-// Music controls
-musicCheckbox.addEventListener('change', () => {
-  musicPlaying = musicCheckbox.checked;
-  sendMusicCommand(musicPlaying ? 'playVideo' : 'pauseVideo');
-  musicNotes.setActive(musicPlaying);
-});
-
-trackButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const idx = parseInt(btn.dataset.track);
-    if (idx === currentTrack) return;
-    currentTrack = idx;
-    trackButtons.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const autoplay = musicPlaying ? '1' : '0';
-    musicIframe.src = RADIO_TRACKS[currentTrack].replace('autoplay=0', `autoplay=${autoplay}`);
-  });
-});
-
-// Podcast controls
-let podcastOpen = false;
-podcastToggle.addEventListener('click', () => {
-  podcastOpen = !podcastOpen;
-  if (podcastOpen) {
-    // Reload iframe with autoplay to start playing immediately
-    const iframe = document.getElementById('spotify-iframe');
-    if (iframe) iframe.src = 'https://open.spotify.com/embed/episode/629iwUQqeciMedvx9oseyf?theme=0&autoplay=1';
-    spotifyPlayer.classList.remove('hidden');
-    podcastToggle.textContent = '⏸ Playing';
-    // Pause music if playing
-    if (musicPlaying) {
-      musicCheckbox.checked = false;
-      musicPlaying = false;
-      sendMusicCommand('pauseVideo');
-      musicNotes.setActive(false);
-    }
-  } else {
-    stopPodcast();
-  }
-});
-
-function stopPodcast() {
-  // Reload iframe src to kill playback
-  const iframe = document.getElementById('spotify-iframe');
-  if (iframe) { const src = iframe.src; iframe.src = ''; iframe.src = src; }
-  spotifyPlayer.classList.add('hidden');
-  podcastOpen = false;
-  podcastToggle.textContent = '▶ Play';
-}
-
-spotifyClose.addEventListener('click', stopPodcast);
 
 addUpdateCallback(() => ui.updateHints());
 
