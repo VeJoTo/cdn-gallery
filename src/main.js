@@ -67,13 +67,26 @@ if (crosshair) crosshair.classList.remove('hidden');
 
 // Clicking the overlay or canvas locks the pointer
 if (fpOverlay) fpOverlay.addEventListener('click', () => controller.lock());
-canvas.addEventListener('click', () => controller.lock());
+
+// Left mouse held down = glide forward (like cdn-3d-room-collab)
+canvas.addEventListener('mousedown', (event) => {
+  if (event.button !== 0) return;
+  if (!controller.isLocked()) {
+    controller.lock();
+    return;
+  }
+  controller.setPointerForward(true);
+});
+
+window.addEventListener('mouseup', () => controller.setPointerForward(false));
+window.addEventListener('blur', () => controller.setPointerForward(false));
 
 // Hide overlay when locked, show it again when unlocked
 document.addEventListener('pointerlockchange', () => {
   if (document.pointerLockElement === canvas) {
     if (fpOverlay) fpOverlay.classList.add('hidden');
   } else {
+    controller.setPointerForward(false);
     if (fpOverlay) fpOverlay.classList.remove('hidden');
   }
 });
