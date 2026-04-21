@@ -1,7 +1,8 @@
 // src/scene/nature-room.js
 import * as THREE from 'three';
 
-const OFFSET = new THREE.Vector3(20, 0, 0);
+export const NATURE_CENTER_X = 40;
+const OFFSET = new THREE.Vector3(NATURE_CENTER_X, 0, 0);
 
 export function createNatureRoom(scene) {
   const ox = OFFSET.x;

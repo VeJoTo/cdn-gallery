@@ -11,6 +11,7 @@ export const HOTSPOTS = {
   desk:           { position: { x: 1.8,  y: 1.5, z: -0.6 }, target: { x: 1.8,  y: 1.2, z: -2.6 }, label: 'Gaming Desk' },
   globe:          { position: { x: 0.6,  y: 1.2, z: -1.5 }, target: { x: 0.2,  y: 0.85, z: -2.4 }, label: 'Globe' },
   pedestal:       { position: { x: -2.0, y: 1.4, z: 1.6  }, target: { x: -2.8, y: 1.2, z: 2.6  }, label: 'Magic Tome' },
+  'holo-sphere':  { position: { x: 0,    y: 1.7, z: 2.5  }, target: { x: 0,    y: 1.8, z: 0    }, label: 'Floating Motifs' },
   'rabbit-hole':  { position: { x: -0.2, y: 1.2, z: -1.5 }, target: { x: -0.8, y: 0.2, z: -2.4 }, label: 'Rabbit Hole' },
   tv:                 { position: { x: 2.0,  y: 2.8, z: 0    }, target: { x: 3.49, y: 2.85, z: 0    }, label: 'TV' },
   'poster-0':         { position: { x: -2.5, y: 2.0, z: -1.5 }, target: { x: -2.5, y: 2.0,  z: -2.90 }, label: 'Galaga' },
