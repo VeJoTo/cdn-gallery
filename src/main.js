@@ -69,6 +69,16 @@ controls.addEventListener('unlock', () => {
 const MOVE_SPEED = 5.0;
 const EYE_HEIGHT = 1.6;
 const moveState = { forward: false, backward: false, left: false, right: false };
+let pointerForward = false;
+
+// Hold left mouse button while locked = glide forward (like CDN-3d-collab)
+renderer.domElement.addEventListener('mousedown', (e) => {
+  if (e.button !== 0 || !controls.isLocked) return;
+  pointerForward = true;
+});
+window.addEventListener('mouseup',  () => { pointerForward = false; });
+window.addEventListener('blur',     () => { pointerForward = false; });
+controls.addEventListener('unlock', () => { pointerForward = false; });
 
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
@@ -100,7 +110,7 @@ function updateMovement(delta) {
   if (!controls.isLocked) return;
 
   let fwd = 0, strafe = 0;
-  if (moveState.forward)  fwd    += 1;
+  if (moveState.forward || pointerForward) fwd += 1;
   if (moveState.backward) fwd    -= 1;
   if (moveState.right)    strafe += 1;
   if (moveState.left)     strafe -= 1;
