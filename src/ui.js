@@ -4,6 +4,37 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+export const INTRO_FLAG_KEY = 'cdn-gallery:intro-seen';
+
+export const INTRO_SCRIPT = [
+  { text: 'Welcome kids! 🪄' },
+  { text: "You've just stepped into the home of CDN — the Centre for Digital Narrative at the University of Bergen. Everything you see here is a visualization of the research happening at the centre." },
+  { text: "CDN studies how stories work in the digital age — games, AI that writes fiction, virtual worlds, interactive art. I'll be your guide through it." },
+  {
+    html: true,
+    text: 'Go ahead and look around: <strong>WASD</strong> to walk, <strong>mouse</strong> to look. You can call me back any time with the <strong>G</strong> key. Off you pop!'
+  }
+];
+
+// Safe localStorage readers — browser private mode / quota issues never break the app.
+export function hasSeenIntro(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return false;
+  try {
+    return storage.getItem(INTRO_FLAG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markIntroSeen(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return;
+  try {
+    storage.setItem(INTRO_FLAG_KEY, '1');
+  } catch {
+    /* swallow — worst case the player sees the intro again, which is tolerable */
+  }
+}
+
 export const BOOK_PAGES = [
   { type: 'cover' },
   { type: 'interactive' }
