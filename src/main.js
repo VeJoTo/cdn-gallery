@@ -141,12 +141,22 @@ function animate() {
   }
 }
 
-// ── AI room (built, then hidden so the player spawns outside) ──
-const aiRoomChildrenBefore = scene.children.length;
-createRoom(scene);
-const { pedestal, sceneUpdate, extras } = createObjects(scene);
-const aiRoomChildren = scene.children.slice(aiRoomChildrenBefore);
-for (const child of aiRoomChildren) child.visible = false;
+// Rooms live in the same scene at different x-offsets; geometry from one
+// (sky dome, forest ring, …) can reach into another's footprint, so we
+// toggle visibility per room instead of relying on bounds.
+function trackChildren(builder) {
+  const before = scene.children.length;
+  const result = builder();
+  const added = scene.children.slice(before);
+  return { result, added };
+}
+
+// ── AI room ──
+const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
+  createRoom(scene);
+  return createObjects(scene);
+});
+const { pedestal, sceneUpdate, extras } = aiObjects;
 addUpdateCallback(sceneUpdate);
 
 const clickableObjects = [pedestal, ...extras];
@@ -156,12 +166,32 @@ const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
 
 // ── Nature room ──
-const natureRoom = createNatureRoom(scene);
+const { result: natureRoom, added: natureRoomChildren } = trackChildren(
+  () => createNatureRoom(scene)
+);
 clickableObjects.push(...natureRoom.clickables);
 
 // ── Exterior room ──
-const exteriorRoom = createExteriorRoom(scene);
+const { result: exteriorRoom, added: exteriorRoomChildren } = trackChildren(
+  () => createExteriorRoom(scene)
+);
 clickableObjects.push(...exteriorRoom.clickables);
+
+const roomChildren = {
+  ai:       aiRoomChildren,
+  nature:   natureRoomChildren,
+  exterior: exteriorRoomChildren
+};
+
+function setRoomVisibility(activeRoom) {
+  for (const [name, children] of Object.entries(roomChildren)) {
+    const visible = name === activeRoom;
+    for (const c of children) c.visible = visible;
+  }
+}
+
+// Start visible only in the spawn room.
+setRoomVisibility('exterior');
 
 // ── Godrays composer for exterior sunlight ──
 const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
@@ -244,24 +274,22 @@ function transitionToRoom(targetRoom) {
       camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
       camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
       currentRoom = 'nature';
-      for (const c of aiRoomChildren) c.visible = false;
       scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else if (targetRoom === 'exterior') {
       camera.position.set(-20, EYE_HEIGHT, 8);
       camera.lookAt(-20, EYE_HEIGHT, 2);
       currentRoom = 'exterior';
-      for (const c of aiRoomChildren) c.visible = false;
       scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else {
       camera.position.set(0, EYE_HEIGHT, 10);
       camera.lookAt(0, EYE_HEIGHT, 0);
       currentRoom = 'ai';
-      for (const c of aiRoomChildren) c.visible = true;
       scene.background = new THREE.Color(0xf4f6f8);
       scene.fog = null;
     }
+    setRoomVisibility(currentRoom);
 
     setTimeout(() => {
       fadeOverlay.classList.remove('active');
