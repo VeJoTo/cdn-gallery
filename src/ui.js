@@ -280,8 +280,10 @@ export function createUI(camera, renderer, controls) {
   const INTRO_BUBBLE_DELAY_MS = 1200;
   let introTimer = null;
   let introSkipHandler = null;
+  let isIntroPlaying = false;
 
   function clearIntroTimers() {
+    isIntroPlaying = false;
     if (introTimer) { clearTimeout(introTimer); introTimer = null; }
     if (introSkipHandler) {
       document.removeEventListener('keydown', introSkipHandler);
@@ -310,6 +312,7 @@ export function createUI(camera, renderer, controls) {
 
   function playIntro() {
     clearIntroTimers();
+    isIntroPlaying = true;
     chatMessages.innerHTML = '';
     chatChips.innerHTML = '';  // chips hidden until last bubble lands
 
@@ -329,6 +332,7 @@ export function createUI(camera, renderer, controls) {
         introTimer = setTimeout(showNext, INTRO_BUBBLE_DELAY_MS);
       } else {
         // Final bubble just landed — reveal chips, drop skip handlers.
+        isIntroPlaying = false;
         clearIntroTimers();
         renderIntroChips();
       }
@@ -350,11 +354,13 @@ export function createUI(camera, renderer, controls) {
   }
 
   chatSend.addEventListener('click', () => {
+    if (isIntroPlaying) return;
     sendChatMessage(chatInput.value);
     chatInput.value = '';
   });
   chatInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
+      if (isIntroPlaying) return;
       sendChatMessage(chatInput.value);
       chatInput.value = '';
     }
