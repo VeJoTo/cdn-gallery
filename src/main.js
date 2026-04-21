@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { aiArtVideos } from './videoData.js';
@@ -68,6 +69,8 @@ fpOverlay.classList.remove('hidden');
 crosshair.classList.add('hidden');
 
 fpOverlay.addEventListener('click', () => controls.lock());
+window.__hideFPOverlay = () => fpOverlay.classList.add('hidden');
+window.__relockControls = () => controls.lock();
 
 // TV cursor mode — set by enterTVMode(), cleared by exitTVMode()
 let atTV = false;
@@ -184,6 +187,114 @@ const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
 const holoPlayPauseBtn = tv.userData.playPauseBtn;
 addUpdateCallback(sceneUpdate);
+
+// ── Book particle burst ───────────────────────────────────────────────────────
+function spawnBookParticles(worldPos) {
+  const count = 1400;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    pos[i * 3]     = worldPos.x + (Math.random() - 0.5) * 0.3;
+    pos[i * 3 + 1] = worldPos.y + (Math.random() - 0.5) * 0.4;
+    pos[i * 3 + 2] = worldPos.z + (Math.random() - 0.5) * 0.2;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    color: 0x00cfff, size: 0.004, transparent: true, opacity: 1,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+  const vel = Array.from({ length: count }, () => ({
+    x: (Math.random() - 0.5) * 3.0,
+    y: (Math.random() - 0.3) * 2.5,
+    z: (Math.random() - 0.5) * 3.0,
+  }));
+  let elapsed = 0;
+  const duration = 1.6;
+  function tick(_time, deltaTime) {
+    elapsed += deltaTime / 1000;
+    const t = Math.min(elapsed / duration, 1);
+    const attr = geo.getAttribute('position');
+    for (let i = 0; i < count; i++) {
+      attr.array[i * 3]     = pos[i * 3]     + vel[i].x * elapsed;
+      attr.array[i * 3 + 1] = pos[i * 3 + 1] + vel[i].y * elapsed;
+      attr.array[i * 3 + 2] = pos[i * 3 + 2] + vel[i].z * elapsed;
+    }
+    attr.needsUpdate = true;
+    mat.opacity = Math.max(0, 1 - t * 1.4);
+    if (t >= 1) { gsap.ticker.remove(tick); scene.remove(points); geo.dispose(); mat.dispose(); }
+  }
+  gsap.ticker.add(tick);
+}
+
+// ── Book open animation ───────────────────────────────────────────────────────
+window.__openBookWithAnimation = (openBookFn) => {
+  const bookGroup = pedestal.userData.bookGroup;
+  if (!bookGroup) { openBookFn(); return; }
+
+  bookGroup.userData.isAnimating = true;
+  const model  = bookGroup.userData.model;
+  const origY  = bookGroup.position.y;
+  const origRotZ = Math.PI / 2 - 0.4;
+
+  const meshes = bookGroup.userData.bookMeshes ?? [];
+  meshes.forEach(m => {
+    if (m.material && !m.material._fadeable) {
+      m.material = m.material.clone();
+      m.material.transparent = true;
+      m.material._fadeable = true;
+    }
+    if (m.material?.emissive) {
+      m.material._origEmissiveIntensity = m.material.emissiveIntensity;
+      m.material.emissive.set(0x00cfff);
+      m.material.emissiveIntensity = 0;
+    }
+  });
+
+  const bookWorldPos = new THREE.Vector3(-2.8, origY, 2.6);
+  const facingY = Math.atan2(
+    camera.position.x - bookWorldPos.x,
+    camera.position.z - bookWorldPos.z
+  ) - Math.PI / 2;
+
+  const tl = gsap.timeline();
+
+  tl.to(bookGroup.position, { y: origY + 0.15, duration: 0.5, ease: 'power2.out' });
+  tl.to(bookGroup.rotation, { y: bookGroup.rotation.y + Math.PI * 2, duration: 1.0, ease: 'power2.inOut' }, '<');
+  tl.to(bookGroup.position, { y: origY + 0.3, duration: 0.4, ease: 'power2.out' });
+  if (model) {
+    tl.to(model.rotation,     { z: 0,       duration: 0.55, ease: 'power2.inOut' });
+    tl.to(bookGroup.rotation, { y: facingY, duration: 0.35, ease: 'power2.out' }, '<0.15');
+  }
+  meshes.forEach(m => {
+    if (m.material?.emissive)
+      tl.to(m.material, { emissiveIntensity: 8.0, duration: 0.55, ease: 'power2.in' }, '<');
+  });
+  tl.to(bookGroup.scale, { x: 1.5, y: 1.5, z: 1.5, duration: 0.4, ease: 'power2.in' }, '+=0.1');
+  meshes.forEach(m => {
+    tl.to(m.material, { opacity: 0, duration: 0.4, ease: 'power2.in' }, '<');
+  });
+  tl.add(() => {
+    const wp = new THREE.Vector3();
+    bookGroup.getWorldPosition(wp);
+    spawnBookParticles(wp);
+  }, '<');
+  tl.add(() => {
+    openBookFn();
+    bookGroup.position.y = origY;
+    bookGroup.rotation.y = 0.9;
+    bookGroup.rotation.x = 0;
+    bookGroup.scale.set(1, 1, 1);
+    if (model) model.rotation.z = origRotZ;
+    meshes.forEach(m => {
+      m.material.opacity = 1;
+      if (m.material?.emissive)
+        m.material.emissiveIntensity = m.material._origEmissiveIntensity ?? 0;
+    });
+    bookGroup.userData.isAnimating = false;
+  }, '+=0.1');
+};
 
 // ── TV: YouTube iframe via CSS3DRenderer ──────────────────────────────────────
 let currentVideoIndex = 0;
@@ -743,18 +854,29 @@ document.addEventListener('mousedown', () => {
 
   const { hotspot, action, panelId, panelTitle } = obj.userData;
 
+  // Capture whether we're already at this hotspot before nav changes state
+  const alreadyAtHotspot = hotspot && navState.current === hotspot && navState.canNavigate();
+
   if (hotspot) nav.goTo(hotspot);
 
   // UI overlay actions need the cursor back; room transitions stay locked.
+  // For openBook, only unlock on the second click (when already at pedestal).
   const uiActions = new Set([
-    'openPanel', 'openPoster', 'openBook',
+    'openPanel', 'openPoster',
     'enterRabbitHole', 'openReport', 'openFinDuMonde'
   ]);
-  if (uiActions.has(action)) controls.unlock();
+  const opensOverlay = uiActions.has(action) || (action === 'openBook' && alreadyAtHotspot);
+  if (opensOverlay) {
+    suppressFPOverlay = true;
+    controls.unlock();
+  }
 
   if (action === 'openPanel')        ui.openPanelDrawer(panelId, panelTitle);
   if (action === 'openPoster')       ui.openPanelDrawer(panelId, panelTitle);
-  if (action === 'openBook')         ui.openBook();
+  if (action === 'openBook' && alreadyAtHotspot) {
+    if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
+    else ui.openBook();
+  }
   if (action === 'enterRabbitHole')  ui.openRabbitHole();
   if (action === 'openReport')       ui.openReport();
   if (action === 'openFinDuMonde')   ui.openFinDuMonde();
