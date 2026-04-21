@@ -252,6 +252,7 @@ export function createUI(camera, renderer, controls) {
   }
 
   function openGatekeeperChat() {
+    clearIntroTimers();
     chatMessages.innerHTML = '';
     appendChatMessage("Hey Kids! Welcome to the CDN gallery! What are you curious about?", 'gatekeeper');
 
@@ -268,11 +269,86 @@ export function createUI(camera, renderer, controls) {
   }
 
   function closeGatekeeperChat() {
+    clearIntroTimers();
     gatekeeperChat.classList.remove('open');
     setTimeout(() => gatekeeperChat.classList.add('hidden'), 300);
   }
 
   chatClose.addEventListener('click', closeGatekeeperChat);
+
+  // ── Intro sequence (first-visit welcome; see docs/superpowers/specs/…) ──
+  const INTRO_BUBBLE_DELAY_MS = 1200;
+  let introTimer = null;
+  let introSkipHandler = null;
+
+  function clearIntroTimers() {
+    if (introTimer) { clearTimeout(introTimer); introTimer = null; }
+    if (introSkipHandler) {
+      document.removeEventListener('keydown', introSkipHandler);
+      chatMessages.removeEventListener('click', introSkipHandler);
+      introSkipHandler = null;
+    }
+  }
+
+  function appendIntroBubble(entry) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg gatekeeper';
+    if (entry.html) div.innerHTML = entry.text;
+    else            div.textContent = entry.text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function renderIntroChips() {
+    chatChips.innerHTML = SUGGESTED_QUESTIONS.map(q =>
+      `<button class="chat-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`
+    ).join('');
+    chatChips.querySelectorAll('.chat-chip').forEach(chip => {
+      chip.addEventListener('click', () => sendChatMessage(chip.dataset.q));
+    });
+  }
+
+  function playIntro() {
+    clearIntroTimers();
+    chatMessages.innerHTML = '';
+    chatChips.innerHTML = '';  // chips hidden until last bubble lands
+
+    gatekeeperChat.classList.remove('hidden');
+    requestAnimationFrame(() => gatekeeperChat.classList.add('open'));
+
+    let idx = 0;
+    function showNext() {
+      if (idx >= INTRO_SCRIPT.length) {
+        clearIntroTimers();
+        renderIntroChips();
+        return;
+      }
+      appendIntroBubble(INTRO_SCRIPT[idx]);
+      idx++;
+      if (idx < INTRO_SCRIPT.length) {
+        introTimer = setTimeout(showNext, INTRO_BUBBLE_DELAY_MS);
+      } else {
+        // Final bubble just landed — reveal chips, drop skip handlers.
+        clearIntroTimers();
+        renderIntroChips();
+      }
+    }
+
+    introSkipHandler = (e) => {
+      // Keyboard: Space / Enter. Click: anywhere inside #chat-messages.
+      if (e.type === 'keydown' && e.code !== 'Space' && e.code !== 'Enter') return;
+      if (e.type === 'keydown' && e.target && e.target.tagName === 'INPUT') return;
+      e.preventDefault && e.preventDefault();
+      if (introTimer) { clearTimeout(introTimer); introTimer = null; }
+      showNext();
+    };
+    document.addEventListener('keydown', introSkipHandler);
+    chatMessages.addEventListener('click', introSkipHandler);
+
+    // Show the first bubble immediately.
+    showNext();
+  }
+
   chatSend.addEventListener('click', () => {
     sendChatMessage(chatInput.value);
     chatInput.value = '';
@@ -755,6 +831,7 @@ export function createUI(camera, renderer, controls) {
     updateHUD,
     openPanelDrawer,
     openGatekeeperChat,
+    playIntro,
     openInventory,
     openBook,
     openRabbitHole,
