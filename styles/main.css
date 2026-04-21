@@ -319,6 +319,31 @@ body {
   background: #e0e8f0;
 }
 
+#tv-read-more {
+  position: fixed;
+  top: 62%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  border: 1.5px solid rgba(0, 212, 255, 0.8);
+  color: #00d4ff;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 3px;
+  padding: 12px 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 200;
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.25);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+#tv-read-more:hover {
+  background: rgba(0, 212, 255, 0.12);
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.55);
+}
+#tv-read-more.hidden { display: none; }
+
 #sound-toggle {
   position: fixed;
   top: 18px;
@@ -334,6 +359,7 @@ body {
   font-size: 13px;
   user-select: none;
 }
+
 
 #guide-btn {
   position: fixed;

@@ -174,6 +174,13 @@ export function createUI(camera, renderer, controls) {
           <p style="font-size:13px">📚 The Library — Archives of digital literature</p>
         </div>
       `;
+    } else if (panelId === 'video-more-info') {
+      const info = window.__currentVideoMoreInfo;
+      const body = info?.body ?? '';
+      content = `
+        <h2>${safeTitle}</h2>
+        <div style="line-height:1.75;font-size:14px">${body.replace(/\n\n/g, '<br><br>')}</div>
+      `;
     } else {
       content = `
         <h2>${safeTitle}</h2>

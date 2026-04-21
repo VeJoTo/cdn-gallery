@@ -1,6 +1,7 @@
 // src/scene/objects.js
 import * as THREE from 'three';
 import { ROOM_WIDTH } from './room.js';
+import { buildTV } from './tv.js';
 
 function buildPortal() {
   const group = new THREE.Group();
@@ -284,7 +285,8 @@ export function createObjects(scene) {
   portal.position.set(ROOM_WIDTH / 2 - 0.1, 2.4, 0);
   portal.rotation.y = -Math.PI / 2;
 
-  scene.add(centralPedestal, holoSphere, portal);
+  const tv = buildTV();
+  scene.add(centralPedestal, holoSphere, portal, tv);
 
   let elapsed = 0;
   function sceneUpdate(delta) {
@@ -306,7 +308,8 @@ export function createObjects(scene) {
 
   return {
     pedestal: holoSphere,
+    tv,
     sceneUpdate,
-    extras: [holoSphere, portal]
+    extras: [holoSphere, portal, tv]
   };
 }
