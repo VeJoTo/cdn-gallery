@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
-import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
+import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 
 const canvas = document.getElementById('gallery-canvas');
@@ -37,94 +37,77 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ── OrbitControls (free cursor, drag to rotate, A/D to rotate) ──
-export const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.enablePan = false;
-controls.minDistance = 0.5;
-controls.maxDistance = 4;
-controls.minPolarAngle = Math.PI / 3;
-controls.maxPolarAngle = Math.PI / 2;
-controls.target.set(0, 1.6, 0);
+// ── PointerLockControls (Minecraft-style: click to capture, mouse to look) ──
+export const controls = new PointerLockControls(camera, renderer.domElement);
+controls.pointerSpeed = 1.0;
+// Pitch clamp — near but not at the poles, so the camera can't flip.
+controls.minPolarAngle = 0.05;
+controls.maxPolarAngle = Math.PI - 0.05;
 
-// Hide the first-person overlay and crosshair (not used anymore)
 const fpOverlay = document.getElementById('fp-overlay');
 const crosshair = document.getElementById('crosshair');
-if (fpOverlay) fpOverlay.classList.add('hidden');
-if (crosshair) crosshair.classList.add('hidden');
+fpOverlay.classList.remove('hidden');
+crosshair.classList.add('hidden');
 
-// A/D keys rotate the camera around the room
-const ROTATE_SPEED = 1.5;
-const ZOOM_SPEED = 5.0;
-const moveState = { left: false, right: false, forward: false, backward: false };
+fpOverlay.addEventListener('click', () => controls.lock());
+
+controls.addEventListener('lock', () => {
+  fpOverlay.classList.add('hidden');
+  crosshair.classList.remove('hidden');
+});
+controls.addEventListener('unlock', () => {
+  fpOverlay.classList.remove('hidden');
+  crosshair.classList.add('hidden');
+});
+
+// ── Movement (WASD relative to look direction) ──
+const MOVE_SPEED = 5.0;
+const EYE_HEIGHT = 1.6;
+const moveState = { forward: false, backward: false, left: false, right: false };
 
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
   switch (e.code) {
-    case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
-    case 'KeyD': case 'ArrowRight': moveState.right = true; break;
     case 'KeyW': case 'ArrowUp':    moveState.forward = true; break;
     case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
+    case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
+    case 'KeyD': case 'ArrowRight': moveState.right = true; break;
   }
 });
 
 document.addEventListener('keyup', (e) => {
   switch (e.code) {
-    case 'KeyA': case 'ArrowLeft':  moveState.left = false; break;
-    case 'KeyD': case 'ArrowRight': moveState.right = false; break;
     case 'KeyW': case 'ArrowUp':    moveState.forward = false; break;
     case 'KeyS': case 'ArrowDown':  moveState.backward = false; break;
+    case 'KeyA': case 'ArrowLeft':  moveState.left = false; break;
+    case 'KeyD': case 'ArrowRight': moveState.right = false; break;
   }
 });
 
-function updateRotation(delta) {
-  // A/D handled below as strafe
-  controls.autoRotate = false;
+function updateMovement(delta) {
+  if (!controls.isLocked) return;
 
-  // W/S walk forward/back — move BOTH camera and orbit target together
-  if (moveState.forward || moveState.backward) {
-    const dir = new THREE.Vector3();
-    camera.getWorldDirection(dir);
-    dir.y = 0; // keep movement horizontal
-    dir.normalize();
-    const sign = moveState.forward ? 1 : -1;
-    const move = dir.multiplyScalar(sign * ZOOM_SPEED * delta);
-    camera.position.add(move);
-    controls.target.add(move);
+  let fwd = 0, strafe = 0;
+  if (moveState.forward)  fwd    += 1;
+  if (moveState.backward) fwd    -= 1;
+  if (moveState.right)    strafe += 1;
+  if (moveState.left)     strafe -= 1;
+  if (fwd === 0 && strafe === 0) return;
 
-    // Clamp to current room bounds
-    const inNature = currentRoom === 'nature';
-    const roomCenterX = inNature ? NATURE_CENTER_X : 0;
-    const halfW = inNature ? 3.0 : ROOM_WIDTH / 2 - 1.0;
-    const halfD = inNature ? 2.5 : ROOM_DEPTH / 2 - 1.0;
-    camera.position.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, camera.position.x));
-    camera.position.z = Math.max(-halfD, Math.min(halfD, camera.position.z));
-    controls.target.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, controls.target.x));
-    controls.target.z = Math.max(-halfD, Math.min(halfD, controls.target.z));
-  }
+  // Diagonal movement should not be faster than axis-aligned.
+  const len = Math.hypot(fwd, strafe);
+  const step = MOVE_SPEED * delta / len;
+  if (fwd    !== 0) controls.moveForward(fwd    * step);
+  if (strafe !== 0) controls.moveRight  (strafe * step);
 
-  // A/D also move the camera + target sideways (strafe)
-  if (moveState.left || moveState.right) {
-    const dir = new THREE.Vector3();
-    camera.getWorldDirection(dir);
-    dir.y = 0;
-    dir.normalize();
-    const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
-    const sign = moveState.right ? 1 : -1;
-    const move = right.multiplyScalar(sign * ZOOM_SPEED * 0.7 * delta);
-    camera.position.add(move);
-    controls.target.add(move);
-
-    const inNature = currentRoom === 'nature';
-    const roomCenterX = inNature ? NATURE_CENTER_X : 0;
-    const halfW = inNature ? 3.0 : ROOM_WIDTH / 2 - 1.0;
-    const halfD = inNature ? 2.5 : ROOM_DEPTH / 2 - 1.0;
-    camera.position.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, camera.position.x));
-    camera.position.z = Math.max(-halfD, Math.min(halfD, camera.position.z));
-    controls.target.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, controls.target.x));
-    controls.target.z = Math.max(-halfD, Math.min(halfD, controls.target.z));
-  }
+  // Clamp to current room bounds + pin eye height.
+  const inNature = currentRoom === 'nature';
+  const roomCenterX = inNature ? NATURE_CENTER_X : 0;
+  const halfW = inNature ? 3.0 : ROOM_WIDTH / 2 - 1.0;
+  const halfD = inNature ? 2.5 : ROOM_DEPTH / 2 - 1.0;
+  camera.position.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, camera.position.x));
+  camera.position.z = Math.max(-halfD, Math.min(halfD, camera.position.z));
+  camera.position.y = EYE_HEIGHT;
 }
 
 // ── Render loop ───────────────────────────────────
@@ -139,8 +122,7 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   for (const fn of updateCallbacks) fn(delta);
-  updateRotation(delta);
-  controls.update();
+  updateMovement(delta);
   updateHoverHighlight();
   renderer.render(scene, camera);
 }
@@ -206,15 +188,14 @@ function transitionToRoom(targetRoom) {
 
   setTimeout(() => {
     if (targetRoom === 'nature') {
-      camera.position.set(NATURE_CENTER_X, 1.6, -3);
-      controls.target.set(NATURE_CENTER_X, 1.6, 0);
+      camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
+      camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
       currentRoom = 'nature';
     } else {
-      camera.position.set(0, 1.6, 10);
-      controls.target.set(0, 1.6, 0);
+      camera.position.set(0, EYE_HEIGHT, 10);
+      camera.lookAt(0, EYE_HEIGHT, 0);
       currentRoom = 'ai';
     }
-    controls.update();
 
     setTimeout(() => {
       fadeOverlay.classList.remove('active');
@@ -224,119 +205,116 @@ function transitionToRoom(targetRoom) {
 
 window.__transitionToRoom = transitionToRoom;
 
-setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
-
-// Pointer cursor on hover over clickable objects
-const hoverRaycaster = new THREE.Raycaster();
-const hoverMouse     = new THREE.Vector2();
-
-// Hover highlight: glow objects the crosshair points at
+// ── Crosshair raycasting (hover + click target center of screen) ──
+const centerRaycaster = new THREE.Raycaster();
+const screenCenter    = new THREE.Vector2(0, 0);
 let lastHovered = null;
-let lastHoveredIntensity = null;
-const hoverLabel = document.getElementById('hover-label');
+
+function findClickable(hit) {
+  let obj = hit.object;
+  while (obj && !obj.userData.clickable) obj = obj.parent;
+  return obj || null;
+}
 
 function updateHoverHighlight() {
-  // With free cursor, hover is handled by the mousemove listener below
-
-  hoverRaycaster.setFromCamera(hoverMouse, camera);
-  const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
-
-  // Find the clickable parent
-  let hitObj = null;
-  let hitMesh = null;
-  if (hits.length) {
-    hitMesh = hits[0].object;
-    let obj = hitMesh;
-    while (obj && !obj.userData.clickable) obj = obj.parent;
-    hitObj = obj;
+  if (!controls.isLocked) {
+    if (lastHovered) { clearHoverGlow(lastHovered); lastHovered = null; }
+    return;
   }
 
-  // Unhighlight previous group
+  centerRaycaster.setFromCamera(screenCenter, camera);
+  const hits = centerRaycaster.intersectObjects(clickableObjects, true);
+  const hitObj = hits.length ? findClickable(hits[0]) : null;
+
   if (lastHovered && lastHovered !== hitObj) {
-    lastHovered.traverse(child => {
-      if (child.isMesh && child.material) {
-        if (child.userData._origColor !== undefined) {
-          child.material.color.setHex(child.userData._origColor);
-          delete child.userData._origColor;
-        }
-        if (child.userData._origEmissiveI !== undefined) {
-          child.material.emissiveIntensity = child.userData._origEmissiveI;
-          delete child.userData._origEmissiveI;
-        }
-      }
-    });
+    clearHoverGlow(lastHovered);
     lastHovered = null;
   }
 
-  // Highlight current — glow the entire clickable group
   if (hitObj && lastHovered !== hitObj) {
     lastHovered = hitObj;
-    hitObj.traverse(child => {
-      if (child.isMesh && child.material) {
-        if (child.material.emissive) {
-          child.userData._origEmissiveI = child.material.emissiveIntensity;
-          child.material.emissiveIntensity = (child.userData._origEmissiveI || 0) + 0.5;
-        } else {
-          // For non-emissive materials, lighten the color
-          child.userData._origColor = child.material.color.getHex();
-          const c = child.material.color;
-          child.material.color.setRGB(
-            Math.min(c.r + 0.12, 1),
-            Math.min(c.g + 0.12, 1),
-            Math.min(c.b + 0.15, 1)
-          );
-        }
-      }
-    });
+    applyHoverGlow(hitObj);
   }
 
-  // Crosshair only
-  if (crosshair) {
-    crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
-    crosshair.style.fontSize = hitObj ? '28px' : '24px';
-  }
+  crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
+  crosshair.style.fontSize = hitObj ? '28px' : '24px';
 }
 
-// Also handle mouse hover when pointer is NOT locked (for cursor)
-renderer.domElement.addEventListener('mousemove', (event) => {
-  const rect = renderer.domElement.getBoundingClientRect();
-  hoverMouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
-  hoverMouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
-  if (!controls.isLocked) {
-    hoverRaycaster.setFromCamera(hoverMouse, camera);
-    const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
-    renderer.domElement.style.cursor = hits.length ? 'pointer' : 'default';
-  }
+function applyHoverGlow(group) {
+  group.traverse(child => {
+    if (!child.isMesh || !child.material) return;
+    if (child.material.emissive) {
+      child.userData._origEmissiveI = child.material.emissiveIntensity;
+      child.material.emissiveIntensity = (child.userData._origEmissiveI || 0) + 0.5;
+    } else {
+      child.userData._origColor = child.material.color.getHex();
+      const c = child.material.color;
+      child.material.color.setRGB(
+        Math.min(c.r + 0.12, 1),
+        Math.min(c.g + 0.12, 1),
+        Math.min(c.b + 0.15, 1)
+      );
+    }
+  });
+}
+
+function clearHoverGlow(group) {
+  group.traverse(child => {
+    if (!child.isMesh || !child.material) return;
+    if (child.userData._origColor !== undefined) {
+      child.material.color.setHex(child.userData._origColor);
+      delete child.userData._origColor;
+    }
+    if (child.userData._origEmissiveI !== undefined) {
+      child.material.emissiveIntensity = child.userData._origEmissiveI;
+      delete child.userData._origEmissiveI;
+    }
+  });
+}
+
+// Click while locked → fire the action on whatever the crosshair targets.
+document.addEventListener('mousedown', () => {
+  if (!controls.isLocked) return;
+  centerRaycaster.setFromCamera(screenCenter, camera);
+  const hits = centerRaycaster.intersectObjects(clickableObjects, true);
+  if (!hits.length) return;
+
+  const obj = findClickable(hits[0]);
+  if (!obj) return;
+
+  const { action, panelId, panelTitle } = obj.userData;
+
+  // UI overlay actions need the cursor back; room transitions stay locked.
+  const uiActions = new Set([
+    'openPanel', 'openPoster', 'openBook',
+    'enterRabbitHole', 'openReport', 'openFinDuMonde'
+  ]);
+  if (uiActions.has(action)) controls.unlock();
+
+  if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
+  if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
+  if (action === 'openBook')        ui.openBook();
+  if (action === 'enterRabbitHole') ui.openRabbitHole();
+  if (action === 'openReport')      ui.openReport();
+  if (action === 'openFinDuMonde')  ui.openFinDuMonde();
+  if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
+  if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  nav.goBack();
-  camera.position.set(0, 1.6, 10);
-  controls.target.set(0, 1.6, 0);
-  controls.update();
-  document.getElementById('stepback-btn').classList.add('hidden');
+  controls.unlock();
+  camera.position.set(0, EYE_HEIGHT, 10);
+  camera.lookAt(0, EYE_HEIGHT, 0);
 });
 
-// Step back from zoom-in
-const stepbackBtn = document.getElementById('stepback-btn');
-stepbackBtn.addEventListener('click', () => {
-  nav.goBack();
-  stepbackBtn.classList.add('hidden');
-  // Close any open panel drawer
-  const drawer = document.getElementById('panel-drawer');
-  drawer.classList.remove('open');
-  setTimeout(() => drawer.classList.add('hidden'), 350);
+document.getElementById('guide-btn').addEventListener('click', () => {
+  controls.unlock();
+  ui.openGatekeeperChat();
 });
-
-// Show step-back button when zooming into a hotspot
-const _origGoTo = nav.goTo;
-nav.goTo = (id) => {
-  _origGoTo(id);
-  stepbackBtn.classList.remove('hidden');
-};
-
-document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
-document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
+document.getElementById('inventory-btn').addEventListener('click', () => {
+  controls.unlock();
+  ui.openInventory();
+});
 
 addUpdateCallback(() => ui.updateHints());
 
