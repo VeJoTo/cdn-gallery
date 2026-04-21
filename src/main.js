@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+import { aiArtVideos } from './videoData.js';
 import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
@@ -17,6 +19,15 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// ── CSS3D renderer (for the TV's YouTube iframe) ──────────────────────────────
+const cssRenderer = new CSS3DRenderer();
+cssRenderer.setSize(window.innerWidth, window.innerHeight);
+cssRenderer.domElement.style.position = 'absolute';
+cssRenderer.domElement.style.top = '0';
+cssRenderer.domElement.style.pointerEvents = 'none';
+document.body.appendChild(cssRenderer.domElement);
+const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
@@ -40,6 +51,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  cssRenderer.setSize(window.innerWidth, window.innerHeight);
   if (window.__godraysComposer) window.__godraysComposer.setSize(window.innerWidth, window.innerHeight);
 });
 
@@ -139,6 +151,7 @@ function animate() {
   } else {
     renderer.render(scene, camera);
   }
+  cssRenderer.render(cssScene, camera);
 }
 
 // Rooms live in the same scene at different x-offsets; geometry from one
@@ -156,12 +169,164 @@ const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   createRoom(scene);
   return createObjects(scene);
 });
-const { pedestal, sceneUpdate, extras } = aiObjects;
+const { pedestal, tv, sceneUpdate, extras } = aiObjects;
 addUpdateCallback(sceneUpdate);
+
+// ── TV: YouTube iframe via CSS3DRenderer ──────────────────────────────────────
+let currentVideoIndex = 0;
+
+function buildTVSrc(id, autoplay = 1) {
+  return `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&showinfo=0&fs=0&disablekb=1&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+}
+
+const tvVideoIframe = document.createElement('iframe');
+tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 0);
+tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+tvVideoIframe.style.width = '1280px';
+tvVideoIframe.style.height = '720px';
+tvVideoIframe.style.borderRadius = '23px';
+tvVideoIframe.style.border = 'none';
+
+const tvScale = 1.92 / 1280;
+const tvCSS3D = new CSS3DObject(tvVideoIframe);
+tvCSS3D.scale.set(tvScale, tvScale, tvScale);
+cssScene.add(tvCSS3D);
+
+// Transparent overlay — catches clicks, hides YouTube UI chrome
+const tvOverlayDiv = document.createElement('div');
+tvOverlayDiv.style.cssText = `width:1280px;height:720px;border-radius:23px;cursor:pointer;pointer-events:auto;background:rgba(0,0,0,0.001);`;
+const tvOverlayCSS3D = new CSS3DObject(tvOverlayDiv);
+tvOverlayCSS3D.scale.set(tvScale, tvScale, tvScale);
+cssScene.add(tvOverlayCSS3D);
+
+// ── Hologram info panel ───────────────────────────────────────────────────────
+const hologramDiv = document.createElement('div');
+hologramDiv.style.cssText = `
+  width:1280px; height:720px; box-sizing:border-box;
+  background:linear-gradient(160deg,rgba(2,0,28,0.94) 0%,rgba(10,0,40,0.90) 100%);
+  border:1px solid rgba(255,255,255,0.35); border-top:2px solid rgba(0,212,255,0.9);
+  border-bottom:2px solid rgba(255,255,255,0.5); border-radius:23px;
+  box-shadow:inset 0 0 80px rgba(255,255,255,0.06),inset 0 0 160px rgba(0,212,255,0.06);
+  font-family:'Courier New',monospace; color:#fff; pointer-events:auto; cursor:pointer;
+  display:flex; flex-direction:column; justify-content:flex-start;
+  overflow-y:auto; padding:80px 100px; backdrop-filter:blur(2px);
+  opacity:0; transition:opacity 0.4s ease;
+`;
+
+function updateHologram(video) {
+  hologramDiv.innerHTML = `
+    <div style="color:#fff;font-size:22px;letter-spacing:6px;text-transform:uppercase;margin-bottom:32px;text-shadow:0 0 10px #fff,0 0 20px rgba(255,255,255,0.6)">◈ &nbsp;NOW PLAYING &nbsp;◈</div>
+    <div style="font-size:42px;font-weight:bold;color:#fff;margin-bottom:16px;line-height:1.25;text-shadow:0 0 20px rgba(255,255,255,0.5)">${video.title}</div>
+    <div style="font-size:28px;color:rgba(168,216,234,0.85);margin-bottom:28px">${video.artist}</div>
+    ${video.description ? `<div style="font-size:22px;color:rgba(0,212,255,0.85);border-top:1px solid rgba(255,255,255,0.2);padding-top:28px;line-height:1.6">${video.description}</div>` : ''}
+    <div style="margin-top:auto;padding-top:32px;font-size:18px;color:rgba(255,255,255,0.7);letter-spacing:4px;display:flex;justify-content:space-between">
+      <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
+      <span>${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
+    </div>
+  `;
+}
+
+const infoCss3D = new CSS3DObject(hologramDiv);
+infoCss3D.scale.setScalar(1.6 / 1280);
+cssScene.add(infoCss3D);
+
+// Per-frame sync — keeps all CSS3D panels locked to the TV screen face
+const _cssPos = new THREE.Vector3();
+const _cssQuat = new THREE.Quaternion();
+const screenMesh = tv.userData.screenMesh;
+addUpdateCallback(() => {
+  screenMesh.getWorldPosition(_cssPos);
+  screenMesh.getWorldQuaternion(_cssQuat);
+  tvCSS3D.position.copy(_cssPos);
+  tvCSS3D.quaternion.copy(_cssQuat);
+  tvOverlayCSS3D.position.copy(_cssPos);
+  tvOverlayCSS3D.quaternion.copy(_cssQuat);
+  infoCss3D.position.copy(_cssPos);
+  infoCss3D.quaternion.copy(_cssQuat);
+});
+
+// ── TV playback state ─────────────────────────────────────────────────────────
+let isPlaying = false;
+
+function loadVideo(index) {
+  currentVideoIndex = (index + aiArtVideos.length) % aiArtVideos.length;
+  tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1);
+  isPlaying = true;
+  updateHologram(aiArtVideos[currentVideoIndex]);
+  hologramDiv.style.opacity = '0';
+  hologramDiv.style.pointerEvents = 'none';
+  const tvPlayPauseBtn = document.getElementById('tv-playpause');
+  if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '▮▮';
+}
+
+window.__nextVideo = () => loadVideo(currentVideoIndex + 1);
+window.__prevVideo = () => loadVideo(currentVideoIndex - 1);
+window.__showInfo  = () => {
+  hologramDiv.style.opacity = '1';
+  hologramDiv.style.pointerEvents = 'auto';
+  tvVideoIframe.contentWindow?.postMessage(
+    JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+  isPlaying = false;
+  const tvPlayPauseBtn = document.getElementById('tv-playpause');
+  if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '▶';
+};
+
+// ── TV DOM controls ───────────────────────────────────────────────────────────
+const tvControls     = document.getElementById('tv-controls');
+const tvPlayPauseBtn = document.getElementById('tv-playpause');
+const tvPrevBtn      = document.getElementById('tv-prev');
+const tvNextBtn      = document.getElementById('tv-next');
+const tvInfoBtn      = document.getElementById('tv-info');
+const soundCheckbox  = document.getElementById('sound-checkbox');
+
+function showTVControls(visible) {
+  if (tvControls) tvControls.classList.toggle('hidden', !visible);
+}
+
+tvPlayPauseBtn?.addEventListener('click', () => {
+  if (hologramDiv.style.opacity !== '0') {
+    hologramDiv.style.opacity = '0';
+    hologramDiv.style.pointerEvents = 'none';
+    tvVideoIframe.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
+    isPlaying = true;
+    tvPlayPauseBtn.textContent = '▮▮';
+  } else if (isPlaying) {
+    tvVideoIframe.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
+    isPlaying = false;
+    tvPlayPauseBtn.textContent = '▶';
+  } else {
+    tvVideoIframe.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
+    isPlaying = true;
+    tvPlayPauseBtn.textContent = '▮▮';
+  }
+});
+tvPrevBtn?.addEventListener('click', () => loadVideo(currentVideoIndex - 1));
+tvNextBtn?.addEventListener('click', () => loadVideo(currentVideoIndex + 1));
+tvInfoBtn?.addEventListener('click', () => window.__showInfo());
+tvOverlayDiv.addEventListener('click', () => tvPlayPauseBtn?.click());
+hologramDiv.addEventListener('click', () => tvPlayPauseBtn?.click());
+
+soundCheckbox?.addEventListener('change', () => {
+  const cmd = soundCheckbox.checked ? 'unMute' : 'mute';
+  tvVideoIframe.contentWindow?.postMessage(
+    JSON.stringify({ event: 'command', func: cmd, args: '' }), '*');
+});
+
+updateHologram(aiArtVideos[currentVideoIndex]);
+hologramDiv.style.opacity = '1';
+hologramDiv.style.pointerEvents = 'auto';
 
 const clickableObjects = [pedestal, ...extras];
 
 const ui       = createUI(camera, renderer, controls);
+const _origUpdateHUD = ui.updateHUD.bind(ui);
+ui.updateHUD = (id) => {
+  _origUpdateHUD(id);
+  showTVControls(id === 'tv');
+};
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
 
