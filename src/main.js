@@ -5,7 +5,7 @@ import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
-import { createUI } from './ui.js';
+import { createUI, hasSeenIntro, markIntroSeen } from './ui.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
 
@@ -81,6 +81,7 @@ document.addEventListener('keydown', (e) => {
     case 'KeyG':
       controls.unlock();
       ui.openGatekeeperChat();
+      markIntroSeen();
       break;
   }
 });
@@ -419,3 +420,10 @@ document.getElementById('chat-close').addEventListener('click', () => {
 addUpdateCallback(() => ui.updateHints());
 
 animate();
+
+// First-spawn welcome — fires once per browser. Manual `G` before this
+// point sets the flag too, so the player never sees two intros.
+if (!hasSeenIntro()) {
+  ui.playIntro();
+  markIntroSeen();
+}
