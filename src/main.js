@@ -78,6 +78,10 @@ document.addEventListener('keydown', (e) => {
     case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
     case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
     case 'KeyD': case 'ArrowRight': moveState.right = true; break;
+    case 'KeyG':
+      controls.unlock();
+      ui.openGatekeeperChat();
+      break;
   }
 });
 
@@ -401,13 +405,15 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   transitionToRoom('exterior');
 });
 
-document.getElementById('guide-btn').addEventListener('click', () => {
-  controls.unlock();
-  ui.openGatekeeperChat();
-});
 document.getElementById('inventory-btn').addEventListener('click', () => {
   controls.unlock();
   ui.openInventory();
+});
+
+// Closing the Guide re-locks the cursor instantly (same user gesture, so the
+// browser allows it without the fp-overlay round-trip).
+document.getElementById('chat-close').addEventListener('click', () => {
+  try { controls.lock(); } catch { /* browser may refuse; fp-overlay will still reappear */ }
 });
 
 addUpdateCallback(() => ui.updateHints());

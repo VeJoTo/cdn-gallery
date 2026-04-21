@@ -64,7 +64,8 @@ After bubble 4 finishes, the existing chip row renders as normal (no change to c
 ## Interaction with the rest of the flow
 
 - The intro unlocks the pointer while it plays (consistent with every other UI overlay in the app; the chat is the active UI and the cursor is needed to click chips or the Send button afterward).
-- On a fresh load, the intro fires *before* the player has clicked the fp-overlay to lock their pointer. That is the intended ordering: chat appears first → player reads + closes → fp-overlay returns → player clicks to lock + explore. The CSS `:has()` rule added earlier on this branch already suppresses fp-overlay while the chat is open, so the two do not fight.
+- On a fresh load, the intro fires *before* the player has clicked the fp-overlay to lock their pointer. That is the intended ordering: chat appears first → player reads → closes → pointer locks instantly (no fp-overlay round-trip) and the player is already in exploration mode. The CSS `:has()` rule added earlier on this branch suppresses fp-overlay while the chat is open; a click handler on `#chat-close` calls `controls.lock()` synchronously inside the close gesture so the browser allows the lock without pointer-lock cooldown.
+- If the browser refuses the lock (e.g., cooldown from a very recent unlock, private-mode permission prompt), fp-overlay reappears via the existing lock/unlock listeners and the player can click it manually — no broken state.
 - If the player presses `G` before the intro has triggered (edge case: they open the Guide manually in the first second), the manual open wins — the intro-sequence state is marked "seen" and subsequent spawns won't replay. No double-intro.
 - The Guide is openable manually (via `G`) as usual after the intro finishes. Manually opening the Guide later shows the existing one-liner greeting, not the intro sequence.
 
