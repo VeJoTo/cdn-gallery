@@ -65,8 +65,18 @@ const crosshair = document.getElementById('crosshair');
 if (fpOverlay) fpOverlay.classList.remove('hidden');
 if (crosshair) crosshair.classList.remove('hidden');
 
-// Click canvas to lock pointer
+// Clicking the overlay or canvas locks the pointer
+if (fpOverlay) fpOverlay.addEventListener('click', () => controller.lock());
 canvas.addEventListener('click', () => controller.lock());
+
+// Hide overlay when locked, show it again when unlocked
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === canvas) {
+    if (fpOverlay) fpOverlay.classList.add('hidden');
+  } else {
+    if (fpOverlay) fpOverlay.classList.remove('hidden');
+  }
+});
 
 // ── Room bounds helper ──
 function currentBounds() {
