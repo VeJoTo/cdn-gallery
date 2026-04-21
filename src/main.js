@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createFirstPersonController } from './controls.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { createRoom } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
-import { createNavigationState, createNavigationSystem, setupClickHandler } from './navigation.js';
+import { setupClickHandler } from './navigation.js';
 import { createUI } from './ui.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
@@ -40,8 +40,7 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(-20, 1.6, 8);
-camera.lookAt(-20, 1.6, 2);
+camera.position.set(0, 0, 0);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -53,94 +52,27 @@ window.addEventListener('resize', () => {
   if (window.__godraysComposer) window.__godraysComposer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ── OrbitControls (free cursor, drag to rotate, A/D to rotate) ──
-export const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.enablePan = false;
-controls.minDistance = 0.5;
-controls.maxDistance = 4;
-controls.minPolarAngle = Math.PI / 3;
-controls.maxPolarAngle = Math.PI / 2;
-controls.target.set(-20, 1.6, 2);
+// ── First-person controller ──
+const controller = createFirstPersonController({ canvas, camera });
+scene.add(controller.player);
 
-// Hide the first-person overlay and crosshair (not used anymore)
+// Spawn in exterior, facing inward
+controller.setPose({ position: new THREE.Vector3(-20, 0, 8), yaw: 0, pitch: 0 });
+
+// Show crosshair and overlay
 const fpOverlay = document.getElementById('fp-overlay');
 const crosshair = document.getElementById('crosshair');
-if (fpOverlay) fpOverlay.classList.add('hidden');
-if (crosshair) crosshair.classList.add('hidden');
+if (fpOverlay) fpOverlay.classList.remove('hidden');
+if (crosshair) crosshair.classList.remove('hidden');
 
-// A/D keys rotate the camera around the room
-const ROTATE_SPEED = 1.5;
-const ZOOM_SPEED = 5.0;
-const moveState = { left: false, right: false, forward: false, backward: false };
+// Click canvas to lock pointer
+canvas.addEventListener('click', () => controller.lock());
 
-document.addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT') return;
-  switch (e.code) {
-    case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
-    case 'KeyD': case 'ArrowRight': moveState.right = true; break;
-    case 'KeyW': case 'ArrowUp':    moveState.forward = true; break;
-    case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
-  }
-});
-
-document.addEventListener('keyup', (e) => {
-  switch (e.code) {
-    case 'KeyA': case 'ArrowLeft':  moveState.left = false; break;
-    case 'KeyD': case 'ArrowRight': moveState.right = false; break;
-    case 'KeyW': case 'ArrowUp':    moveState.forward = false; break;
-    case 'KeyS': case 'ArrowDown':  moveState.backward = false; break;
-  }
-});
-
-function updateRotation(delta) {
-  // A/D handled below as strafe
-  controls.autoRotate = false;
-
-  // W/S walk forward/back — move BOTH camera and orbit target together
-  if (moveState.forward || moveState.backward) {
-    const dir = new THREE.Vector3();
-    camera.getWorldDirection(dir);
-    dir.y = 0; // keep movement horizontal
-    dir.normalize();
-    const sign = moveState.forward ? 1 : -1;
-    const move = dir.multiplyScalar(sign * ZOOM_SPEED * delta);
-    camera.position.add(move);
-    controls.target.add(move);
-
-    // Clamp to current room bounds
-    const roomX0 = currentRoom === 'nature' ? 20 : currentRoom === 'exterior' ? -20 : 0;
-    const xBound0 = currentRoom === 'exterior' ? 5 : 3.0;
-    camera.position.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, camera.position.x));
-    controls.target.x = Math.max(roomX0 - xBound0, Math.min(roomX0 + xBound0, controls.target.x));
-    const zMin = currentRoom === 'exterior' ? 0.5 : -2.5;
-    const zMax = currentRoom === 'exterior' ? 10 : 2.5;
-    camera.position.z = Math.max(zMin, Math.min(zMax, camera.position.z));
-    controls.target.z = Math.max(zMin, Math.min(zMax, controls.target.z));
-  }
-
-  // A/D also move the camera + target sideways (strafe)
-  if (moveState.left || moveState.right) {
-    const dir = new THREE.Vector3();
-    camera.getWorldDirection(dir);
-    dir.y = 0;
-    dir.normalize();
-    const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
-    const sign = moveState.right ? 1 : -1;
-    const move = right.multiplyScalar(sign * ZOOM_SPEED * 0.7 * delta);
-    camera.position.add(move);
-    controls.target.add(move);
-
-    const roomX1 = currentRoom === 'nature' ? 20 : currentRoom === 'exterior' ? -20 : 0;
-    const xBound1 = currentRoom === 'exterior' ? 5 : 3.0;
-    camera.position.x = Math.max(roomX1 - xBound1, Math.min(roomX1 + xBound1, camera.position.x));
-    controls.target.x = Math.max(roomX1 - xBound1, Math.min(roomX1 + xBound1, controls.target.x));
-    const zMinS = currentRoom === 'exterior' ? -4 : -2.5;
-    const zMaxS = currentRoom === 'exterior' ? 8 : 2.5;
-    camera.position.z = Math.max(zMinS, Math.min(zMaxS, camera.position.z));
-    controls.target.z = Math.max(zMinS, Math.min(zMaxS, controls.target.z));
-  }
+// ── Room bounds helper ──
+function currentBounds() {
+  if (currentRoom === 'nature')   return { minX: 17,  maxX: 23,  minZ: -2.5, maxZ: 2.5 };
+  if (currentRoom === 'exterior') return { minX: -25, maxX: -15, minZ: 0.5,  maxZ: 10  };
+  return                                 { minX: -3,  maxX: 3,   minZ: -2.5, maxZ: 2.5 };
 }
 
 // ── Render loop ───────────────────────────────────
@@ -155,8 +87,7 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   for (const fn of updateCallbacks) fn(delta);
-  updateRotation(delta);
-  controls.update();
+  controller.update(delta, currentBounds());
   updateHoverHighlight();
   if (currentRoom === 'exterior') {
     composer.render();
@@ -164,15 +95,10 @@ function animate() {
     renderer.render(scene, camera);
   }
 
-  // Only show CSS3D iframes when camera is close to the screens and facing them
-  // TV is at (3.419, 2.85, 0), monitor at ~(2.35, 1.22, -2.9)
-  const camPos = camera.position;
+  // Show CSS3D only in AI room when not facing away from screens
   const camDir = new THREE.Vector3();
   camera.getWorldDirection(camDir);
-
-  // Show CSS3D in AI room, hide in nature room
-  // Only hide when camera is clearly facing AWAY from the screens (left wall / back toward arcades)
-  const facingAway = camDir.x < -0.5; // facing left wall (away from TV + desk)
+  const facingAway = camDir.x < -0.5;
   const showCSS3D = currentRoom === 'ai' && !facingAway;
 
   cssRenderer.domElement.style.display = showCSS3D ? '' : 'none';
@@ -197,15 +123,8 @@ tvVideoIframe.style.width = '1280px';
 tvVideoIframe.style.height = '720px';
 
 const tvCSS3D = new CSS3DObject(tvVideoIframe);
-// Screen mesh in buildTV is at local (0, 0, 0.071) inside the TV group.
-// TV group is at (3.49, 2.85, 0) with rotation.y = -Math.PI/2.
-// Local +Z maps to world -X after that rotation, so world position is:
-//   (3.49 - 0.071, 2.85, 0) = (3.419, 2.85, 0)
 tvCSS3D.position.set(3.419, 2.85, 0);
-// Face world -X: starting orientation (+Z facing) rotated by +π/2 about Y.
 tvCSS3D.rotation.y = -Math.PI / 2;
-// Iframe CSS size is 1280 × 720 px; target world size is 1.92 × 1.08 units.
-// Uniform scale = 1.92 / 1280 = 0.0015
 const tvScale = 1.92 / 1280;
 tvCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvCSS3D);
@@ -218,10 +137,8 @@ fdmIframe.style.height = '370px';
 fdmIframe.style.border = '0';
 
 const fdmCSS3D = new CSS3DObject(fdmIframe);
-// Right monitor screen world position: desk(1.8, 0, -2.6) + local(0.513, 1.18, -0.158)
 fdmCSS3D.position.set(2.348, 1.22, -2.905);
 fdmCSS3D.rotation.y = -0.15;
-// Screen is 0.66 × 0.38 world units; iframe is 640 × 370 px — scale to fit height
 const fdmScale = 0.38 / 370;
 fdmCSS3D.scale.set(fdmScale, fdmScale, fdmScale);
 cssScene.add(fdmCSS3D);
@@ -233,9 +150,7 @@ const clickableObjects = [
   ...extras
 ];
 
-const ui       = createUI(camera, renderer, controls);
-const navState = createNavigationState();
-const nav      = createNavigationSystem(camera, navState, ui, controls);
+const ui = createUI(camera, renderer, null);
 
 // TV sound toggle — always visible in first-person mode
 const soundCheckbox = document.getElementById('sound-checkbox');
@@ -326,37 +241,32 @@ const fadeOverlay = document.getElementById('fade-overlay');
 let currentRoom = 'exterior'; // 'ai', 'nature', or 'exterior'
 
 function transitionToRoom(targetRoom) {
-  // Clear saved zoom position without moving the camera
-  nav.clearSaved();
+  controller.unlock();
   fadeOverlay.classList.add('active');
 
   setTimeout(() => {
     if (targetRoom === 'nature') {
-      camera.position.set(20, 1.6, -3);
-      controls.target.set(20, 1.6, 0);
+      controller.setPose({ position: new THREE.Vector3(20, 0, -3), yaw: Math.PI, pitch: 0 });
       currentRoom = 'nature';
       cssRenderer.domElement.style.display = 'none';
       for (const c of aiRoomChildren) c.visible = false;
       scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else if (targetRoom === 'exterior') {
-      camera.position.set(-20, 1.6, 8);
-      controls.target.set(-20, 1.6, 2);
+      controller.setPose({ position: new THREE.Vector3(-20, 0, 8), yaw: 0, pitch: 0 });
       currentRoom = 'exterior';
       cssRenderer.domElement.style.display = 'none';
       for (const c of aiRoomChildren) c.visible = false;
       scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else {
-      camera.position.set(0, 1.6, 2);
-      controls.target.set(0, 1.6, 0);
+      controller.setPose({ position: new THREE.Vector3(0, 0, 2), yaw: 0, pitch: 0 });
       currentRoom = 'ai';
       cssRenderer.domElement.style.display = '';
       for (const c of aiRoomChildren) c.visible = true;
       scene.background = new THREE.Color(0x0a0f1a);
       scene.fog = new THREE.FogExp2(0x0a0f1a, 0.04);
     }
-    controls.update();
 
     setTimeout(() => {
       fadeOverlay.classList.remove('active');
@@ -366,29 +276,25 @@ function transitionToRoom(targetRoom) {
 
 window.__transitionToRoom = transitionToRoom;
 
-setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState);
-
-// Pointer cursor on hover over clickable objects
-const hoverRaycaster = new THREE.Raycaster();
-const hoverMouse     = new THREE.Vector2();
+setupClickHandler(renderer, camera, clickableObjects, ui);
 
 // Hover highlight: glow objects the crosshair points at
+const hoverRaycaster = new THREE.Raycaster();
+const hoverMouse     = new THREE.Vector2();
 let lastHovered = null;
-let lastHoveredIntensity = null;
-const hoverLabel = document.getElementById('hover-label');
 
 function updateHoverHighlight() {
-  // With free cursor, hover is handled by the mousemove listener below
+  // When pointer is locked, raycast from center of screen
+  if (controller.isLocked()) {
+    hoverMouse.set(0, 0);
+  }
 
   hoverRaycaster.setFromCamera(hoverMouse, camera);
   const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
 
-  // Find the clickable parent
   let hitObj = null;
-  let hitMesh = null;
   if (hits.length) {
-    hitMesh = hits[0].object;
-    let obj = hitMesh;
+    let obj = hits[0].object;
     while (obj && !obj.userData.clickable) obj = obj.parent;
     hitObj = obj;
   }
@@ -410,7 +316,7 @@ function updateHoverHighlight() {
     lastHovered = null;
   }
 
-  // Highlight current — glow the entire clickable group
+  // Highlight current group
   if (hitObj && lastHovered !== hitObj) {
     lastHovered = hitObj;
     hitObj.traverse(child => {
@@ -419,7 +325,6 @@ function updateHoverHighlight() {
           child.userData._origEmissiveI = child.material.emissiveIntensity;
           child.material.emissiveIntensity = (child.userData._origEmissiveI || 0) + 0.5;
         } else {
-          // For non-emissive materials, lighten the color
           child.userData._origColor = child.material.color.getHex();
           const c = child.material.color;
           child.material.color.setRGB(
@@ -432,50 +337,23 @@ function updateHoverHighlight() {
     });
   }
 
-  // Crosshair only
   if (crosshair) {
     crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
     crosshair.style.fontSize = hitObj ? '28px' : '24px';
   }
 }
 
-// Also handle mouse hover when pointer is NOT locked (for cursor)
+// Update hover mouse position when pointer is not locked
 renderer.domElement.addEventListener('mousemove', (event) => {
+  if (controller.isLocked()) return;
   const rect = renderer.domElement.getBoundingClientRect();
   hoverMouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
   hoverMouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
-  if (!controls.isLocked) {
-    hoverRaycaster.setFromCamera(hoverMouse, camera);
-    const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
-    renderer.domElement.style.cursor = hits.length ? 'pointer' : 'default';
-  }
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-  nav.goBack();
-  camera.position.set(0, 1.6, 2);
-  controls.target.set(0, 1.6, 0);
-  controls.update();
-  document.getElementById('stepback-btn').classList.add('hidden');
+  transitionToRoom('exterior');
 });
-
-// Step back from zoom-in
-const stepbackBtn = document.getElementById('stepback-btn');
-stepbackBtn.addEventListener('click', () => {
-  nav.goBack();
-  stepbackBtn.classList.add('hidden');
-  // Close any open panel drawer
-  const drawer = document.getElementById('panel-drawer');
-  drawer.classList.remove('open');
-  setTimeout(() => drawer.classList.add('hidden'), 350);
-});
-
-// Show step-back button when zooming into a hotspot
-const _origGoTo = nav.goTo;
-nav.goTo = (id) => {
-  _origGoTo(id);
-  stepbackBtn.classList.remove('hidden');
-};
 
 document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
 document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
@@ -486,7 +364,6 @@ soundCheckbox.addEventListener('change', () => {
     JSON.stringify({ event: 'command', func: cmd, args: '' }),
     '*'
   );
-  // Pause music when video sound is turned on
   if (soundCheckbox.checked && musicPlaying) {
     musicCheckbox.checked = false;
     musicPlaying = false;
@@ -545,7 +422,6 @@ modeTabs.forEach(tab => {
     } else {
       musicControls.classList.add('hidden');
       podcastControls.classList.remove('hidden');
-      // Pause YouTube music when switching to podcast
       if (musicPlaying) {
         musicCheckbox.checked = false;
         musicPlaying = false;
@@ -580,12 +456,10 @@ let podcastOpen = false;
 podcastToggle.addEventListener('click', () => {
   podcastOpen = !podcastOpen;
   if (podcastOpen) {
-    // Reload iframe with autoplay to start playing immediately
     const iframe = document.getElementById('spotify-iframe');
     if (iframe) iframe.src = 'https://open.spotify.com/embed/episode/629iwUQqeciMedvx9oseyf?theme=0&autoplay=1';
     spotifyPlayer.classList.remove('hidden');
     podcastToggle.textContent = '⏸ Playing';
-    // Pause music if playing
     if (musicPlaying) {
       musicCheckbox.checked = false;
       musicPlaying = false;
@@ -598,7 +472,6 @@ podcastToggle.addEventListener('click', () => {
 });
 
 function stopPodcast() {
-  // Reload iframe src to kill playback
   const iframe = document.getElementById('spotify-iframe');
   if (iframe) { const src = iframe.src; iframe.src = ''; iframe.src = src; }
   spotifyPlayer.classList.add('hidden');

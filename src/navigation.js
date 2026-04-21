@@ -123,27 +123,19 @@ export function createNavigationSystem(camera, state, ui, controls) {
   return { goTo, goBack, clearSaved };
 }
 
-export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, navState) {
+export function setupClickHandler(renderer, camera, clickableObjects, ui) {
   const raycaster = new THREE.Raycaster();
   const mouse     = new THREE.Vector2();
-  let downX = 0, downY = 0;
-
-  // Listen on document so events fire even when pointer is locked to document.body
-  document.addEventListener('mousedown', (e) => {
-    downX = e.clientX;
-    downY = e.clientY;
-  });
 
   document.addEventListener('mouseup', (event) => {
-    // Ignore if the mouse moved more than 5px (that's a drag, not a click)
-    const dx = event.clientX - downX;
-    const dy = event.clientY - downY;
-    if (Math.sqrt(dx * dx + dy * dy) > 5) return;
-
-    // When pointer is locked, raycast from center of screen
-    const rect = renderer.domElement.getBoundingClientRect();
-    mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
-    mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+    // When pointer is locked, raycast from center of screen; otherwise use cursor position
+    if (document.pointerLockElement) {
+      mouse.set(0, 0);
+    } else {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
+      mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+    }
 
     raycaster.setFromCamera(mouse, camera);
     const hits = raycaster.intersectObjects(clickableObjects, true);
@@ -154,10 +146,7 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     while (obj && !obj.userData.clickable) obj = obj.parent;
     if (!obj) return;
 
-    const { hotspot, action, panelId, panelTitle } = obj.userData;
-
-    // Zoom in if there's a hotspot
-    if (hotspot) nav.goTo(hotspot);
+    const { action, panelId, panelTitle } = obj.userData;
 
     // Fire actions directly
     if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
@@ -168,6 +157,6 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     if (action === 'openFinDuMonde')  ui.openFinDuMonde();
     if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
     if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
-    if (action === 'enterAIRoom')    window.__transitionToRoom('ai');
+    if (action === 'enterAIRoom')     window.__transitionToRoom('ai');
   });
 }
