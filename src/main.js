@@ -1,11 +1,10 @@
 import * as THREE from 'three';
-import { createFirstPersonController } from './controls.js';
-import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
-import { createRoom } from './scene/room.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
-import { createNatureRoom } from './scene/nature-room.js';
+import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
-import { setupClickHandler } from './navigation.js';
+import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
@@ -18,14 +17,6 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-// ── CSS3D renderer (for the TV's YouTube iframe) ──
-export const cssRenderer = new CSS3DRenderer();
-cssRenderer.setSize(window.innerWidth, window.innerHeight);
-cssRenderer.domElement.id = 'css3d-layer';
-document.body.appendChild(cssRenderer.domElement);
-
-export const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
@@ -48,54 +39,84 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  cssRenderer.setSize(window.innerWidth, window.innerHeight);
   if (window.__godraysComposer) window.__godraysComposer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ── First-person controller ──
-const controller = createFirstPersonController({ canvas, camera });
-scene.add(controller.player);
+// ── PointerLockControls (Minecraft-style: click to capture, mouse to look) ──
+export const controls = new PointerLockControls(camera, renderer.domElement);
+controls.pointerSpeed = 1.0;
+// Pitch clamp — near but not at the poles, so the camera can't flip.
+controls.minPolarAngle = 0.05;
+controls.maxPolarAngle = Math.PI - 0.05;
 
-// Spawn in exterior, facing inward
-controller.setPose({ position: new THREE.Vector3(-20, 0, 8), yaw: 0, pitch: 0 });
-
-// Show crosshair and overlay
 const fpOverlay = document.getElementById('fp-overlay');
 const crosshair = document.getElementById('crosshair');
-if (fpOverlay) fpOverlay.classList.remove('hidden');
-if (crosshair) crosshair.classList.remove('hidden');
+fpOverlay.classList.remove('hidden');
+crosshair.classList.add('hidden');
 
-// Clicking the overlay or canvas locks the pointer
-if (fpOverlay) fpOverlay.addEventListener('click', () => controller.lock());
+fpOverlay.addEventListener('click', () => controls.lock());
 
-// Left mouse held down = glide forward (like cdn-3d-room-collab)
-canvas.addEventListener('mousedown', (event) => {
-  if (event.button !== 0) return;
-  if (!controller.isLocked()) {
-    controller.lock();
-    return;
-  }
-  controller.setPointerForward(true);
+controls.addEventListener('lock', () => {
+  fpOverlay.classList.add('hidden');
+  crosshair.classList.remove('hidden');
+});
+controls.addEventListener('unlock', () => {
+  fpOverlay.classList.remove('hidden');
+  crosshair.classList.add('hidden');
 });
 
-window.addEventListener('mouseup', () => controller.setPointerForward(false));
-window.addEventListener('blur', () => controller.setPointerForward(false));
+// ── Movement (WASD relative to look direction) ──
+const MOVE_SPEED = 5.0;
+const EYE_HEIGHT = 1.6;
+const moveState = { forward: false, backward: false, left: false, right: false };
 
-// Hide overlay when locked, show it again when unlocked
-document.addEventListener('pointerlockchange', () => {
-  if (document.pointerLockElement === canvas) {
-    if (fpOverlay) fpOverlay.classList.add('hidden');
-  } else {
-    controller.setPointerForward(false);
-    if (fpOverlay) fpOverlay.classList.remove('hidden');
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  switch (e.code) {
+    case 'KeyW': case 'ArrowUp':    moveState.forward = true; break;
+    case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
+    case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
+    case 'KeyD': case 'ArrowRight': moveState.right = true; break;
   }
 });
 
-// ── Room bounds helper ──
-function currentBounds() {
-  if (currentRoom === 'nature')   return { minX: 17,  maxX: 23,  minZ: -2.5, maxZ: 2.5 };
-  if (currentRoom === 'exterior') return { minX: -25, maxX: -15, minZ: 0.5,  maxZ: 10  };
-  return                                 { minX: -3,  maxX: 3,   minZ: -2.5, maxZ: 2.5 };
+document.addEventListener('keyup', (e) => {
+  switch (e.code) {
+    case 'KeyW': case 'ArrowUp':    moveState.forward = false; break;
+    case 'KeyS': case 'ArrowDown':  moveState.backward = false; break;
+    case 'KeyA': case 'ArrowLeft':  moveState.left = false; break;
+    case 'KeyD': case 'ArrowRight': moveState.right = false; break;
+  }
+});
+
+// Room-walkable regions — axis-aligned box around each spawn.
+const ROOM_BOUNDS = {
+  exterior: { cx: -20,                cz: 4.75, halfW: 5,                  halfD: 5.25 },
+  ai:       { cx: 0,                  cz: 0,    halfW: ROOM_WIDTH / 2 - 1, halfD: ROOM_DEPTH / 2 - 1 },
+  nature:   { cx: NATURE_CENTER_X,    cz: 0,    halfW: 3,                  halfD: 2.5 }
+};
+
+function updateMovement(delta) {
+  if (!controls.isLocked) return;
+
+  let fwd = 0, strafe = 0;
+  if (moveState.forward)  fwd    += 1;
+  if (moveState.backward) fwd    -= 1;
+  if (moveState.right)    strafe += 1;
+  if (moveState.left)     strafe -= 1;
+  if (fwd === 0 && strafe === 0) return;
+
+  // Diagonal movement should not be faster than axis-aligned.
+  const len = Math.hypot(fwd, strafe);
+  const step = MOVE_SPEED * delta / len;
+  if (fwd    !== 0) controls.moveForward(fwd    * step);
+  if (strafe !== 0) controls.moveRight  (strafe * step);
+
+  // Clamp to current room bounds + pin eye height.
+  const b = ROOM_BOUNDS[currentRoom];
+  camera.position.x = Math.max(b.cx - b.halfW, Math.min(b.cx + b.halfW, camera.position.x));
+  camera.position.z = Math.max(b.cz - b.halfD, Math.min(b.cz + b.halfD, camera.position.z));
+  camera.position.y = EYE_HEIGHT;
 }
 
 // ── Render loop ───────────────────────────────────
@@ -110,83 +131,64 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   for (const fn of updateCallbacks) fn(delta);
-  controller.update(delta, currentBounds());
+  updateMovement(delta);
   updateHoverHighlight();
   if (currentRoom === 'exterior') {
     composer.render();
   } else {
     renderer.render(scene, camera);
   }
-
-  // Show CSS3D only in AI room when not facing away from screens
-  const camDir = new THREE.Vector3();
-  camera.getWorldDirection(camDir);
-  const facingAway = camDir.x < -0.5;
-  const showCSS3D = currentRoom === 'ai' && !facingAway;
-
-  cssRenderer.domElement.style.display = showCSS3D ? '' : 'none';
-  if (showCSS3D) cssRenderer.render(cssScene, camera);
 }
 
-// Track AI room objects for visibility toggling
-const aiRoomChildrenBefore = scene.children.length;
-createRoom(scene);
-const { arcadeLeft, arcadeRight, desk, posters, pedestal, sceneUpdate, extras, tv, globe, musicNotes } = createObjects(scene);
-const aiRoomChildren = scene.children.slice(aiRoomChildrenBefore);
+// Rooms live in the same scene at different x-offsets; geometry from one
+// (sky dome, forest ring, …) can reach into another's footprint, so we
+// toggle visibility per room instead of relying on bounds.
+function trackChildren(builder) {
+  const before = scene.children.length;
+  const result = builder();
+  const added = scene.children.slice(before);
+  return { result, added };
+}
 
-// Start with AI room hidden (player spawns in exterior)
-for (const child of aiRoomChildren) child.visible = false;
+// ── AI room ──
+const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
+  createRoom(scene);
+  return createObjects(scene);
+});
+const { pedestal, sceneUpdate, extras } = aiObjects;
 addUpdateCallback(sceneUpdate);
 
-// ── TV YouTube iframe as a real 3D object via CSS3DRenderer ──
-const tvVideoIframe = document.createElement('iframe');
-tvVideoIframe.src = `https://www.youtube.com/embed/BdGOuNQ_0B8?autoplay=1&mute=1&loop=1&playlist=BdGOuNQ_0B8&controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
-tvVideoIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
-tvVideoIframe.style.width = '1280px';
-tvVideoIframe.style.height = '720px';
-
-const tvCSS3D = new CSS3DObject(tvVideoIframe);
-tvCSS3D.position.set(3.419, 2.85, 0);
-tvCSS3D.rotation.y = -Math.PI / 2;
-const tvScale = 1.92 / 1280;
-tvCSS3D.scale.set(tvScale, tvScale, tvScale);
-cssScene.add(tvCSS3D);
-
-// ── Right monitor: Fin du Monde interactive project via CSS3DRenderer ──
-const fdmIframe = document.createElement('iframe');
-fdmIframe.src = 'https://collection.cdn.uib.no/files/fin-du-monde/index.html';
-fdmIframe.style.width = '640px';
-fdmIframe.style.height = '370px';
-fdmIframe.style.border = '0';
-
-const fdmCSS3D = new CSS3DObject(fdmIframe);
-fdmCSS3D.position.set(2.348, 1.22, -2.905);
-fdmCSS3D.rotation.y = -0.15;
-const fdmScale = 0.38 / 370;
-fdmCSS3D.scale.set(fdmScale, fdmScale, fdmScale);
-cssScene.add(fdmCSS3D);
-
-const clickableObjects = [
-  ...arcadeLeft.children, ...arcadeRight.children,
-  desk, ...posters,
-  pedestal,
-  ...extras
-];
+const clickableObjects = [pedestal, ...extras];
 
 const ui = createUI(camera, renderer, null);
 
-// TV sound toggle — always visible in first-person mode
-const soundCheckbox = document.getElementById('sound-checkbox');
-const soundToggleDiv = document.getElementById('sound-toggle');
-soundToggleDiv.style.display = 'flex';
-
 // ── Nature room ──
-const natureRoom = createNatureRoom(scene);
+const { result: natureRoom, added: natureRoomChildren } = trackChildren(
+  () => createNatureRoom(scene)
+);
 clickableObjects.push(...natureRoom.clickables);
 
 // ── Exterior room ──
-const exteriorRoom = createExteriorRoom(scene);
+const { result: exteriorRoom, added: exteriorRoomChildren } = trackChildren(
+  () => createExteriorRoom(scene)
+);
 clickableObjects.push(...exteriorRoom.clickables);
+
+const roomChildren = {
+  ai:       aiRoomChildren,
+  nature:   natureRoomChildren,
+  exterior: exteriorRoomChildren
+};
+
+function setRoomVisibility(activeRoom) {
+  for (const [name, children] of Object.entries(roomChildren)) {
+    const visible = name === activeRoom;
+    for (const c of children) c.visible = visible;
+  }
+}
+
+// Start visible only in the spawn room.
+setRoomVisibility('exterior');
 
 // ── Godrays composer for exterior sunlight ──
 const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
@@ -209,7 +211,7 @@ godraysPass.renderToScreen = true;
 composer.addPass(godraysPass);
 window.__godraysComposer = composer;
 
-// Animate exterior enter label (gentle bob + pulse)
+// Exterior enter label (gentle bob + pulse)
 addUpdateCallback(() => {
   if (currentRoom !== 'exterior') return;
   const t = performance.now() * 0.001;
@@ -223,14 +225,13 @@ addUpdateCallback(() => {
   }
 });
 
-// Animate nature room
+// Nature room animations
 addUpdateCallback((delta) => {
   const elapsed = performance.now() * 0.001;
-  if (natureRoom.returnGlow) natureRoom.returnGlow.rotation.z += delta * 0.3;
+  if (natureRoom.returnGlow)  natureRoom.returnGlow.rotation.z  += delta * 0.3;
   if (natureRoom.returnGlow2) natureRoom.returnGlow2.rotation.z -= delta * 0.5;
   if (natureRoom.returnGlow3) natureRoom.returnGlow3.rotation.z += delta * 0.2;
 
-  // Animate butterflies
   if (natureRoom.butterflies) {
     for (const b of natureRoom.butterflies) {
       const d = b.userData;
@@ -241,7 +242,6 @@ addUpdateCallback((delta) => {
     }
   }
 
-  // Animate fountain drops
   if (natureRoom.drops) {
     for (const drop of natureRoom.drops) {
       drop.position.y -= drop.userData.speed * delta;
@@ -249,10 +249,9 @@ addUpdateCallback((delta) => {
       const dz = Math.sin(drop.userData.angle) * 0.15 * delta;
       drop.position.x += dx;
       drop.position.z += dz;
-      // Reset when they fall into the pool
       if (drop.position.y < 0.25) {
         drop.position.y = 0.95 + Math.random() * 0.1;
-        drop.position.x = 20 + Math.cos(drop.userData.angle) * 0.2;
+        drop.position.x = NATURE_CENTER_X + Math.cos(drop.userData.angle) * 0.2;
         drop.position.z = Math.sin(drop.userData.angle) * 0.2;
       }
     }
@@ -261,35 +260,33 @@ addUpdateCallback((delta) => {
 
 // ── Room transitions ──
 const fadeOverlay = document.getElementById('fade-overlay');
-let currentRoom = 'exterior'; // 'ai', 'nature', or 'exterior'
+let currentRoom = 'exterior'; // 'exterior', 'ai', or 'nature'
 
 function transitionToRoom(targetRoom) {
-  controller.unlock();
+  nav.clearSaved();
   fadeOverlay.classList.add('active');
 
   setTimeout(() => {
     if (targetRoom === 'nature') {
-      controller.setPose({ position: new THREE.Vector3(20, 0, -3), yaw: Math.PI, pitch: 0 });
+      camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
+      camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
       currentRoom = 'nature';
-      cssRenderer.domElement.style.display = 'none';
-      for (const c of aiRoomChildren) c.visible = false;
       scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else if (targetRoom === 'exterior') {
-      controller.setPose({ position: new THREE.Vector3(-20, 0, 8), yaw: 0, pitch: 0 });
+      camera.position.set(-20, EYE_HEIGHT, 8);
+      camera.lookAt(-20, EYE_HEIGHT, 2);
       currentRoom = 'exterior';
-      cssRenderer.domElement.style.display = 'none';
-      for (const c of aiRoomChildren) c.visible = false;
       scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else {
-      controller.setPose({ position: new THREE.Vector3(0, 0, 2), yaw: 0, pitch: 0 });
+      camera.position.set(0, EYE_HEIGHT, 10);
+      camera.lookAt(0, EYE_HEIGHT, 0);
       currentRoom = 'ai';
-      cssRenderer.domElement.style.display = '';
-      for (const c of aiRoomChildren) c.visible = true;
-      scene.background = new THREE.Color(0x0a0f1a);
-      scene.fog = new THREE.FogExp2(0x0a0f1a, 0.04);
+      scene.background = new THREE.Color(0xf4f6f8);
+      scene.fog = null;
     }
+    setRoomVisibility(currentRoom);
 
     setTimeout(() => {
       fadeOverlay.classList.remove('active');
@@ -299,210 +296,116 @@ function transitionToRoom(targetRoom) {
 
 window.__transitionToRoom = transitionToRoom;
 
-setupClickHandler(renderer, camera, clickableObjects, ui);
-
-// Hover highlight: glow objects the crosshair points at
-const hoverRaycaster = new THREE.Raycaster();
-const hoverMouse     = new THREE.Vector2();
+// ── Crosshair raycasting (hover + click target center of screen) ──
+const centerRaycaster = new THREE.Raycaster();
+const screenCenter    = new THREE.Vector2(0, 0);
 let lastHovered = null;
 
+function findClickable(hit) {
+  let obj = hit.object;
+  while (obj && !obj.userData.clickable) obj = obj.parent;
+  return obj || null;
+}
+
 function updateHoverHighlight() {
-  // When pointer is locked, raycast from center of screen
-  if (controller.isLocked()) {
-    hoverMouse.set(0, 0);
+  if (!controls.isLocked) {
+    if (lastHovered) { clearHoverGlow(lastHovered); lastHovered = null; }
+    return;
   }
 
-  hoverRaycaster.setFromCamera(hoverMouse, camera);
-  const hits = hoverRaycaster.intersectObjects(clickableObjects, true);
+  centerRaycaster.setFromCamera(screenCenter, camera);
+  const hits = centerRaycaster.intersectObjects(clickableObjects, true);
+  const hitObj = hits.length ? findClickable(hits[0]) : null;
 
-  let hitObj = null;
-  if (hits.length) {
-    let obj = hits[0].object;
-    while (obj && !obj.userData.clickable) obj = obj.parent;
-    hitObj = obj;
-  }
-
-  // Unhighlight previous group
   if (lastHovered && lastHovered !== hitObj) {
-    lastHovered.traverse(child => {
-      if (child.isMesh && child.material) {
-        if (child.userData._origColor !== undefined) {
-          child.material.color.setHex(child.userData._origColor);
-          delete child.userData._origColor;
-        }
-        if (child.userData._origEmissiveI !== undefined) {
-          child.material.emissiveIntensity = child.userData._origEmissiveI;
-          delete child.userData._origEmissiveI;
-        }
-      }
-    });
+    clearHoverGlow(lastHovered);
     lastHovered = null;
   }
 
-  // Highlight current group
   if (hitObj && lastHovered !== hitObj) {
     lastHovered = hitObj;
-    hitObj.traverse(child => {
-      if (child.isMesh && child.material) {
-        if (child.material.emissive) {
-          child.userData._origEmissiveI = child.material.emissiveIntensity;
-          child.material.emissiveIntensity = (child.userData._origEmissiveI || 0) + 0.5;
-        } else {
-          child.userData._origColor = child.material.color.getHex();
-          const c = child.material.color;
-          child.material.color.setRGB(
-            Math.min(c.r + 0.12, 1),
-            Math.min(c.g + 0.12, 1),
-            Math.min(c.b + 0.15, 1)
-          );
-        }
-      }
-    });
+    applyHoverGlow(hitObj);
   }
 
-  if (crosshair) {
-    crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
-    crosshair.style.fontSize = hitObj ? '28px' : '24px';
-  }
+  crosshair.style.color = hitObj ? 'rgba(0,212,255,1)' : 'rgba(0,212,255,0.4)';
+  crosshair.style.fontSize = hitObj ? '28px' : '24px';
 }
 
-// Update hover mouse position when pointer is not locked
-renderer.domElement.addEventListener('mousemove', (event) => {
-  if (controller.isLocked()) return;
-  const rect = renderer.domElement.getBoundingClientRect();
-  hoverMouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
-  hoverMouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
+function applyHoverGlow(group) {
+  group.traverse(child => {
+    if (!child.isMesh || !child.material) return;
+    if (child.material.emissive) {
+      child.userData._origEmissiveI = child.material.emissiveIntensity;
+      child.material.emissiveIntensity = (child.userData._origEmissiveI || 0) + 0.5;
+    } else {
+      child.userData._origColor = child.material.color.getHex();
+      const c = child.material.color;
+      child.material.color.setRGB(
+        Math.min(c.r + 0.12, 1),
+        Math.min(c.g + 0.12, 1),
+        Math.min(c.b + 0.15, 1)
+      );
+    }
+  });
+}
+
+function clearHoverGlow(group) {
+  group.traverse(child => {
+    if (!child.isMesh || !child.material) return;
+    if (child.userData._origColor !== undefined) {
+      child.material.color.setHex(child.userData._origColor);
+      delete child.userData._origColor;
+    }
+    if (child.userData._origEmissiveI !== undefined) {
+      child.material.emissiveIntensity = child.userData._origEmissiveI;
+      delete child.userData._origEmissiveI;
+    }
+  });
+}
+
+// Click while locked → fire the action on whatever the crosshair targets.
+document.addEventListener('mousedown', () => {
+  if (!controls.isLocked) return;
+  centerRaycaster.setFromCamera(screenCenter, camera);
+  const hits = centerRaycaster.intersectObjects(clickableObjects, true);
+  if (!hits.length) return;
+
+  const obj = findClickable(hits[0]);
+  if (!obj) return;
+
+  const { action, panelId, panelTitle } = obj.userData;
+
+  // UI overlay actions need the cursor back; room transitions stay locked.
+  const uiActions = new Set([
+    'openPanel', 'openPoster', 'openBook',
+    'enterRabbitHole', 'openReport', 'openFinDuMonde'
+  ]);
+  if (uiActions.has(action)) controls.unlock();
+
+  if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
+  if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
+  if (action === 'openBook')        ui.openBook();
+  if (action === 'enterRabbitHole') ui.openRabbitHole();
+  if (action === 'openReport')      ui.openReport();
+  if (action === 'openFinDuMonde')  ui.openFinDuMonde();
+  if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
+  if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
+  if (action === 'enterAIRoom')     window.__transitionToRoom('ai');
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
+  controls.unlock();
   transitionToRoom('exterior');
 });
 
-document.getElementById('guide-btn').addEventListener('click', () => ui.openGatekeeperChat());
-document.getElementById('inventory-btn').addEventListener('click', () => ui.openInventory());
-
-soundCheckbox.addEventListener('change', () => {
-  const cmd = soundCheckbox.checked ? 'unMute' : 'mute';
-  tvVideoIframe.contentWindow.postMessage(
-    JSON.stringify({ event: 'command', func: cmd, args: '' }),
-    '*'
-  );
-  if (soundCheckbox.checked && musicPlaying) {
-    musicCheckbox.checked = false;
-    musicPlaying = false;
-    sendMusicCommand('pauseVideo');
-    musicNotes.setActive(false);
-  }
+document.getElementById('guide-btn').addEventListener('click', () => {
+  controls.unlock();
+  ui.openGatekeeperChat();
 });
-
-// ── Radio: Music / Podcast modes ──
-const musicCheckbox = document.getElementById('music-checkbox');
-const trackButtons = document.querySelectorAll('.radio-track');
-const modeTabs = document.querySelectorAll('.radio-mode');
-const musicControls = document.getElementById('radio-music-controls');
-const podcastControls = document.getElementById('radio-podcast-controls');
-const podcastToggle = document.getElementById('podcast-toggle');
-const spotifyPlayer = document.getElementById('spotify-player');
-const spotifyClose = document.getElementById('spotify-close');
-let musicPlaying = false;
-let currentMode = 'music';
-
-const RADIO_TRACKS = [
-  `https://www.youtube.com/embed/mRN_T6JkH-c?list=PLwJjxqYuirCLkq42mGw4XKGQlpZSfxsYd&autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
-  `https://www.youtube.com/embed/TQvXEza4fPc?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`,
-  `https://www.youtube.com/embed/K4Ad2MXKLv8?autoplay=0&loop=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`
-];
-let currentTrack = 0;
-
-const musicIframe = document.createElement('iframe');
-musicIframe.allow = 'autoplay; encrypted-media';
-musicIframe.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px';
-musicIframe.src = RADIO_TRACKS[currentTrack];
-document.body.appendChild(musicIframe);
-
-function sendMusicCommand(cmd) {
-  try {
-    musicIframe.contentWindow.postMessage(
-      JSON.stringify({ event: 'command', func: cmd, args: '' }),
-      '*'
-    );
-  } catch (e) { /* ignore */ }
-}
-
-// Mode switching
-modeTabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    const mode = tab.dataset.mode;
-    if (mode === currentMode) return;
-    currentMode = mode;
-    modeTabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-
-    if (mode === 'music') {
-      musicControls.classList.remove('hidden');
-      podcastControls.classList.add('hidden');
-      spotifyPlayer.classList.add('hidden');
-    } else {
-      musicControls.classList.add('hidden');
-      podcastControls.classList.remove('hidden');
-      if (musicPlaying) {
-        musicCheckbox.checked = false;
-        musicPlaying = false;
-        sendMusicCommand('pauseVideo');
-        musicNotes.setActive(false);
-      }
-    }
-  });
+document.getElementById('inventory-btn').addEventListener('click', () => {
+  controls.unlock();
+  ui.openInventory();
 });
-
-// Music controls
-musicCheckbox.addEventListener('change', () => {
-  musicPlaying = musicCheckbox.checked;
-  sendMusicCommand(musicPlaying ? 'playVideo' : 'pauseVideo');
-  musicNotes.setActive(musicPlaying);
-});
-
-trackButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const idx = parseInt(btn.dataset.track);
-    if (idx === currentTrack) return;
-    currentTrack = idx;
-    trackButtons.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const autoplay = musicPlaying ? '1' : '0';
-    musicIframe.src = RADIO_TRACKS[currentTrack].replace('autoplay=0', `autoplay=${autoplay}`);
-  });
-});
-
-// Podcast controls
-let podcastOpen = false;
-podcastToggle.addEventListener('click', () => {
-  podcastOpen = !podcastOpen;
-  if (podcastOpen) {
-    const iframe = document.getElementById('spotify-iframe');
-    if (iframe) iframe.src = 'https://open.spotify.com/embed/episode/629iwUQqeciMedvx9oseyf?theme=0&autoplay=1';
-    spotifyPlayer.classList.remove('hidden');
-    podcastToggle.textContent = '⏸ Playing';
-    if (musicPlaying) {
-      musicCheckbox.checked = false;
-      musicPlaying = false;
-      sendMusicCommand('pauseVideo');
-      musicNotes.setActive(false);
-    }
-  } else {
-    stopPodcast();
-  }
-});
-
-function stopPodcast() {
-  const iframe = document.getElementById('spotify-iframe');
-  if (iframe) { const src = iframe.src; iframe.src = ''; iframe.src = src; }
-  spotifyPlayer.classList.add('hidden');
-  podcastOpen = false;
-  podcastToggle.textContent = '▶ Play';
-}
-
-spotifyClose.addEventListener('click', stopPodcast);
 
 addUpdateCallback(() => ui.updateHints());
 

@@ -53,4 +53,9 @@ describe('HOTSPOTS', () => {
     expect(HOTSPOTS.pedestal).toBeDefined();
     expect(HOTSPOTS.pedestal.label).toBe('Magic Tome');
   });
+
+  it('includes holo-sphere hotspot', () => {
+    expect(HOTSPOTS['holo-sphere']).toBeDefined();
+    expect(HOTSPOTS['holo-sphere'].label).toBe('Floating Motifs');
+  });
 });
