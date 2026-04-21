@@ -89,7 +89,7 @@ export function createNavigationSystem(camera, state, ui, controls) {
     activeTween = gsap.to(proxy, {
       px: h.position.x, py: h.position.y, pz: h.position.z,
       tx: h.target.x,   ty: h.target.y,   tz: h.target.z,
-      duration: 0.6,
+      duration: h.duration ?? 0.6,
       ease: 'power2.inOut',
       onUpdate: applyProxy,
       onComplete: () => {

@@ -69,11 +69,23 @@ crosshair.classList.add('hidden');
 
 fpOverlay.addEventListener('click', () => controls.lock());
 
+// TV cursor mode — set by enterTVMode(), cleared by exitTVMode()
+let atTV = false;
+let suppressFPOverlay = false;
+
 controls.addEventListener('lock', () => {
   fpOverlay.classList.add('hidden');
   crosshair.classList.remove('hidden');
+  exitTVMode();
+  if (magActive) {
+    magActive = false;
+    magDiv.style.display = 'none';
+    magIframe.src = '';
+  }
 });
 controls.addEventListener('unlock', () => {
+  if (suppressFPOverlay) { suppressFPOverlay = false; return; }
+  if (atTV) return; // already in TV cursor mode — don't show fpOverlay
   fpOverlay.classList.remove('hidden');
   crosshair.classList.add('hidden');
 });
@@ -170,13 +182,15 @@ const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   return createObjects(scene);
 });
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
+const holoPlayPauseBtn = tv.userData.playPauseBtn;
 addUpdateCallback(sceneUpdate);
 
 // ── TV: YouTube iframe via CSS3DRenderer ──────────────────────────────────────
 let currentVideoIndex = 0;
 
-function buildTVSrc(id, autoplay = 1) {
-  return `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&showinfo=0&fs=0&disablekb=1&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+function buildTVSrc(id, autoplay = 1, startSec = 0) {
+  const s = Math.max(0, Math.floor(startSec));
+  return `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&start=${s}&mute=1&loop=1&playlist=${id}&controls=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&showinfo=0&fs=0&disablekb=1&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 }
 
 const tvVideoIframe = document.createElement('iframe');
@@ -213,6 +227,28 @@ hologramDiv.style.cssText = `
   opacity:0; transition:opacity 0.4s ease;
 `;
 
+// ── Read More DOM button (lives outside CSS3D so clicks are always reliable) ────
+const tvReadMoreBtn = document.getElementById('tv-read-more');
+tvReadMoreBtn?.addEventListener('click', () => {
+  hideHologram();
+  window.__openVideoMoreInfo?.();
+});
+
+function showHologram() {
+  hologramDiv.style.opacity = '1';
+  hologramDiv.style.pointerEvents = 'auto';
+  // Only show Read More when zoomed to TV and video has extra content
+  if (atTV && aiArtVideos[currentVideoIndex]?.moreInfo) {
+    tvReadMoreBtn?.classList.remove('hidden');
+  }
+}
+
+function hideHologram() {
+  hologramDiv.style.opacity = '0';
+  hologramDiv.style.pointerEvents = 'none';
+  tvReadMoreBtn?.classList.add('hidden');
+}
+
 function updateHologram(video) {
   hologramDiv.innerHTML = `
     <div style="color:#fff;font-size:22px;letter-spacing:6px;text-transform:uppercase;margin-bottom:32px;text-shadow:0 0 10px #fff,0 0 20px rgba(255,255,255,0.6)">◈ &nbsp;NOW PLAYING &nbsp;◈</div>
@@ -247,68 +283,73 @@ addUpdateCallback(() => {
 
 // ── TV playback state ─────────────────────────────────────────────────────────
 let isPlaying = false;
+let _playStartWall = null;   // performance.now() snapshot when play began
+let _playOffset    = 0;      // accumulated seconds before last pause
 
+function approxCurrentTime() {
+  if (!isPlaying || _playStartWall === null) return _playOffset;
+  return _playOffset + (performance.now() - _playStartWall) / 1000;
+}
+
+function _markPlaying() {
+  _playStartWall = performance.now();
+  isPlaying = true;
+}
+function _markPaused() {
+  _playOffset = approxCurrentTime();
+  _playStartWall = null;
+  isPlaying = false;
+}
+
+// Load new video: show info panel first, start paused so user reads
 function loadVideo(index) {
   currentVideoIndex = (index + aiArtVideos.length) % aiArtVideos.length;
-  tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1);
-  isPlaying = true;
+  _playOffset = 0;
+  _playStartWall = null;
+  isPlaying = false;
+  tvVideoIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 0); // autoplay=0
   updateHologram(aiArtVideos[currentVideoIndex]);
-  hologramDiv.style.opacity = '0';
-  hologramDiv.style.pointerEvents = 'none';
-  const tvPlayPauseBtn = document.getElementById('tv-playpause');
-  if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '▮▮';
+  showHologram();
+  holoPlayPauseBtn?.userData.updateIcon('▶');
 }
 
 window.__nextVideo = () => loadVideo(currentVideoIndex + 1);
 window.__prevVideo = () => loadVideo(currentVideoIndex - 1);
-window.__showInfo  = () => {
-  hologramDiv.style.opacity = '1';
-  hologramDiv.style.pointerEvents = 'auto';
+
+window.__showInfo = () => {
+  showHologram();
   tvVideoIframe.contentWindow?.postMessage(
     JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
-  isPlaying = false;
-  const tvPlayPauseBtn = document.getElementById('tv-playpause');
-  if (tvPlayPauseBtn) tvPlayPauseBtn.textContent = '▶';
+  _markPaused();
+  holoPlayPauseBtn?.userData.updateIcon('▶');
 };
 
-// ── TV DOM controls ───────────────────────────────────────────────────────────
-const tvControls     = document.getElementById('tv-controls');
-const tvPlayPauseBtn = document.getElementById('tv-playpause');
-const tvPrevBtn      = document.getElementById('tv-prev');
-const tvNextBtn      = document.getElementById('tv-next');
-const tvInfoBtn      = document.getElementById('tv-info');
-const soundCheckbox  = document.getElementById('sound-checkbox');
-
-function showTVControls(visible) {
-  if (tvControls) tvControls.classList.toggle('hidden', !visible);
-}
-
-tvPlayPauseBtn?.addEventListener('click', () => {
+window.__toggleTV = () => {
   if (hologramDiv.style.opacity !== '0') {
-    hologramDiv.style.opacity = '0';
-    hologramDiv.style.pointerEvents = 'none';
+    // Dismiss panel → start playing
+    hideHologram();
     tvVideoIframe.contentWindow?.postMessage(
       JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
-    isPlaying = true;
-    tvPlayPauseBtn.textContent = '▮▮';
+    _markPlaying();
+    holoPlayPauseBtn?.userData.updateIcon('⏸');
   } else if (isPlaying) {
     tvVideoIframe.contentWindow?.postMessage(
       JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }), '*');
-    isPlaying = false;
-    tvPlayPauseBtn.textContent = '▶';
+    _markPaused();
+    holoPlayPauseBtn?.userData.updateIcon('▶');
   } else {
     tvVideoIframe.contentWindow?.postMessage(
       JSON.stringify({ event: 'command', func: 'playVideo', args: '' }), '*');
-    isPlaying = true;
-    tvPlayPauseBtn.textContent = '▮▮';
+    _markPlaying();
+    holoPlayPauseBtn?.userData.updateIcon('⏸');
   }
-});
-tvPrevBtn?.addEventListener('click', () => loadVideo(currentVideoIndex - 1));
-tvNextBtn?.addEventListener('click', () => loadVideo(currentVideoIndex + 1));
-tvInfoBtn?.addEventListener('click', () => window.__showInfo());
-tvOverlayDiv.addEventListener('click', () => tvPlayPauseBtn?.click());
-hologramDiv.addEventListener('click', () => tvPlayPauseBtn?.click());
+};
 
+// Clicking the TV screen overlay or hologram panel toggles play/pause
+tvOverlayDiv.addEventListener('click', () => window.__toggleTV?.());
+hologramDiv.addEventListener('click', () => window.__toggleTV?.());
+
+const soundCheckbox = document.getElementById('sound-checkbox');
 soundCheckbox?.addEventListener('change', () => {
   const cmd = soundCheckbox.checked ? 'unMute' : 'mute';
   tvVideoIframe.contentWindow?.postMessage(
@@ -316,8 +357,97 @@ soundCheckbox?.addEventListener('change', () => {
 });
 
 updateHologram(aiArtVideos[currentVideoIndex]);
-hologramDiv.style.opacity = '1';
-hologramDiv.style.pointerEvents = 'auto';
+// hologram visible is fine — CSS3D visibility hides it until user enters AI room
+
+// ── Magnifier ─────────────────────────────────────────────────────────────────
+const MAG_SIZE = 220;
+const MAG_ZOOM = 2.8; // zoom factor relative to TV screen size on screen
+
+const magDiv = document.createElement('div');
+magDiv.style.cssText = `
+  position:fixed; width:${MAG_SIZE}px; height:${MAG_SIZE}px;
+  border-radius:50%;
+  border:3px solid #00d4ff;
+  box-shadow:0 0 28px rgba(0,212,255,0.75),inset 0 0 18px rgba(0,0,0,0.5);
+  overflow:hidden; pointer-events:none; display:none; z-index:1000;
+  transform:translate(-50%,-50%);
+`;
+document.body.appendChild(magDiv);
+
+const magIframe = document.createElement('iframe');
+magIframe.allow = 'autoplay; encrypted-media';
+magIframe.style.cssText = `border:none; position:absolute; pointer-events:none;`;
+magDiv.appendChild(magIframe);
+
+let magActive   = false;
+let _tvRect     = null; // {left,top,width,height} of TV screen in screen px
+
+// Project the TV screen mesh corners to 2D screen coordinates
+function getTVScreenRect() {
+  const sm = tv.userData.screenMesh;
+  sm.geometry.computeBoundingBox();
+  const b = sm.geometry.boundingBox;
+  const corners = [
+    new THREE.Vector3(b.min.x, b.min.y, 0),
+    new THREE.Vector3(b.max.x, b.min.y, 0),
+    new THREE.Vector3(b.max.x, b.max.y, 0),
+    new THREE.Vector3(b.min.x, b.max.y, 0),
+  ].map(v => {
+    v.applyMatrix4(sm.matrixWorld);
+    v.project(camera);
+    return {
+      x: (v.x + 1) / 2 * window.innerWidth,
+      y: (-v.y + 1) / 2 * window.innerHeight,
+    };
+  });
+  const xs = corners.map(p => p.x), ys = corners.map(p => p.y);
+  return {
+    left:   Math.min(...xs),
+    top:    Math.min(...ys),
+    width:  Math.max(...xs) - Math.min(...xs),
+    height: Math.max(...ys) - Math.min(...ys),
+  };
+}
+
+function _positionMagIframe(mx, my) {
+  if (!_tvRect) return;
+  const { left, top, width, height } = _tvRect;
+  // Normalised position [0,1] within the video at the cursor
+  const vx = Math.max(0, Math.min(1, (mx - left)  / width));
+  const vy = Math.max(0, Math.min(1, (my - top)   / height));
+  // iframe is rendered at zoom × screen-size of the TV
+  const fw = width  * MAG_ZOOM;
+  const fh = height * MAG_ZOOM;
+  // Offset so the hovered point sits at the centre of the circle
+  const ox = MAG_SIZE / 2 - vx * fw;
+  const oy = MAG_SIZE / 2 - vy * fh;
+  magIframe.style.width  = `${fw}px`;
+  magIframe.style.height = `${fh}px`;
+  magIframe.style.left   = `${ox}px`;
+  magIframe.style.top    = `${oy}px`;
+}
+
+document.addEventListener('mousemove', (e) => {
+  if (!magActive) return;
+  magDiv.style.left = `${e.clientX}px`;
+  magDiv.style.top  = `${e.clientY}px`;
+  _positionMagIframe(e.clientX, e.clientY);
+});
+
+window.__toggleMagnifier = () => {
+  magActive = !magActive;
+  if (magActive) {
+    _tvRect = getTVScreenRect();
+    const t = approxCurrentTime();
+    magIframe.src = buildTVSrc(aiArtVideos[currentVideoIndex].id, 1, t);
+    magDiv.style.display = 'block';
+    controls.unlock();
+  } else {
+    magDiv.style.display = 'none';
+    magIframe.src = '';
+    _tvRect = null;
+  }
+};
 
 const clickableObjects = [pedestal, ...extras];
 
@@ -325,10 +455,75 @@ const ui       = createUI(camera, renderer, controls);
 const _origUpdateHUD = ui.updateHUD.bind(ui);
 ui.updateHUD = (id) => {
   _origUpdateHUD(id);
-  showTVControls(id === 'tv');
+  if (id === 'tv') enterTVMode(); else exitTVMode();
 };
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
+
+// Open panel drawer with current video's moreInfo text
+window.__openVideoMoreInfo = () => {
+  const video = aiArtVideos[currentVideoIndex];
+  if (!video.moreInfo) return;
+  window.__currentVideoMoreInfo = { title: video.title, body: video.moreInfo };
+  ui.openPanelDrawer('video-more-info', video.title);
+};
+
+// ── TV cursor mode helpers ─────────────────────────────────────────────────────
+const tvMouse     = new THREE.Vector2();
+const tvRaycaster = new THREE.Raycaster();
+let   tvHovered   = null;
+
+function enterTVMode() {
+  atTV = true;
+  suppressFPOverlay = true;
+  controls.unlock();
+  // Show Read More if hologram is already visible and video has extra content
+  if (hologramDiv.style.opacity !== '0' && aiArtVideos[currentVideoIndex]?.moreInfo) {
+    tvReadMoreBtn?.classList.remove('hidden');
+  }
+}
+
+function exitTVMode() {
+  atTV = false;
+  tvReadMoreBtn?.classList.add('hidden');
+  if (tvHovered) { clearHoverGlow(tvHovered); tvHovered = null; }
+  renderer.domElement.style.cursor = '';
+}
+
+// Hover highlight while in TV mode (free mouse)
+document.addEventListener('mousemove', (e) => {
+  if (!atTV) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  tvMouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  tvMouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+  tvRaycaster.setFromCamera(tvMouse, camera);
+  const hits = tvRaycaster.intersectObjects(clickableObjects, true);
+  const hitObj = hits.length ? findClickable(hits[0]) : null;
+  if (tvHovered && tvHovered !== hitObj) { clearHoverGlow(tvHovered); tvHovered = null; }
+  if (hitObj && tvHovered !== hitObj) { tvHovered = hitObj; applyHoverGlow(hitObj); }
+  renderer.domElement.style.cursor = hitObj ? 'pointer' : 'default';
+});
+
+// Click holographic buttons while in TV mode
+document.addEventListener('click', (e) => {
+  if (!atTV || controls.isLocked) return;
+  // Only handle clicks that reach the canvas (not UI overlays like Guide/Inventory buttons)
+  if (e.target.closest('button, input, #gatekeeper-chat, #inventory-overlay, #panel-drawer')) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  tvMouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  tvMouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+  tvRaycaster.setFromCamera(tvMouse, camera);
+  const hits = tvRaycaster.intersectObjects(clickableObjects, true);
+  if (!hits.length) return;
+  const obj = findClickable(hits[0]);
+  if (!obj) return;
+  const { action } = obj.userData;
+  if (action === 'nextVideo')       window.__nextVideo?.();
+  if (action === 'prevVideo')       window.__prevVideo?.();
+  if (action === 'toggleTV')        window.__toggleTV?.();
+  if (action === 'showInfo')        window.__showInfo?.();
+  if (action === 'toggleMagnifier') window.__toggleMagnifier?.();
+});
 
 // ── Nature room ──
 const { result: natureRoom, added: natureRoomChildren } = trackChildren(
@@ -353,6 +548,11 @@ function setRoomVisibility(activeRoom) {
     const visible = name === activeRoom;
     for (const c of children) c.visible = visible;
   }
+  // CSS3DRenderer respects .visible — use it to suppress TV from other rooms
+  const inAI = activeRoom === 'ai';
+  tvCSS3D.visible        = inAI;
+  tvOverlayCSS3D.visible = inAI;
+  infoCss3D.visible      = inAI;
 }
 
 // Start visible only in the spawn room.
@@ -541,7 +741,9 @@ document.addEventListener('mousedown', () => {
   const obj = findClickable(hits[0]);
   if (!obj) return;
 
-  const { action, panelId, panelTitle } = obj.userData;
+  const { hotspot, action, panelId, panelTitle } = obj.userData;
+
+  if (hotspot) nav.goTo(hotspot);
 
   // UI overlay actions need the cursor back; room transitions stay locked.
   const uiActions = new Set([
@@ -550,18 +752,26 @@ document.addEventListener('mousedown', () => {
   ]);
   if (uiActions.has(action)) controls.unlock();
 
-  if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
-  if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
-  if (action === 'openBook')        ui.openBook();
-  if (action === 'enterRabbitHole') ui.openRabbitHole();
-  if (action === 'openReport')      ui.openReport();
-  if (action === 'openFinDuMonde')  ui.openFinDuMonde();
-  if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
-  if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
-  if (action === 'enterAIRoom')     window.__transitionToRoom('ai');
+  if (action === 'openPanel')        ui.openPanelDrawer(panelId, panelTitle);
+  if (action === 'openPoster')       ui.openPanelDrawer(panelId, panelTitle);
+  if (action === 'openBook')         ui.openBook();
+  if (action === 'enterRabbitHole')  ui.openRabbitHole();
+  if (action === 'openReport')       ui.openReport();
+  if (action === 'openFinDuMonde')   ui.openFinDuMonde();
+  if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
+  if (action === 'returnToAIRoom')   window.__transitionToRoom('ai');
+  if (action === 'enterAIRoom')      window.__transitionToRoom('ai');
+  if (action === 'nextVideo')        window.__nextVideo?.();
+  if (action === 'prevVideo')        window.__prevVideo?.();
+  if (action === 'toggleTV')         window.__toggleTV?.();
+  if (action === 'showInfo')         window.__showInfo?.();
+  if (action === 'toggleMagnifier')  window.__toggleMagnifier?.();
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
+  exitTVMode();
+  fpOverlay.classList.remove('hidden');
+  crosshair.classList.add('hidden');
   controls.unlock();
   transitionToRoom('exterior');
 });
