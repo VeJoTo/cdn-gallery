@@ -169,5 +169,6 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     if (action === 'openFinDuMonde')  ui.openFinDuMonde();
     if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
     if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
+    if (action === 'enterAIRoom')    window.__transitionToRoom('ai');
   });
 }

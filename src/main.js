@@ -3,8 +3,11 @@ import { PointerLockControls } from 'three/addons/controls/PointerLockControls.j
 import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
+import { createExteriorRoom } from './scene/exterior-room.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
+import { EffectComposer, RenderPass } from 'postprocessing';
+import { GodraysPass } from 'three-good-godrays';
 
 const canvas = document.getElementById('gallery-canvas');
 
@@ -17,7 +20,9 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf4f6f8);
+// Start with exterior sky (overridden per room in transitions)
+scene.background = new THREE.Color(0x88bbf0);
+scene.fog = null;
 
 // ── Camera ────────────────────────────────────────
 export const camera = new THREE.PerspectiveCamera(
@@ -26,8 +31,8 @@ export const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, 1.6, 10);
-camera.lookAt(0, 1.6, 0);
+camera.position.set(-20, 1.6, 8);
+camera.lookAt(-20, 1.6, 2);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -35,6 +40,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if (window.__godraysComposer) window.__godraysComposer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // ── PointerLockControls (Minecraft-style: click to capture, mouse to look) ──
@@ -84,6 +90,13 @@ document.addEventListener('keyup', (e) => {
   }
 });
 
+// Room-walkable regions — axis-aligned box around each spawn.
+const ROOM_BOUNDS = {
+  exterior: { cx: -20,                cz: 4.75, halfW: 5,                  halfD: 5.25 },
+  ai:       { cx: 0,                  cz: 0,    halfW: ROOM_WIDTH / 2 - 1, halfD: ROOM_DEPTH / 2 - 1 },
+  nature:   { cx: NATURE_CENTER_X,    cz: 0,    halfW: 3,                  halfD: 2.5 }
+};
+
 function updateMovement(delta) {
   if (!controls.isLocked) return;
 
@@ -101,12 +114,9 @@ function updateMovement(delta) {
   if (strafe !== 0) controls.moveRight  (strafe * step);
 
   // Clamp to current room bounds + pin eye height.
-  const inNature = currentRoom === 'nature';
-  const roomCenterX = inNature ? NATURE_CENTER_X : 0;
-  const halfW = inNature ? 3.0 : ROOM_WIDTH / 2 - 1.0;
-  const halfD = inNature ? 2.5 : ROOM_DEPTH / 2 - 1.0;
-  camera.position.x = Math.max(roomCenterX - halfW, Math.min(roomCenterX + halfW, camera.position.x));
-  camera.position.z = Math.max(-halfD, Math.min(halfD, camera.position.z));
+  const b = ROOM_BOUNDS[currentRoom];
+  camera.position.x = Math.max(b.cx - b.halfW, Math.min(b.cx + b.halfW, camera.position.x));
+  camera.position.z = Math.max(b.cz - b.halfD, Math.min(b.cz + b.halfD, camera.position.z));
   camera.position.y = EYE_HEIGHT;
 }
 
@@ -124,11 +134,19 @@ function animate() {
   for (const fn of updateCallbacks) fn(delta);
   updateMovement(delta);
   updateHoverHighlight();
-  renderer.render(scene, camera);
+  if (currentRoom === 'exterior') {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
 }
 
+// ── AI room (built, then hidden so the player spawns outside) ──
+const aiRoomChildrenBefore = scene.children.length;
 createRoom(scene);
 const { pedestal, sceneUpdate, extras } = createObjects(scene);
+const aiRoomChildren = scene.children.slice(aiRoomChildrenBefore);
+for (const child of aiRoomChildren) child.visible = false;
 addUpdateCallback(sceneUpdate);
 
 const clickableObjects = [pedestal, ...extras];
@@ -141,14 +159,52 @@ const nav      = createNavigationSystem(camera, navState, ui, controls);
 const natureRoom = createNatureRoom(scene);
 clickableObjects.push(...natureRoom.clickables);
 
-// Animate nature room
+// ── Exterior room ──
+const exteriorRoom = createExteriorRoom(scene);
+clickableObjects.push(...exteriorRoom.clickables);
+
+// ── Godrays composer for exterior sunlight ──
+const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
+const renderPass = new RenderPass(scene, camera);
+renderPass.renderToScreen = false;
+composer.addPass(renderPass);
+
+const godraysPass = new GodraysPass(exteriorRoom.sunLight, camera, {
+  density: 0.04,
+  maxDensity: 0.1,
+  edgeStrength: 2,
+  edgeRadius: 2,
+  distanceAttenuation: 2,
+  color: new THREE.Color(0xfff5dd),
+  raymarchSteps: 60,
+  blur: true,
+  gammaCorrection: true,
+});
+godraysPass.renderToScreen = true;
+composer.addPass(godraysPass);
+window.__godraysComposer = composer;
+
+// Exterior enter label (gentle bob + pulse)
+addUpdateCallback(() => {
+  if (currentRoom !== 'exterior') return;
+  const t = performance.now() * 0.001;
+  if (exteriorRoom.enterLabel) {
+    exteriorRoom.enterLabel.position.y = 2.6 + Math.sin(t * 1.5) * 0.06;
+    exteriorRoom.enterLabel.material.opacity = 0.7 + Math.sin(t * 2) * 0.3;
+  }
+  if (exteriorRoom.arrowMesh) {
+    exteriorRoom.arrowMesh.position.y = 2.38 + Math.sin(t * 1.5) * 0.06;
+    exteriorRoom.arrowMesh.material.opacity = 0.7 + Math.sin(t * 2) * 0.3;
+  }
+});
+
+// Nature room animations
 addUpdateCallback((delta) => {
   const elapsed = performance.now() * 0.001;
-  if (natureRoom.returnGlow) natureRoom.returnGlow.rotation.z += delta * 0.3;
+  if (natureRoom.returnGlow)  natureRoom.returnGlow.rotation.z  += delta * 0.3;
   if (natureRoom.returnGlow2) natureRoom.returnGlow2.rotation.z -= delta * 0.5;
   if (natureRoom.returnGlow3) natureRoom.returnGlow3.rotation.z += delta * 0.2;
 
-  // Animate butterflies
   if (natureRoom.butterflies) {
     for (const b of natureRoom.butterflies) {
       const d = b.userData;
@@ -159,7 +215,6 @@ addUpdateCallback((delta) => {
     }
   }
 
-  // Animate fountain drops
   if (natureRoom.drops) {
     for (const drop of natureRoom.drops) {
       drop.position.y -= drop.userData.speed * delta;
@@ -167,7 +222,6 @@ addUpdateCallback((delta) => {
       const dz = Math.sin(drop.userData.angle) * 0.15 * delta;
       drop.position.x += dx;
       drop.position.z += dz;
-      // Reset when they fall into the pool
       if (drop.position.y < 0.25) {
         drop.position.y = 0.95 + Math.random() * 0.1;
         drop.position.x = NATURE_CENTER_X + Math.cos(drop.userData.angle) * 0.2;
@@ -179,10 +233,9 @@ addUpdateCallback((delta) => {
 
 // ── Room transitions ──
 const fadeOverlay = document.getElementById('fade-overlay');
-let currentRoom = 'ai'; // 'ai' or 'nature'
+let currentRoom = 'exterior'; // 'exterior', 'ai', or 'nature'
 
 function transitionToRoom(targetRoom) {
-  // Clear saved zoom position without moving the camera
   nav.clearSaved();
   fadeOverlay.classList.add('active');
 
@@ -191,10 +244,23 @@ function transitionToRoom(targetRoom) {
       camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
       camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
       currentRoom = 'nature';
+      for (const c of aiRoomChildren) c.visible = false;
+      scene.background = new THREE.Color(0x88bbf0);
+      scene.fog = null;
+    } else if (targetRoom === 'exterior') {
+      camera.position.set(-20, EYE_HEIGHT, 8);
+      camera.lookAt(-20, EYE_HEIGHT, 2);
+      currentRoom = 'exterior';
+      for (const c of aiRoomChildren) c.visible = false;
+      scene.background = new THREE.Color(0x88bbf0);
+      scene.fog = null;
     } else {
       camera.position.set(0, EYE_HEIGHT, 10);
       camera.lookAt(0, EYE_HEIGHT, 0);
       currentRoom = 'ai';
+      for (const c of aiRoomChildren) c.visible = true;
+      scene.background = new THREE.Color(0xf4f6f8);
+      scene.fog = null;
     }
 
     setTimeout(() => {
@@ -299,12 +365,12 @@ document.addEventListener('mousedown', () => {
   if (action === 'openFinDuMonde')  ui.openFinDuMonde();
   if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
   if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
+  if (action === 'enterAIRoom')     window.__transitionToRoom('ai');
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   controls.unlock();
-  camera.position.set(0, EYE_HEIGHT, 10);
-  camera.lookAt(0, EYE_HEIGHT, 0);
+  transitionToRoom('exterior');
 });
 
 document.getElementById('guide-btn').addEventListener('click', () => {

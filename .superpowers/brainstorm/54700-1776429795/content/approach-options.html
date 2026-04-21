@@ -1,0 +1,59 @@
+<h2>Glasshus Exterior — Implementation Approach</h2>
+<p class="subtitle">How to build the outdoor scene and transition into the AI room</p>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">Player Flow</div>
+    <div class="mockup-body" style="padding: 24px; background: #1a1a2e; color: #e0e0e0; font-family: monospace;">
+      <div style="display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <div style="background: #2d6a4f; padding: 12px 20px; border-radius: 8px; text-align: center;">
+          <strong>SPAWN</strong><br>Outside glasshus
+        </div>
+        <span style="font-size: 24px;">→</span>
+        <div style="background: #4a3f6b; padding: 12px 20px; border-radius: 8px; text-align: center;">
+          <strong>WALK</strong><br>Approach building
+        </div>
+        <span style="font-size: 24px;">→</span>
+        <div style="background: #6a3f3f; padding: 12px 20px; border-radius: 8px; text-align: center;">
+          <strong>ENTER</strong><br>Glass doors
+        </div>
+        <span style="font-size: 24px;">→</span>
+        <div style="background: #3f5a6a; padding: 12px 20px; border-radius: 8px; text-align: center;">
+          <strong>AI ROOM</strong><br>Existing interior
+        </div>
+        <span style="font-size: 24px;">→</span>
+        <div style="background: #00d4ff33; padding: 12px 20px; border-radius: 8px; text-align: center; border: 1px solid #00d4ff;">
+          <strong>PORTAL</strong><br>Nature room
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 32px;">How should the exterior and interior connect?</h3>
+<p class="subtitle">This affects how the 3D scene is structured</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>One continuous scene</h3>
+      <p>The exterior and AI room are built in the same 3D scene. The glasshus walls are literally the walls of the AI room — glass on the outside, interior decor on the inside. Player walks seamlessly from outside to inside. No loading, no transition.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Seamless experience</li><li>Can look out through glass from inside</li><li>Most realistic</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More complex — exterior + interior in one scene</li><li>AI room walls need reworking</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Scene transition at the door</h3>
+      <p>Exterior is its own scene. When the player clicks/walks through the glass doors, a brief transition (fade/dissolve) takes them into the AI room. Similar to how the portal works for the nature room.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Simpler — exterior and interior are independent</li><li>Follows existing transition pattern</li><li>AI room stays mostly unchanged</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Break in immersion at door</li><li>Can't see outside from AI room</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
