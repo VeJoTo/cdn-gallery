@@ -28,6 +28,21 @@ body {
 }
 #fp-overlay.hidden { display: none; }
 
+/* Keep the "click to explore" prompt suppressed while any UI overlay is open —
+   the unlocked cursor is already being used to talk to the Guide, browse a
+   panel, etc., so the prompt would just overlay on top and look wrong. */
+body:has(
+  #gatekeeper-chat:not(.hidden),
+  #panel-drawer:not(.hidden),
+  #book-overlay:not(.hidden),
+  #inventory-overlay:not(.hidden),
+  #rabbit-hole-overlay:not(.hidden),
+  #report-overlay:not(.hidden),
+  #findumonde-overlay:not(.hidden)
+) #fp-overlay {
+  display: none;
+}
+
 #fp-instructions {
   text-align: center;
   color: #e0e8f0;
