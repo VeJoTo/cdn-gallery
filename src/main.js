@@ -161,7 +161,10 @@ function animate() {
   for (const fn of updateCallbacks) fn(delta);
   updateMovement(delta);
   updateHoverHighlight();
-  if (currentRoom === 'exterior') {
+  if (isTransitioning) {
+    renderer.setClearColor(0x000000, 1);
+    renderer.clear();
+  } else if (currentRoom === 'exterior') {
     composer.render();
   } else {
     renderer.render(scene, camera);
@@ -740,16 +743,24 @@ addUpdateCallback((delta) => {
 // ── Room transitions ──
 const fadeOverlay = document.getElementById('fade-overlay');
 let currentRoom = 'exterior'; // 'exterior', 'ai', or 'nature'
+let isTransitioning = false;
 
 function transitionToRoom(targetRoom) {
+  if (isTransitioning) return;
+  isTransitioning = true;
   nav.clearSaved();
 
-  // Cut to black instantly — bypass CSS transition so there is zero flash.
+  // Stop all movement so the player doesn't keep walking during the cut.
+  moveState.forward = moveState.backward = moveState.left = moveState.right = false;
+
+  // Also black out the DOM overlay as a belt-and-suspenders measure.
   fadeOverlay.style.transition = 'none';
   fadeOverlay.style.opacity = '1';
   fadeOverlay.style.pointerEvents = 'auto';
 
-  // Wait two frames so the black frame actually renders before we move the camera.
+  // isTransitioning=true makes animate() clear the WebGL canvas to black
+  // this frame. Wait two frames to guarantee the black frame has been
+  // presented before we move the camera.
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (targetRoom === 'nature') {
       camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
@@ -771,16 +782,17 @@ function transitionToRoom(targetRoom) {
       scene.fog = null;
     }
     setRoomVisibility(currentRoom);
+    isTransitioning = false;
 
-    // Fade back in smoothly.
+    // Fade the new room in smoothly.
     requestAnimationFrame(() => {
-      fadeOverlay.style.transition = 'opacity 0.5s ease';
+      fadeOverlay.style.transition = 'opacity 0.4s ease';
       fadeOverlay.style.opacity = '0';
       setTimeout(() => {
         fadeOverlay.style.transition = '';
         fadeOverlay.style.opacity = '';
         fadeOverlay.style.pointerEvents = 'none';
-      }, 500);
+      }, 400);
     });
   }));
 }
