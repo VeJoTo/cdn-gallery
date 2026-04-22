@@ -506,4 +506,21 @@ spotifyClose.addEventListener('click', stopPodcast);
 
 addUpdateCallback(() => ui.updateHints());
 
+// Auto-transition when player walks into the building door.
+// Door center in world space: x = -20, z ≈ -0.25 (glasshus at z=-2, doorGroup at z=+1.75).
+// Exterior bounds clamp player to minZ=0.5, so trigger just as they reach the building front.
+let doorAutoTriggered = false;
+addUpdateCallback(() => {
+  if (currentRoom !== 'exterior') {
+    doorAutoTriggered = false;
+    return;
+  }
+  if (doorAutoTriggered) return;
+  const pos = controller.player.position;
+  if (Math.abs(pos.x - (-20)) <= 0.55 && pos.z <= 0.65) {
+    doorAutoTriggered = true;
+    transitionToRoom('ai');
+  }
+});
+
 animate();

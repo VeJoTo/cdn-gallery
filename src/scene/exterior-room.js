@@ -314,7 +314,7 @@ export function createExteriorRoom(scene) {
   ectx.font = 'bold 28px Arial, sans-serif';
   ectx.fillStyle = '#ffffff';
   ectx.textAlign = 'center';
-  ectx.fillText('▸ Click to enter ◂', 256, 40);
+  ectx.fillText('▸ Walk or click to enter ◂', 256, 40);
   const enterTex = new THREE.CanvasTexture(enterCanvas);
   const enterLabel = new THREE.Mesh(
     new THREE.PlaneGeometry(1.4, 0.18),
