@@ -770,7 +770,7 @@ function transitionToRoom(targetRoom) {
     setTimeout(() => {
       fadeOverlay.classList.remove('active');
     }, 300);
-  }, 600);
+  }, 150);
 }
 
 window.__transitionToRoom = transitionToRoom;
