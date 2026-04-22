@@ -743,9 +743,14 @@ let currentRoom = 'exterior'; // 'exterior', 'ai', or 'nature'
 
 function transitionToRoom(targetRoom) {
   nav.clearSaved();
-  fadeOverlay.classList.add('active');
 
-  setTimeout(() => {
+  // Cut to black instantly — bypass CSS transition so there is zero flash.
+  fadeOverlay.style.transition = 'none';
+  fadeOverlay.style.opacity = '1';
+  fadeOverlay.style.pointerEvents = 'auto';
+
+  // Wait two frames so the black frame actually renders before we move the camera.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
     if (targetRoom === 'nature') {
       camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
       camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
@@ -767,10 +772,17 @@ function transitionToRoom(targetRoom) {
     }
     setRoomVisibility(currentRoom);
 
-    setTimeout(() => {
-      fadeOverlay.classList.remove('active');
-    }, 300);
-  }, 150);
+    // Fade back in smoothly.
+    requestAnimationFrame(() => {
+      fadeOverlay.style.transition = 'opacity 0.5s ease';
+      fadeOverlay.style.opacity = '0';
+      setTimeout(() => {
+        fadeOverlay.style.transition = '';
+        fadeOverlay.style.opacity = '';
+        fadeOverlay.style.pointerEvents = 'none';
+      }, 500);
+    });
+  }));
 }
 
 window.__transitionToRoom = transitionToRoom;
