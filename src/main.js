@@ -909,4 +909,20 @@ document.getElementById('inventory-btn').addEventListener('click', () => {
 
 addUpdateCallback(() => ui.updateHints());
 
+// Auto-transition when player walks into the building door.
+// Exterior bounds allow z down to -0.5; door front is at world z ≈ -0.25.
+// Trigger just as the player crosses the door threshold.
+let doorAutoTriggered = false;
+addUpdateCallback(() => {
+  if (currentRoom !== 'exterior') {
+    doorAutoTriggered = false;
+    return;
+  }
+  if (doorAutoTriggered) return;
+  if (Math.abs(camera.position.x - (-20)) <= 0.55 && camera.position.z <= -0.1) {
+    doorAutoTriggered = true;
+    transitionToRoom('ai');
+  }
+});
+
 animate();
