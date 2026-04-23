@@ -327,6 +327,36 @@ export function createUI(camera, renderer, controls) {
     inventoryOverlay.classList.remove('hidden');
   }
 
+  function isInventoryOpen() {
+    return !inventoryOverlay.classList.contains('hidden');
+  }
+
+  function isAnyOtherOverlayOpen() {
+    // Any overlay that should block the E-key shortcut while it's open.
+    const ids = [
+      'panel-drawer',
+      'gatekeeper-chat',
+      'book-overlay',
+      'rabbit-hole-overlay',
+    ];
+    return ids.some((id) => {
+      const el = document.getElementById(id);
+      return el && !el.classList.contains('hidden');
+    });
+  }
+
+  function toggleInventory() {
+    if (isInventoryOpen()) {
+      closeInventory();
+      return;
+    }
+    if (isAnyOtherOverlayOpen()) return;
+    // Release pointer lock before showing the overlay — same behavior the
+    // old Inventory button had (`controls.unlock(); openInventory();`).
+    controls.unlock();
+    openInventory();
+  }
+
   function closeInventory() {
     inventoryOverlay.classList.add('hidden');
   }
@@ -706,7 +736,7 @@ export function createUI(camera, renderer, controls) {
   rhOverlay.addEventListener('scroll', checkRHSections);
   rhClimbBack.addEventListener('click', closeRabbitHole);
 
-  // ── Global Escape key ────────────────────────────
+  // ── Global keyboard shortcuts ────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closePanelDrawer();
@@ -716,6 +746,14 @@ export function createUI(camera, renderer, controls) {
       closeRabbitHole();
       closeReport();
       closeFinDuMonde();
+      return;
+    }
+
+    // "E" toggles the inventory, but not while the user is typing.
+    if (e.key === 'e' || e.key === 'E') {
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+      toggleInventory();
     }
   });
 
@@ -732,6 +770,8 @@ export function createUI(camera, renderer, controls) {
     openRabbitHole,
     openReport,
     openFinDuMonde,
-    updateHints
+    updateHints,
+    toggleInventory,
+    isInventoryOpen,
   };
 }
