@@ -289,51 +289,6 @@ body:has(
   background: rgba(0,212,255,0.35);
 }
 
-.toggle-switch {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  display: inline-block;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  inset: 0;
-  background: #1a2540;
-  border-radius: 24px;
-  cursor: pointer;
-  transition: background 0.3s;
-  border: 1px solid #00d4ff;
-}
-
-.toggle-slider::before {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  left: 2px;
-  bottom: 2px;
-  background: #00d4ff;
-  border-radius: 50%;
-  transition: transform 0.3s;
-}
-
-.toggle-switch input:checked + .toggle-slider {
-  background: #00d4ff;
-  border-color: #00d4ff;
-}
-
-.toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(20px);
-  background: #e0e8f0;
-}
-
 #tv-read-more {
   position: fixed;
   top: 62%;
@@ -358,23 +313,6 @@ body:has(
   box-shadow: 0 0 24px rgba(0, 212, 255, 0.55);
 }
 #tv-read-more.hidden { display: none; }
-
-#sound-toggle {
-  position: fixed;
-  top: 18px;
-  right: 210px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 40;
-}
-
-#sound-label {
-  color: #00d4ff;
-  font-size: 13px;
-  user-select: none;
-}
-
 
 /* ── Hotspot hints ──────────────────────────────── */
 #hotspot-hints { position: fixed; top: 0; left: 0; pointer-events: none; }
@@ -1943,4 +1881,23 @@ body:has(
 #gatekeeper-chat.intro-mode #chat-chips,
 #gatekeeper-chat.intro-mode #chat-input-row {
   display: none;
+}
+
+/* Intro dialogue is more cinematic — bigger box, more padding, larger body text */
+#gatekeeper-chat.intro-mode #guide-dialog {
+  max-width: 880px;
+  padding: 32px 36px;
+  margin: 0 32px 40px 24px;
+}
+#gatekeeper-chat.intro-mode #chat-header-name {
+  font-size: 20px;
+}
+#gatekeeper-chat.intro-mode #chat-messages {
+  font-size: 17px;
+  line-height: 1.55;
+  min-height: 96px;
+}
+#gatekeeper-chat.intro-mode #chat-messages .chat-msg,
+#gatekeeper-chat.intro-mode #chat-messages {
+  font-size: 17px;
 }

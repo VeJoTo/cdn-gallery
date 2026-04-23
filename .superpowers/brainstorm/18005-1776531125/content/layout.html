@@ -1,0 +1,151 @@
+<h2>Gallery layout — where do things go?</h2>
+<p class="subtitle">28 × 24 m room (top-down). Enter from the front (bottom of each plan). Pick a layout.</p>
+
+<style>
+  .plan { background: #0e1420; border: 1px solid #1f2b3e; border-radius: 4px; padding: 8px; }
+  .plan svg { width: 100%; height: auto; display: block; }
+  .plan-label { fill: #90e0ef; font-size: 9px; font-family: sans-serif; text-anchor: middle; }
+  .plan-obj { fill: #00d4ff; }
+  .plan-obj-text { font-size: 8px; font-family: sans-serif; fill: #0e1420; text-anchor: middle; font-weight: bold; }
+  .plan-wall { fill: none; stroke: #00d4ff; stroke-width: 2; }
+  .plan-panel { fill: #ffd166; }
+  .plan-portal { fill: #9b00ff; }
+</style>
+
+<div class="options">
+
+  <div class="option" data-choice="linear" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Linear gallery walk</h3>
+      <p>Single long aisle front-to-back. Panels line both walls. Floor exhibits down the center. Arcades + desk as one interactive cluster on the left. Classic museum pace.</p>
+      <div class="plan">
+        <svg viewBox="0 0 280 240">
+          <rect class="plan-wall" x="20" y="20" width="240" height="200"/>
+          <!-- left wall panels -->
+          <rect class="plan-panel" x="20" y="50"  width="3" height="22"/>
+          <rect class="plan-panel" x="20" y="110" width="3" height="22"/>
+          <rect class="plan-panel" x="20" y="170" width="3" height="22"/>
+          <!-- right wall panels -->
+          <rect class="plan-panel" x="257" y="50"  width="3" height="22"/>
+          <rect class="plan-panel" x="257" y="110" width="3" height="22"/>
+          <rect class="plan-panel" x="257" y="170" width="3" height="22"/>
+          <!-- TV high on right wall (back) -->
+          <rect class="plan-obj" x="255" y="35" width="4" height="12"/>
+          <text class="plan-label" x="265" y="32" style="text-anchor:start">TV</text>
+          <!-- floor exhibits centered -->
+          <circle class="plan-obj" cx="140" cy="70"  r="7"/>
+          <text class="plan-obj-text" x="140" y="73">PED</text>
+          <circle class="plan-obj" cx="140" cy="120" r="7"/>
+          <text class="plan-obj-text" x="140" y="123">GLB</text>
+          <circle class="plan-portal" cx="140" cy="180" r="7"/>
+          <text class="plan-obj-text" x="140" y="183" fill="#fff">RBT</text>
+          <!-- interactive cluster left-back -->
+          <rect class="plan-obj" x="55" y="35" width="14" height="10"/>
+          <text class="plan-obj-text" x="62" y="43">ARC</text>
+          <rect class="plan-obj" x="75" y="35" width="14" height="10"/>
+          <text class="plan-obj-text" x="82" y="43">ARC</text>
+          <rect class="plan-obj" x="50" y="55" width="40" height="12"/>
+          <text class="plan-obj-text" x="70" y="64">DESK</text>
+          <!-- entry/exit marker -->
+          <rect class="plan-portal" x="135" y="217" width="12" height="3"/>
+          <text class="plan-label" x="141" y="234">entry / exit</text>
+          <text class="plan-label" x="140" y="14">back wall</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="spine" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Central spine with side alcoves</h3>
+      <p>Long central aisle. Floor exhibits march down the spine (pedestal → globe → rabbit hole). Arcades and desk tucked into a left alcove so they don't dominate. TV anchors the back wall.</p>
+      <div class="plan">
+        <svg viewBox="0 0 280 240">
+          <rect class="plan-wall" x="20" y="20" width="240" height="200"/>
+          <!-- interior partition suggesting left alcove -->
+          <line x1="95" y1="70" x2="95" y2="150" stroke="#1f3b52" stroke-width="1" stroke-dasharray="4,4"/>
+          <!-- left wall panels -->
+          <rect class="plan-panel" x="20" y="55"  width="3" height="22"/>
+          <rect class="plan-panel" x="20" y="165" width="3" height="22"/>
+          <!-- right wall panels -->
+          <rect class="plan-panel" x="257" y="55"  width="3" height="22"/>
+          <rect class="plan-panel" x="257" y="105" width="3" height="22"/>
+          <rect class="plan-panel" x="257" y="165" width="3" height="22"/>
+          <rect class="plan-panel" x="20"  y="105" width="3" height="22"/>
+          <!-- TV back wall center-right -->
+          <rect class="plan-obj" x="170" y="18" width="18" height="4"/>
+          <text class="plan-label" x="179" y="15">TV</text>
+          <!-- spine: pedestal, globe, rabbit -->
+          <circle class="plan-obj" cx="170" cy="60"  r="7"/>
+          <text class="plan-obj-text" x="170" y="63">PED</text>
+          <circle class="plan-obj" cx="170" cy="115" r="7"/>
+          <text class="plan-obj-text" x="170" y="118">GLB</text>
+          <circle class="plan-portal" cx="170" cy="175" r="7"/>
+          <text class="plan-obj-text" x="170" y="178" fill="#fff">RBT</text>
+          <!-- left alcove: arcades + desk -->
+          <rect class="plan-obj" x="30" y="85"  width="14" height="10"/>
+          <text class="plan-obj-text" x="37" y="93">ARC</text>
+          <rect class="plan-obj" x="50" y="85"  width="14" height="10"/>
+          <text class="plan-obj-text" x="57" y="93">ARC</text>
+          <rect class="plan-obj" x="30" y="105" width="45" height="12"/>
+          <text class="plan-obj-text" x="52" y="114">DESK</text>
+          <!-- entry/exit -->
+          <rect class="plan-portal" x="135" y="217" width="12" height="3"/>
+          <text class="plan-label" x="141" y="234">entry / exit</text>
+          <text class="plan-label" x="140" y="14">back wall</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="zones" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Themed zones (quadrants)</h3>
+      <p>Room split in four: research panels + reading (left-back), interactive/arcade (left-front), media/TV (right-back), artifacts + rabbit hole (right-front). Visitors wander; no prescribed path.</p>
+      <div class="plan">
+        <svg viewBox="0 0 280 240">
+          <rect class="plan-wall" x="20" y="20" width="240" height="200"/>
+          <!-- dotted zone divisions -->
+          <line x1="140" y1="20" x2="140" y2="220" stroke="#1f3b52" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="20"  y1="120" x2="260" y2="120" stroke="#1f3b52" stroke-width="1" stroke-dasharray="4,4"/>
+          <!-- Q1 panels + reading (top-left) -->
+          <rect class="plan-panel" x="20" y="40"  width="3" height="18"/>
+          <rect class="plan-panel" x="20" y="70"  width="3" height="18"/>
+          <rect class="plan-panel" x="20" y="100" width="3" height="18"/>
+          <text class="plan-label" x="80" y="30">Research</text>
+          <!-- Q2 TV zone (top-right) -->
+          <rect class="plan-obj" x="257" y="45"  width="3" height="22"/>
+          <rect class="plan-obj" x="257" y="85"  width="3" height="22"/>
+          <rect class="plan-obj" x="170" y="18" width="18" height="4"/>
+          <text class="plan-label" x="179" y="15">TV</text>
+          <text class="plan-label" x="200" y="30">Media</text>
+          <!-- Q3 interactive (bottom-left) -->
+          <rect class="plan-obj" x="35" y="140"  width="14" height="10"/>
+          <text class="plan-obj-text" x="42" y="148">ARC</text>
+          <rect class="plan-obj" x="55" y="140"  width="14" height="10"/>
+          <text class="plan-obj-text" x="62" y="148">ARC</text>
+          <rect class="plan-obj" x="35" y="160" width="40" height="12"/>
+          <text class="plan-obj-text" x="55" y="169">DESK</text>
+          <text class="plan-label" x="80" y="210">Interactive</text>
+          <!-- Q4 artifacts (bottom-right) -->
+          <circle class="plan-obj" cx="180" cy="150" r="7"/>
+          <text class="plan-obj-text" x="180" y="153">PED</text>
+          <circle class="plan-obj" cx="220" cy="160" r="7"/>
+          <text class="plan-obj-text" x="220" y="163">GLB</text>
+          <circle class="plan-portal" cx="200" cy="190" r="7"/>
+          <text class="plan-obj-text" x="200" y="193" fill="#fff">RBT</text>
+          <text class="plan-label" x="200" y="210">Artifacts</text>
+          <!-- entry/exit -->
+          <rect class="plan-portal" x="135" y="217" width="12" height="3"/>
+          <text class="plan-label" x="141" y="234">entry / exit</text>
+          <text class="plan-label" x="140" y="14">back wall</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:20px">My recommendation: <strong>B (central spine)</strong> — gives clear guided walk with sightlines to every exhibit, keeps gaming content present but tucked aside so gallery atmosphere dominates.</p>
