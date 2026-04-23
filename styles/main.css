@@ -1926,3 +1926,21 @@ body:has(
 .sky-toggle:has(.sky-toggle-input:checked) .sky-toggle-sun {
   color: #7a6d3a;
 }
+
+/* ── Intro-mode variant on #gatekeeper-chat ───────
+   During the first-spawn intro we hide the normal chat chrome (chips + input)
+   and show a small "Space / ESC" hint footer instead. */
+#chat-footer {
+  font-size: 11px;
+  color: rgba(0, 212, 255, 0.6);
+  letter-spacing: 0.05em;
+  text-align: right;
+  margin-top: 8px;
+}
+#gatekeeper-chat:not(.intro-mode) #chat-footer {
+  display: none;
+}
+#gatekeeper-chat.intro-mode #chat-chips,
+#gatekeeper-chat.intro-mode #chat-input-row {
+  display: none;
+}
