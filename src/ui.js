@@ -380,6 +380,8 @@ export function createUI(camera, renderer, controls, scene) {
 
   function closeInventory() {
     inventoryOverlay.classList.add('hidden');
+    window.__hideFPOverlay?.();
+    window.__relockControls?.();
   }
 
   inventoryClose.addEventListener('click', closeInventory);

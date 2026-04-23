@@ -34,9 +34,8 @@ const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-// Start with exterior sky (overridden per room in transitions).
-// applySkyMode respects the user's persisted day/night choice.
-applySkyMode(scene, getSkyMode());
+// Sky mode is applied later (after setRoomVisibility) so the skydome-visibility
+// changes aren't overridden. See the `setRoomVisibility('exterior')` call below.
 scene.fog = null;
 
 // ── Camera ────────────────────────────────────────
@@ -681,6 +680,9 @@ function setRoomVisibility(activeRoom) {
 
 // Start visible only in the spawn room.
 setRoomVisibility('exterior');
+// Apply persisted sky mode AFTER setRoomVisibility so night mode can hide the
+// skydome (which setRoomVisibility just made visible for the exterior room).
+applySkyMode(scene, getSkyMode());
 
 // ── Godrays composer for exterior sunlight ──
 const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
@@ -776,13 +778,11 @@ function transitionToRoom(targetRoom) {
       camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
       camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
       currentRoom = 'nature';
-      applySkyMode(scene, getSkyMode());
       scene.fog = null;
     } else if (targetRoom === 'exterior') {
       camera.position.set(-20, EYE_HEIGHT, 8);
       camera.lookAt(-20, EYE_HEIGHT, 2);
       currentRoom = 'exterior';
-      applySkyMode(scene, getSkyMode());
       scene.fog = null;
     } else {
       camera.position.set(0, EYE_HEIGHT, 10);
@@ -793,6 +793,11 @@ function transitionToRoom(targetRoom) {
       scene.fog = null;
     }
     setRoomVisibility(currentRoom);
+    // applySkyMode must run AFTER setRoomVisibility so its skydome-visibility
+    // changes (night = hide dome to reveal scene.background) aren't overridden.
+    if (currentRoom !== 'ai') {
+      applySkyMode(scene, getSkyMode());
+    }
     isTransitioning = false;
 
     // Fade the new room in smoothly.

@@ -25,8 +25,11 @@ export function setSkyMode(mode) {
 export const DAY_COLOR = 0x88bbf0;
 export const NIGHT_COLOR = 0x0a1128;
 
-const STAR_COUNT = 800;
-const SKY_RADIUS = 500;
+const STAR_COUNT = 600;
+// Skydome radius is 28 (exterior) / 15 (nature). Put stars JUST INSIDE the
+// exterior dome so they're visible at a readable size without fighting
+// size-attenuation at 500-unit distances.
+const STAR_RADIUS = 22;
 
 function createStarfield() {
   const positions = new Float32Array(STAR_COUNT * 3);
@@ -34,7 +37,7 @@ function createStarfield() {
     // Upper hemisphere, with a little overhang so stars wrap past the horizon
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(Math.random() * 0.9);
-    const r = SKY_RADIUS;
+    const r = STAR_RADIUS * (0.85 + Math.random() * 0.15);
     positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
     positions[i * 3 + 1] = r * Math.cos(phi);
     positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
@@ -43,24 +46,32 @@ function createStarfield() {
   geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const mat = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 1.6,
+    size: 0.12,
     sizeAttenuation: true,
     depthWrite: false,
     transparent: true,
+    opacity: 0.95,
   });
   const points = new THREE.Points(geom, mat);
   points.name = 'sky-stars';
   points.frustumCulled = false;
+  points.renderOrder = -1;
   return points;
 }
 
 function createMoon() {
-  const geom = new THREE.SphereGeometry(14, 24, 16);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xfff4d6 });
+  const geom = new THREE.SphereGeometry(1.3, 32, 24);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0xfff4d6,
+    transparent: true,
+    opacity: 1.0,
+  });
   const moon = new THREE.Mesh(geom, mat);
-  moon.position.set(260, 180, -240);
+  // Inside the 28-radius exterior dome, sitting high and off to one side
+  moon.position.set(-20 + 14, 16, -14);
   moon.name = 'sky-moon';
   moon.frustumCulled = false;
+  moon.renderOrder = -1;
   return moon;
 }
 
@@ -79,6 +90,8 @@ export function clearSkyObjects(scene) {
   removeSkyObjects(scene);
 }
 
+const SKYDOME_NAMES = ['exterior-skydome', 'nature-skydome'];
+
 export function applySkyMode(scene, mode) {
   const resolved = VALID_MODES.has(mode) ? mode : 'day';
   removeSkyObjects(scene);
@@ -86,7 +99,21 @@ export function applySkyMode(scene, mode) {
     scene.background = new THREE.Color(NIGHT_COLOR);
     scene.add(createStarfield());
     scene.add(createMoon());
+    // Hide the per-room textured skydomes so scene.background (dark) shows
+    // through. setRoomVisibility handles day-mode visibility; we only override
+    // in night mode and only in the hiding direction.
+    for (const name of SKYDOME_NAMES) {
+      const dome = scene.getObjectByName(name);
+      if (dome) dome.visible = false;
+    }
   } else {
     scene.background = new THREE.Color(DAY_COLOR);
+    // In day mode, restore the active room's skydome. setRoomVisibility has
+    // already set non-active domes to .visible = false, so we just re-enable
+    // any dome we previously hid.
+    for (const name of SKYDOME_NAMES) {
+      const dome = scene.getObjectByName(name);
+      if (dome) dome.visible = true;
+    }
   }
 }
