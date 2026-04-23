@@ -5,8 +5,18 @@ function escapeHtml(str) {
 }
 
 export const BOOK_PAGES = [
-  { type: 'cover' },
-  { type: 'interactive' }
+  { image: 'bok-1.jpg'  },
+  { image: 'bok-2.jpg'  },
+  { image: 'bok-3.jpg'  },
+  { image: 'bok-4.jpg'  },
+  { image: 'bok-5.jpg'  },
+  { image: 'bok-6.jpg'  },
+  { image: 'bok-7.jpg'  },
+  { image: 'bok-8.jpg'  },
+  { image: 'bok-9.jpg'  },
+  { image: 'bok-10.jpg' },
+  { image: 'bok-11.jpg' },
+  { image: 'bok-12.jpg' }
 ];
 
 // Detailed content for each "dive deeper" point on the deviation page
@@ -173,6 +183,13 @@ export function createUI(camera, renderer, controls) {
           <p style="font-size:13px">🎵 The Music Studio — Sound design &amp; audio narratives</p>
           <p style="font-size:13px">📚 The Library — Archives of digital literature</p>
         </div>
+      `;
+    } else if (panelId === 'video-more-info') {
+      const info = window.__currentVideoMoreInfo;
+      const body = info?.body ?? '';
+      content = `
+        <h2>${safeTitle}</h2>
+        <div style="line-height:1.75;font-size:14px">${body.replace(/\n\n/g, '<br><br>')}</div>
       `;
     } else {
       content = `
@@ -515,15 +532,17 @@ export function createUI(camera, renderer, controls) {
   }
 
   function renderBookPage() {
-    const page = BOOK_PAGES[bookPageIndex];
-    if (page.type === 'cover') {
-      renderCoverPage();
-    } else if (page.type === 'interactive') {
-      if (bookTopic === 'folklore')         renderFolklorePage();
-      else if (bookTopic === 'deviation')   renderDeviationPage(deviationSelectedKey);
-      else if (bookTopic === 'methodology') renderMethodologyPage();
-      else                                   renderStartState();
-    }
+    const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + BOOK_PAGES[bookPageIndex].image;
+    bookPageL.innerHTML = '';
+    bookPageR.innerHTML = '';
+    bookPageL.style.backgroundImage = `url("${imgPath}")`;
+    bookPageL.style.backgroundSize = '200% 100%';
+    bookPageL.style.backgroundPosition = 'left center';
+    bookPageL.style.backgroundRepeat = 'no-repeat';
+    bookPageR.style.backgroundImage = `url("${imgPath}")`;
+    bookPageR.style.backgroundSize = '200% 100%';
+    bookPageR.style.backgroundPosition = 'right center';
+    bookPageR.style.backgroundRepeat = 'no-repeat';
     bookPrev.disabled = bookPageIndex === 0;
     bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
   }
@@ -538,27 +557,9 @@ export function createUI(camera, renderer, controls) {
     });
   }
 
-  // Delegate clicks inside the book pages
-  function handleBookPageClick(e) {
-    // Cover page: any click advances the book
-    if (BOOK_PAGES[bookPageIndex].type === 'cover') {
-      flipPage('next');
-      return;
-    }
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const action = btn.dataset.action;
-    if (action === 'go-start')         goToInteractive('start', 'prev');
-    else if (action === 'go-folklore')    goToInteractive('folklore',    'next');
-    else if (action === 'go-deviation')   goToInteractive('deviation',   'next');
-    else if (action === 'go-methodology') goToInteractive('methodology', 'next');
-    else if (action === 'dive') {
-      const key = btn.dataset.key;
-      animatePageFlip('next', () => {
-        deviationSelectedKey = key;
-        renderBookPage();
-      });
-    }
+  // Delegate clicks inside the book pages — image spreads have no interactive elements
+  function handleBookPageClick(_e) {
+    // no-op for image pages
   }
   bookPageL.addEventListener('click', handleBookPageClick);
   bookPageR.addEventListener('click', handleBookPageClick);
@@ -576,6 +577,8 @@ export function createUI(camera, renderer, controls) {
   function closeBook() {
     clearBookParticles();
     bookOverlay.classList.add('hidden');
+    window.__hideFPOverlay?.();
+    window.__relockControls?.();
     relockAfterOverlay();
   }
 
