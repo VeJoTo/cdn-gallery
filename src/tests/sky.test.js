@@ -41,4 +41,15 @@ describe('sky mode persistence', () => {
     setSkyMode('banana');
     expect(getSkyMode()).toBe('night');
   });
+
+  it('setSkyMode does not throw when localStorage.setItem throws', () => {
+    const throwingStorage = {
+      getItem: () => null,
+      setItem: () => {
+        throw new DOMException('QuotaExceededError');
+      },
+    };
+    vi.stubGlobal('localStorage', throwingStorage);
+    expect(() => setSkyMode('night')).not.toThrow();
+  });
 });
