@@ -1,5 +1,6 @@
 // src/ui.js
 import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
+import { playIntro as runIntroDialogue } from './intro.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -270,7 +271,6 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function openGatekeeperChat() {
-    clearIntroTimers();
     chatMessages.innerHTML = '';
     appendChatMessage("Hey Kids! Welcome to the CDN gallery! What are you curious about?", 'gatekeeper');
 
@@ -287,7 +287,6 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function closeGatekeeperChat() {
-    clearIntroTimers();
     gatekeeperChat.classList.remove('open');
     setTimeout(() => gatekeeperChat.classList.add('hidden'), 300);
   }
@@ -295,29 +294,7 @@ export function createUI(camera, renderer, controls, scene) {
   chatClose.addEventListener('click', closeGatekeeperChat);
 
   // ── Intro sequence (first-visit welcome; see docs/superpowers/specs/…) ──
-  const INTRO_BUBBLE_DELAY_MS = 1200;
-  let introTimer = null;
-  let introSkipHandler = null;
   let isIntroPlaying = false;
-
-  function clearIntroTimers() {
-    isIntroPlaying = false;
-    if (introTimer) { clearTimeout(introTimer); introTimer = null; }
-    if (introSkipHandler) {
-      document.removeEventListener('keydown', introSkipHandler);
-      chatMessages.removeEventListener('click', introSkipHandler);
-      introSkipHandler = null;
-    }
-  }
-
-  function appendIntroBubble(entry) {
-    const div = document.createElement('div');
-    div.className = 'chat-msg gatekeeper';
-    if (entry.html) div.innerHTML = entry.text;
-    else            div.textContent = entry.text;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
 
   function renderIntroChips() {
     chatChips.innerHTML = SUGGESTED_QUESTIONS.map(q =>
@@ -328,47 +305,29 @@ export function createUI(camera, renderer, controls, scene) {
     });
   }
 
-  function playIntro() {
-    clearIntroTimers();
-    isIntroPlaying = true;
-    chatMessages.innerHTML = '';
-    chatChips.innerHTML = '';  // chips hidden until last bubble lands
+  async function playIntro() {
+    const chatHeaderName = document.getElementById('chat-header-name');
+    const originalName = chatHeaderName?.textContent ?? 'The Guide';
 
+    chatMessages.innerHTML = '';
+    chatChips.innerHTML = '';
+    isIntroPlaying = true;
+    gatekeeperChat.classList.add('intro-mode');
+    if (chatHeaderName) chatHeaderName.textContent = 'Jason';
     gatekeeperChat.classList.remove('hidden');
     requestAnimationFrame(() => gatekeeperChat.classList.add('open'));
 
-    let idx = 0;
-    function showNext() {
-      if (idx >= INTRO_SCRIPT.length) {
-        clearIntroTimers();
-        renderIntroChips();
-        return;
-      }
-      appendIntroBubble(INTRO_SCRIPT[idx]);
-      idx++;
-      if (idx < INTRO_SCRIPT.length) {
-        introTimer = setTimeout(showNext, INTRO_BUBBLE_DELAY_MS);
-      } else {
-        // Final bubble just landed — reveal chips, drop skip handlers.
-        isIntroPlaying = false;
-        clearIntroTimers();
-        renderIntroChips();
-      }
-    }
+    await runIntroDialogue({ script: INTRO_SCRIPT });
 
-    introSkipHandler = (e) => {
-      // Keyboard: Space / Enter. Click: anywhere inside #chat-messages.
-      if (e.type === 'keydown' && e.code !== 'Space' && e.code !== 'Enter') return;
-      if (e.type === 'keydown' && e.target && e.target.tagName === 'INPUT') return;
-      e.preventDefault && e.preventDefault();
-      if (introTimer) { clearTimeout(introTimer); introTimer = null; }
-      showNext();
-    };
-    document.addEventListener('keydown', introSkipHandler);
-    chatMessages.addEventListener('click', introSkipHandler);
-
-    // Show the first bubble immediately.
-    showNext();
+    // Teardown: restore chat to its normal state for future G-key summons
+    isIntroPlaying = false;
+    gatekeeperChat.classList.remove('intro-mode');
+    if (chatHeaderName) chatHeaderName.textContent = originalName;
+    gatekeeperChat.classList.remove('open');
+    setTimeout(() => gatekeeperChat.classList.add('hidden'), 300);
+    // Render the chips so pressing G later shows the suggested questions
+    // without having to re-enter openGatekeeperChat.
+    renderIntroChips();
   }
 
   chatSend.addEventListener('click', () => {
