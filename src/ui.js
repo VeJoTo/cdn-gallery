@@ -14,7 +14,7 @@ export const INTRO_SCRIPT = [
   { text: "CDN studies how stories work in the digital age — games, AI that writes fiction, virtual worlds, interactive art. I'll be your guide through it." },
   {
     html: true,
-    text: 'Go ahead and look around: <strong>WASD</strong> to walk, <strong>mouse</strong> to look. You can call me back any time with the <strong>G</strong> key. Off you pop!'
+    text: 'Go ahead and look around: <strong>WASD</strong> to walk, <strong>mouse</strong> to look. Press <strong>E</strong> to open your inventory, and call me back any time with the <strong>G</strong> key. Off you pop!'
   }
 ];
 
