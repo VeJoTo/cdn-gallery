@@ -65,6 +65,7 @@ function clickDialog() {
 describe('playIntro', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    setupDom();
   });
   afterEach(() => {
     vi.useRealTimers();
