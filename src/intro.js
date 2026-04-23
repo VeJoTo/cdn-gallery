@@ -31,3 +31,101 @@ function* visibleChars(str) {
   // Iterator over code points (handles surrogate pairs, so most emoji count as 1)
   for (const ch of str) yield ch;
 }
+
+const DEFAULT_CHAR_DELAY_MS = 25;
+
+/**
+ * Play the intro dialogue sequence inside #gatekeeper-chat's #chat-messages.
+ *
+ * Listens on the document for keydown (Space/Enter/Escape) and on #guide-dialog
+ * for click. Cleans up all listeners before resolving.
+ *
+ * @param {Object} options
+ * @param {Array<{text: string, html?: boolean}>} options.script - Lines to speak.
+ * @param {number} [options.charDelayMs=25] - Milliseconds between characters.
+ * @returns {Promise<{skipped: boolean}>}
+ */
+export function playIntro({ script, charDelayMs = DEFAULT_CHAR_DELAY_MS }) {
+  const chatMessages = document.getElementById('chat-messages');
+  const guideDialog = document.getElementById('guide-dialog');
+  if (!chatMessages || !guideDialog) {
+    return Promise.resolve({ skipped: false });
+  }
+
+  return new Promise((resolve) => {
+    let lineIdx = 0;
+    let timer = null;
+    let isTyping = false;
+    let currentLineFullText = '';
+
+    function typeLine(entry) {
+      isTyping = true;
+      currentLineFullText = entry.text;
+      chatMessages.innerHTML = '';
+      const tokens = Array.from(typewriteTokens(entry.text));
+      let revealed = '';
+      let tokenIdx = 0;
+
+      function tick() {
+        revealed += tokens[tokenIdx++];
+        chatMessages.innerHTML = revealed;
+        if (tokenIdx >= tokens.length) {
+          isTyping = false;
+          timer = null;
+        } else {
+          timer = setTimeout(tick, charDelayMs);
+        }
+      }
+
+      // Schedule first tick so characters appear after charDelayMs (not immediately)
+      timer = setTimeout(tick, charDelayMs);
+    }
+
+    function completeCurrentLine() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      isTyping = false;
+      chatMessages.innerHTML = currentLineFullText;
+    }
+
+    function advance() {
+      if (isTyping) {
+        completeCurrentLine();
+        return;
+      }
+      lineIdx++;
+      if (lineIdx >= script.length) {
+        finish({ skipped: false });
+      } else {
+        typeLine(script[lineIdx]);
+      }
+    }
+
+    function finish(result) {
+      if (timer) { clearTimeout(timer); timer = null; }
+      document.removeEventListener('keydown', onKeydown);
+      guideDialog.removeEventListener('click', onDialogClick);
+      resolve(result);
+    }
+
+    function onKeydown(e) {
+      if (e.repeat) return;
+      if (e.key === 'Escape') {
+        finish({ skipped: true });
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        advance();
+      }
+    }
+
+    function onDialogClick(e) {
+      // Don't intercept clicks on child buttons (e.g. chat-close) with their own handlers
+      if (e.target.closest('button')) return;
+      advance();
+    }
+
+    document.addEventListener('keydown', onKeydown);
+    guideDialog.addEventListener('click', onDialogClick);
+
+    typeLine(script[lineIdx]);
+  });
+}
