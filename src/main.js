@@ -929,10 +929,6 @@ document.getElementById('guide-btn').addEventListener('click', () => {
   controls.unlock();
   ui.openGatekeeperChat();
 });
-document.getElementById('inventory-btn').addEventListener('click', () => {
-  controls.unlock();
-  ui.openInventory();
-});
 
 addUpdateCallback(() => ui.updateHints());
 
