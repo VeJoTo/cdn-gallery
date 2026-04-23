@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { ROOM_WIDTH } from './room.js';
 import { buildTV } from './tv.js';
+import { createSofa } from './sofa.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
@@ -566,6 +567,9 @@ export function createObjects(scene) {
   portal.rotation.y = -Math.PI / 2;
 
   const tv = buildTV();
+
+  // Futuristic sofa in front of the TV wall
+  createSofa(scene);
 
   // Magical book pedestal — positioned at (-2.8, 0, 2.6), nav hotspot 'pedestal'
   const pedestal = buildPedestal();
