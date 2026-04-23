@@ -31,6 +31,7 @@ export function createExteriorRoom(scene) {
     new THREE.SphereGeometry(28, 32, 16),
     new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide })
   );
+  sky.name = 'exterior-skydome';
   sky.position.set(ox, 2, 0);
   scene.add(sky);
 
