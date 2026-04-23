@@ -11,6 +11,7 @@ import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
+import { applySkyMode, getSkyMode } from './sky.js';
 
 const canvas = document.getElementById('gallery-canvas');
 
@@ -32,8 +33,9 @@ const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-// Start with exterior sky (overridden per room in transitions)
-scene.background = new THREE.Color(0x88bbf0);
+// Start with exterior sky (overridden per room in transitions).
+// applySkyMode respects the user's persisted day/night choice.
+applySkyMode(scene, getSkyMode());
 scene.fog = null;
 
 // ── Camera ────────────────────────────────────────
@@ -766,13 +768,13 @@ function transitionToRoom(targetRoom) {
       camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
       camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
       currentRoom = 'nature';
-      scene.background = new THREE.Color(0x88bbf0);
+      applySkyMode(scene, getSkyMode());
       scene.fog = null;
     } else if (targetRoom === 'exterior') {
       camera.position.set(-20, EYE_HEIGHT, 8);
       camera.lookAt(-20, EYE_HEIGHT, 2);
       currentRoom = 'exterior';
-      scene.background = new THREE.Color(0x88bbf0);
+      applySkyMode(scene, getSkyMode());
       scene.fog = null;
     } else {
       camera.position.set(0, EYE_HEIGHT, 10);
