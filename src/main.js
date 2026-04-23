@@ -591,10 +591,13 @@ const tvMouse     = new THREE.Vector2();
 const tvRaycaster = new THREE.Raycaster();
 let   tvHovered   = null;
 
+const stepbackBtn = document.getElementById('stepback-btn');
+
 function enterTVMode() {
   atTV = true;
   suppressFPOverlay = true;
   controls.unlock();
+  stepbackBtn?.classList.remove('hidden');
   // Show Read More if hologram is already visible and video has extra content
   if (hologramDiv.style.opacity !== '0' && aiArtVideos[currentVideoIndex]?.moreInfo) {
     tvReadMoreBtn?.classList.remove('hidden');
@@ -604,6 +607,7 @@ function enterTVMode() {
 function exitTVMode() {
   atTV = false;
   tvReadMoreBtn?.classList.add('hidden');
+  stepbackBtn?.classList.add('hidden');
   if (tvHovered) { clearHoverGlow(tvHovered); tvHovered = null; }
   renderer.domElement.style.cursor = '';
 }
@@ -919,6 +923,28 @@ document.addEventListener('mousedown', () => {
   if (action === 'toggleTV')         window.__toggleTV?.();
   if (action === 'showInfo')         window.__showInfo?.();
   if (action === 'toggleMagnifier')  window.__toggleMagnifier?.();
+});
+
+function stepBackFromTV() {
+  nav.clearSaved();          // reset nav state without restoring the old position
+  exitTVMode();
+  const target = { x: -7.5, y: 1.6, z: 0 };
+  gsap.to(camera.position, {
+    x: target.x, y: target.y, z: target.z,
+    duration: 0.8,
+    ease: 'power2.inOut',
+    onComplete: () => {
+      camera.lookAt(-10, 1.6, 0);
+      if (controls?.target) controls.target.set(-10, 1.6, 0);
+      controls.lock();
+    }
+  });
+}
+
+stepbackBtn?.addEventListener('click', stepBackFromTV);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && atTV) stepBackFromTV();
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
