@@ -13,7 +13,7 @@ export const HOTSPOTS = {
   pedestal:       { position: { x: -2.0, y: 1.4, z: 1.6  }, target: { x: -2.8, y: 1.2, z: 2.6  }, label: 'Magic Tome' },
   'holo-sphere':  { position: { x: 0,    y: 1.7, z: 2.5  }, target: { x: 0,    y: 1.8, z: 0    }, label: 'Floating Motifs' },
   'rabbit-hole':  { position: { x: -0.2, y: 1.2, z: -1.5 }, target: { x: -0.8, y: 0.2, z: -2.4 }, label: 'Rabbit Hole' },
-  tv:                 { position: { x: 2.0,  y: 2.8, z: 0    }, target: { x: 3.49, y: 2.85, z: 0    }, label: 'TV' },
+  tv:                 { position: { x: -9.2, y: 2.75, z: 0   }, target: { x: -10.814, y: 2.75, z: 0 }, label: 'TV', duration: 1.1 },
   'poster-0':         { position: { x: -2.5, y: 2.0, z: -1.5 }, target: { x: -2.5, y: 2.0,  z: -2.90 }, label: 'Galaga' },
   'poster-1':         { position: { x: -1.4, y: 2.0, z: -1.5 }, target: { x: -1.4, y: 2.0,  z: -2.90 }, label: 'Pac-Man' },
   'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
@@ -89,7 +89,7 @@ export function createNavigationSystem(camera, state, ui, controls) {
     activeTween = gsap.to(proxy, {
       px: h.position.x, py: h.position.y, pz: h.position.z,
       tx: h.target.x,   ty: h.target.y,   tz: h.target.z,
-      duration: 0.6,
+      duration: h.duration ?? 0.6,
       ease: 'power2.inOut',
       onUpdate: applyProxy,
       onComplete: () => {
@@ -157,18 +157,27 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
 
     const { hotspot, action, panelId, panelTitle } = obj.userData;
 
+    // Capture whether we're already at this hotspot before nav changes state
+    const alreadyAtHotspot = hotspot && navState.current === hotspot && navState.canNavigate();
+
     // Zoom in if there's a hotspot
     if (hotspot) nav.goTo(hotspot);
 
     // Fire actions directly
     if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
-    if (action === 'openBook')        ui.openBook();
+    if (action === 'openBook' && alreadyAtHotspot) {
+      if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
+      else ui.openBook();
+    }
     if (action === 'enterRabbitHole') ui.openRabbitHole();
     if (action === 'openReport')      ui.openReport();
     if (action === 'openFinDuMonde')  ui.openFinDuMonde();
     if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
     if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
     if (action === 'enterAIRoom')    window.__transitionToRoom('ai');
+    if (action === 'nextVideo')       window.__nextVideo?.();
+    if (action === 'prevVideo')       window.__prevVideo?.();
+    if (action === 'showInfo')        window.__showInfo?.();
   });
 }

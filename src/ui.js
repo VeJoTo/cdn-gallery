@@ -1,4 +1,5 @@
 // src/ui.js
+import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -36,8 +37,18 @@ export function markIntroSeen(storage = (typeof localStorage !== 'undefined' ? l
 }
 
 export const BOOK_PAGES = [
-  { type: 'cover' },
-  { type: 'interactive' }
+  { image: 'bok-1.jpg'  },
+  { image: 'bok-2.jpg'  },
+  { image: 'bok-3.jpg'  },
+  { image: 'bok-4.jpg'  },
+  { image: 'bok-5.jpg'  },
+  { image: 'bok-6.jpg'  },
+  { image: 'bok-7.jpg'  },
+  { image: 'bok-8.jpg'  },
+  { image: 'bok-9.jpg'  },
+  { image: 'bok-10.jpg' },
+  { image: 'bok-11.jpg' },
+  { image: 'bok-12.jpg' }
 ];
 
 // Detailed content for each "dive deeper" point on the deviation page
@@ -93,7 +104,7 @@ export function getPrevPageIndex(current) {
   return Math.max(current - 1, 0);
 }
 
-export function createUI(camera, renderer, controls) {
+export function createUI(camera, renderer, controls, scene) {
   // Helper: unlock pointer when opening overlays, re-lock when closing
   function unlockForOverlay() {
     // Free cursor — no pointer lock to manage
@@ -204,6 +215,13 @@ export function createUI(camera, renderer, controls) {
           <p style="font-size:13px">🎵 The Music Studio — Sound design &amp; audio narratives</p>
           <p style="font-size:13px">📚 The Library — Archives of digital literature</p>
         </div>
+      `;
+    } else if (panelId === 'video-more-info') {
+      const info = window.__currentVideoMoreInfo;
+      const body = info?.body ?? '';
+      content = `
+        <h2>${safeTitle}</h2>
+        <div style="line-height:1.75;font-size:14px">${body.replace(/\n\n/g, '<br><br>')}</div>
       `;
     } else {
       content = `
@@ -387,6 +405,18 @@ export function createUI(camera, renderer, controls) {
               <li>Talk to the Guide</li>
             </ul>
           </div>
+          <div class="sticky-note settings-stickynote">
+            <h3>Settings</h3>
+            <label class="sky-toggle" aria-label="Toggle day or night sky">
+              <span class="sky-toggle-label">Sky</span>
+              <span class="sky-toggle-pill">
+                <span class="sky-toggle-icon sky-toggle-sun" aria-hidden="true">☀</span>
+                <input type="checkbox" class="sky-toggle-input" id="sky-mode-checkbox" />
+                <span class="sky-toggle-knob"></span>
+                <span class="sky-toggle-icon sky-toggle-moon" aria-hidden="true">🌙</span>
+              </span>
+            </label>
+          </div>
           <div class="scrapbook-doodle" style="position:absolute;bottom:20px;right:20px;font-size:24px;transform:rotate(-8deg);opacity:0.5">✨</div>
         </div>
         <div class="scrapbook-spine"></div>
@@ -420,11 +450,51 @@ export function createUI(camera, renderer, controls) {
         </div>
       </div>
     `;
+    // Reflect current sky mode and wire the checkbox
+    const skyCheckbox = inventoryContent.querySelector('#sky-mode-checkbox');
+    if (skyCheckbox) {
+      skyCheckbox.checked = getSkyMode() === 'night';
+      skyCheckbox.addEventListener('change', () => {
+        const nextMode = skyCheckbox.checked ? 'night' : 'day';
+        setSkyMode(nextMode);
+        applySkyMode(scene, nextMode);
+      });
+    }
     inventoryOverlay.classList.remove('hidden');
+  }
+
+  function isInventoryOpen() {
+    return !inventoryOverlay.classList.contains('hidden');
+  }
+
+  function isAnyOtherOverlayOpen() {
+    return (
+      !panelDrawer.classList.contains('hidden') ||
+      !gatekeeperChat.classList.contains('hidden') ||
+      !bookOverlay.classList.contains('hidden') ||
+      !rhOverlay.classList.contains('hidden') ||
+      !reportOverlay.classList.contains('hidden') ||
+      !fdmOverlay.classList.contains('hidden') ||
+      !globeVideosOverlay.classList.contains('hidden')
+    );
+  }
+
+  function toggleInventory() {
+    if (isInventoryOpen()) {
+      closeInventory();
+      return;
+    }
+    if (isAnyOtherOverlayOpen()) return;
+    // Release pointer lock before showing the overlay — same behavior the
+    // old Inventory button had (`controls.unlock(); openInventory();`).
+    controls.unlock();
+    openInventory();
   }
 
   function closeInventory() {
     inventoryOverlay.classList.add('hidden');
+    window.__hideFPOverlay?.();
+    window.__relockControls?.();
   }
 
   inventoryClose.addEventListener('click', closeInventory);
@@ -628,15 +698,17 @@ export function createUI(camera, renderer, controls) {
   }
 
   function renderBookPage() {
-    const page = BOOK_PAGES[bookPageIndex];
-    if (page.type === 'cover') {
-      renderCoverPage();
-    } else if (page.type === 'interactive') {
-      if (bookTopic === 'folklore')         renderFolklorePage();
-      else if (bookTopic === 'deviation')   renderDeviationPage(deviationSelectedKey);
-      else if (bookTopic === 'methodology') renderMethodologyPage();
-      else                                   renderStartState();
-    }
+    const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + BOOK_PAGES[bookPageIndex].image;
+    bookPageL.innerHTML = '';
+    bookPageR.innerHTML = '';
+    bookPageL.style.backgroundImage = `url("${imgPath}")`;
+    bookPageL.style.backgroundSize = '200% 100%';
+    bookPageL.style.backgroundPosition = 'left center';
+    bookPageL.style.backgroundRepeat = 'no-repeat';
+    bookPageR.style.backgroundImage = `url("${imgPath}")`;
+    bookPageR.style.backgroundSize = '200% 100%';
+    bookPageR.style.backgroundPosition = 'right center';
+    bookPageR.style.backgroundRepeat = 'no-repeat';
     bookPrev.disabled = bookPageIndex === 0;
     bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
   }
@@ -651,27 +723,9 @@ export function createUI(camera, renderer, controls) {
     });
   }
 
-  // Delegate clicks inside the book pages
-  function handleBookPageClick(e) {
-    // Cover page: any click advances the book
-    if (BOOK_PAGES[bookPageIndex].type === 'cover') {
-      flipPage('next');
-      return;
-    }
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const action = btn.dataset.action;
-    if (action === 'go-start')         goToInteractive('start', 'prev');
-    else if (action === 'go-folklore')    goToInteractive('folklore',    'next');
-    else if (action === 'go-deviation')   goToInteractive('deviation',   'next');
-    else if (action === 'go-methodology') goToInteractive('methodology', 'next');
-    else if (action === 'dive') {
-      const key = btn.dataset.key;
-      animatePageFlip('next', () => {
-        deviationSelectedKey = key;
-        renderBookPage();
-      });
-    }
+  // Delegate clicks inside the book pages — image spreads have no interactive elements
+  function handleBookPageClick(_e) {
+    // no-op for image pages
   }
   bookPageL.addEventListener('click', handleBookPageClick);
   bookPageR.addEventListener('click', handleBookPageClick);
@@ -689,6 +743,8 @@ export function createUI(camera, renderer, controls) {
   function closeBook() {
     clearBookParticles();
     bookOverlay.classList.add('hidden');
+    window.__hideFPOverlay?.();
+    window.__relockControls?.();
     relockAfterOverlay();
   }
 
@@ -753,6 +809,26 @@ export function createUI(camera, renderer, controls) {
   reportClose.addEventListener('click', closeReport);
   reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
 
+  // ── Globe videos overlay ─────────────────────────
+  const globeVideosOverlay = document.getElementById('globe-videos-overlay');
+  const globeVideosClose   = document.getElementById('globe-videos-close');
+  const globeVideoIframes  = [1, 2, 3, 4].map(n => document.getElementById(`globe-video-${n}`));
+
+  function openGlobeVideos() {
+    for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
+    globeVideosOverlay.classList.remove('hidden');
+    unlockForOverlay();
+  }
+
+  function closeGlobeVideos() {
+    for (const iframe of globeVideoIframes) iframe.src = '';
+    globeVideosOverlay.classList.add('hidden');
+    relockAfterOverlay();
+  }
+
+  globeVideosClose.addEventListener('click', closeGlobeVideos);
+  globeVideosOverlay.addEventListener('click', (e) => { if (e.target === globeVideosOverlay) closeGlobeVideos(); });
+
   // ── Fin du Monde overlay ────────────────────────
   const fdmOverlay = document.getElementById('findumonde-overlay');
   const fdmClose   = document.getElementById('findumonde-close');
@@ -816,7 +892,7 @@ export function createUI(camera, renderer, controls) {
   rhOverlay.addEventListener('scroll', checkRHSections);
   rhClimbBack.addEventListener('click', closeRabbitHole);
 
-  // ── Global Escape key ────────────────────────────
+  // ── Global keyboard shortcuts ────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closePanelDrawer();
@@ -826,6 +902,16 @@ export function createUI(camera, renderer, controls) {
       closeRabbitHole();
       closeReport();
       closeFinDuMonde();
+      closeGlobeVideos();
+      return;
+    }
+
+    // "E" toggles the inventory, but not while the user is typing.
+    if (e.key === 'e' || e.key === 'E') {
+      if (e.repeat) return;
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+      toggleInventory();
     }
   });
 
@@ -843,6 +929,9 @@ export function createUI(camera, renderer, controls) {
     openRabbitHole,
     openReport,
     openFinDuMonde,
-    updateHints
+    openGlobeVideos,
+    updateHints,
+    toggleInventory,
+    isInventoryOpen,
   };
 }
