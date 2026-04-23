@@ -499,7 +499,7 @@ function buildScreen() {
     new THREE.CylinderGeometry(0.30, 0.34, 0.03, 32),
     standMat
   );
-  basePlate.position.set(0, -1.515, 0.05);
+  basePlate.position.set(0, -1.485, 0.05);
   group.add(basePlate);
 
   // CDN-blue accent ring where stem meets the frame
