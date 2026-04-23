@@ -1,5 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import { vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { typewriteTokens, playIntro } from '../intro.js';
 
 function collect(iter) {
@@ -66,7 +65,6 @@ function clickDialog() {
 describe('playIntro', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    setupDom();
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -165,5 +163,10 @@ describe('playIntro', () => {
     vi.advanceTimersByTime(10);
     document.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', repeat: true, bubbles: true }));
     expect(chatMessages.textContent).toBe('h');
+  });
+
+  it('resolves immediately with { skipped: false } for an empty script', async () => {
+    setupDom();
+    await expect(playIntro({ script: [] })).resolves.toEqual({ skipped: false });
   });
 });

@@ -40,8 +40,12 @@ const DEFAULT_CHAR_DELAY_MS = 25;
  * Listens on the document for keydown (Space/Enter/Escape) and on #guide-dialog
  * for click. Cleans up all listeners before resolving.
  *
+ * Each line's `text` is rendered as HTML via `innerHTML`, so HTML tags in the
+ * text (like `<strong>...</strong>`) are rendered as markup. The tokenizer
+ * keeps tags atomic during the typewriter reveal.
+ *
  * @param {Object} options
- * @param {Array<{text: string, html?: boolean}>} options.script - Lines to speak.
+ * @param {Array<{text: string}>} options.script - Lines to speak (static trusted HTML).
  * @param {number} [options.charDelayMs=25] - Milliseconds between characters.
  * @returns {Promise<{skipped: boolean}>}
  */
@@ -49,6 +53,9 @@ export function playIntro({ script, charDelayMs = DEFAULT_CHAR_DELAY_MS }) {
   const chatMessages = document.getElementById('chat-messages');
   const guideDialog = document.getElementById('guide-dialog');
   if (!chatMessages || !guideDialog) {
+    return Promise.resolve({ skipped: false });
+  }
+  if (!script || !script.length) {
     return Promise.resolve({ skipped: false });
   }
 
