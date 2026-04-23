@@ -1,83 +1,107 @@
 // src/scene/sofa.js
-// Futuristic organic sofa — translucent blue glass form, placed in front of the TV wall.
-// TV is at world x ≈ -10.95, z = 0 facing +x.  Sofa sits at x = -8, z = 0,
-// rotated so the seated viewer looks toward -x (toward the TV).
+// Futuristic sofa — clear sofa silhouette (seat, back, arms) with dark
+// metallic upholstery, chrome legs, and neon cyan LED trim strips.
+// Placed in front of the TV wall (TV at world x ≈ -10.95, z = 0, facing +x).
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 export function createSofa(scene) {
   const group = new THREE.Group();
+  // x = -8: a comfortable distance from the TV wall
+  // rotation.y = π/2 → local -z = world -x, so the seated viewer faces the TV
   group.position.set(-8, 0, 0);
-  // rotation.y = π/2 → local -z becomes world -x (face direction toward TV)
   group.rotation.y = Math.PI / 2;
 
-  // ── Materials ──────────────────────────────────────────────────────────
-  const glassMat = new THREE.MeshPhysicalMaterial({
-    color: 0x4fc3e8,
-    transparent: true,
-    opacity: 0.68,
+  // ── Materials ───────────────────────────────────────────────────────────
+  const upholsteryMat = new THREE.MeshPhysicalMaterial({
+    color: 0x12202e,
+    roughness: 0.35,
+    metalness: 0.2,
+    clearcoat: 0.7,
+    clearcoatRoughness: 0.08,
+  });
+
+  const chromeMat = new THREE.MeshPhysicalMaterial({
+    color: 0xc8dded,
     roughness: 0.04,
-    metalness: 0.0,
+    metalness: 1.0,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.02,
-    side: THREE.DoubleSide,
+    clearcoatRoughness: 0.0,
   });
 
-  const innerMat = new THREE.MeshPhysicalMaterial({
-    color: 0x2a90b8,
-    transparent: true,
-    opacity: 0.35,
-    roughness: 0.1,
-    metalness: 0.0,
-    clearcoat: 0.5,
-    side: THREE.FrontSide,
-  });
+  const neonMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff });
 
-  // ── Helper: organic blob from a scaled sphere ───────────────────────────
-  function blob(sx, sy, sz, px, py, pz, rx = 0, ry = 0, mat = glassMat) {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 24), mat);
-    m.scale.set(sx, sy, sz);
-    m.position.set(px, py, pz);
-    m.rotation.set(rx, ry, 0);
-    return m;
+  // ── Seat cushion ─────────────────────────────────────────────────────────
+  const seat = new THREE.Mesh(
+    new RoundedBoxGeometry(2.3, 0.25, 0.9, 4, 0.07),
+    upholsteryMat
+  );
+  seat.position.set(0, 0.37, 0);
+  seat.castShadow = true;
+  group.add(seat);
+
+  // ── Backrest ──────────────────────────────────────────────────────────────
+  const back = new THREE.Mesh(
+    new RoundedBoxGeometry(2.3, 0.62, 0.2, 4, 0.07),
+    upholsteryMat
+  );
+  back.position.set(0, 0.85, 0.38);
+  back.rotation.x = 0.12; // subtle recline
+  back.castShadow = true;
+  group.add(back);
+
+  // ── Left armrest ──────────────────────────────────────────────────────────
+  const armGeo = new RoundedBoxGeometry(0.18, 0.48, 0.9, 4, 0.05);
+  const armL = new THREE.Mesh(armGeo, upholsteryMat);
+  armL.position.set(-1.15, 0.49, 0);
+  armL.castShadow = true;
+  group.add(armL);
+
+  // ── Right armrest ─────────────────────────────────────────────────────────
+  const armR = new THREE.Mesh(armGeo, upholsteryMat);
+  armR.position.set(1.15, 0.49, 0);
+  armR.castShadow = true;
+  group.add(armR);
+
+  // ── Chrome legs ───────────────────────────────────────────────────────────
+  const legGeo = new THREE.CylinderGeometry(0.028, 0.028, 0.24, 10);
+  for (const [lx, lz] of [[-0.95, -0.38], [0.95, -0.38], [-0.95, 0.38], [0.95, 0.38]]) {
+    const leg = new THREE.Mesh(legGeo, chromeMat);
+    leg.position.set(lx, 0.12, lz);
+    group.add(leg);
   }
 
-  // ── Seat cushion — wide, low, organic ──────────────────────────────────
-  group.add(blob(1.55, 0.28, 0.72, 0, 0.28, 0));
-  // Inner volume gives the hollow-glass depth
-  group.add(blob(1.40, 0.20, 0.60, 0, 0.28, 0, 0, 0, innerMat));
+  // ── Chrome side rails connecting legs ─────────────────────────────────────
+  const railGeo = new THREE.BoxGeometry(2.0, 0.025, 0.025);
+  for (const rz of [-0.38, 0.38]) {
+    const rail = new THREE.Mesh(railGeo, chromeMat);
+    rail.position.set(0, 0.04, rz);
+    group.add(rail);
+  }
 
-  // ── Backrest — tall, tilted back slightly ──────────────────────────────
-  group.add(blob(1.42, 0.72, 0.28, 0, 0.80, 0.52, 0.28));
-  group.add(blob(1.28, 0.62, 0.20, 0, 0.80, 0.52, 0.28, 0, innerMat));
+  // ── Neon LED strips ───────────────────────────────────────────────────────
+  const ledGeo = new THREE.BoxGeometry(2.18, 0.022, 0.022);
 
-  // ── Left armrest ───────────────────────────────────────────────────────
-  group.add(blob(0.26, 0.46, 0.68, -1.38, 0.54, 0.08));
-  // ── Right armrest ──────────────────────────────────────────────────────
-  group.add(blob(0.26, 0.46, 0.68,  1.38, 0.54, 0.08));
+  // Front and back base strips
+  for (const lz of [-0.46, 0.46]) {
+    const led = new THREE.Mesh(ledGeo, neonMat);
+    led.position.set(0, 0.24, lz);
+    group.add(led);
+  }
 
-  // ── Base — very flat, grounds the form ────────────────────────────────
-  const baseMat = new THREE.MeshPhysicalMaterial({
-    color: 0x38a8cc,
-    transparent: true,
-    opacity: 0.55,
-    roughness: 0.08,
-    metalness: 0.0,
-    clearcoat: 0.8,
-    side: THREE.FrontSide,
-  });
-  group.add(blob(1.52, 0.11, 0.70, 0, 0.11, 0, 0, 0, baseMat));
+  // Top of backrest strip
+  const ledTop = new THREE.Mesh(ledGeo, neonMat);
+  ledTop.position.set(0, 1.18, 0.28);
+  group.add(ledTop);
 
-  // ── Neon underglow strip ────────────────────────────────────────────────
-  const glowLight = new THREE.PointLight(0x00d4ff, 0.6, 2.5);
-  glowLight.position.set(0, 0.04, 0);
-  group.add(glowLight);
+  // ── Glow lights ───────────────────────────────────────────────────────────
+  const glowBase = new THREE.PointLight(0x00d4ff, 0.55, 2.2);
+  glowBase.position.set(0, 0.08, 0);
+  group.add(glowBase);
 
-  // Thin emissive strip mesh to make the glow visible
-  const stripMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff });
-  const strip = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.02, 32), stripMat);
-  strip.scale.z = 0.45;
-  strip.position.y = 0.03;
-  group.add(strip);
+  const glowBack = new THREE.PointLight(0x00d4ff, 0.28, 1.4);
+  glowBack.position.set(0, 1.25, 0.25);
+  group.add(glowBack);
 
   scene.add(group);
   return group;
