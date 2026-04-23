@@ -332,17 +332,14 @@ export function createUI(camera, renderer, controls) {
   }
 
   function isAnyOtherOverlayOpen() {
-    // Any overlay that should block the E-key shortcut while it's open.
-    const ids = [
-      'panel-drawer',
-      'gatekeeper-chat',
-      'book-overlay',
-      'rabbit-hole-overlay',
-    ];
-    return ids.some((id) => {
-      const el = document.getElementById(id);
-      return el && !el.classList.contains('hidden');
-    });
+    return (
+      !panelDrawer.classList.contains('hidden') ||
+      !gatekeeperChat.classList.contains('hidden') ||
+      !bookOverlay.classList.contains('hidden') ||
+      !rhOverlay.classList.contains('hidden') ||
+      !reportOverlay.classList.contains('hidden') ||
+      !fdmOverlay.classList.contains('hidden')
+    );
   }
 
   function toggleInventory() {
@@ -751,6 +748,7 @@ export function createUI(camera, renderer, controls) {
 
     // "E" toggles the inventory, but not while the user is typing.
     if (e.key === 'e' || e.key === 'E') {
+      if (e.repeat) return;
       const active = document.activeElement;
       if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
       toggleInventory();
