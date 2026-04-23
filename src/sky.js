@@ -1,4 +1,5 @@
 // src/sky.js
+import * as THREE from 'three';
 
 const STORAGE_KEY = 'cdn-gallery-sky-mode';
 const VALID_MODES = new Set(['day', 'night']);
@@ -20,8 +21,6 @@ export function setSkyMode(mode) {
     // Storage unavailable — choice won't persist, but don't crash.
   }
 }
-
-import * as THREE from 'three';
 
 export const DAY_COLOR = 0x88bbf0;
 export const NIGHT_COLOR = 0x0a1128;
@@ -68,7 +67,11 @@ function createMoon() {
 function removeSkyObjects(scene) {
   for (const name of ['sky-stars', 'sky-moon']) {
     const existing = scene.getObjectByName(name);
-    if (existing) scene.remove(existing);
+    if (existing) {
+      existing.geometry.dispose();
+      existing.material.dispose();
+      scene.remove(existing);
+    }
   }
 }
 
