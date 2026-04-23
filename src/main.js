@@ -4,6 +4,7 @@ import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
+import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
@@ -152,14 +153,17 @@ function trackChildren(builder) {
 }
 
 // ── AI room ──
+let globeScreen;
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   createRoom(scene);
+  globeScreen = createGlobeScreenInstallation(scene, camera);
   return createObjects(scene);
 });
 const { pedestal, sceneUpdate, extras } = aiObjects;
 addUpdateCallback(sceneUpdate);
+addUpdateCallback(globeScreen.update);
 
-const clickableObjects = [pedestal, ...extras];
+const clickableObjects = [pedestal, ...extras, ...globeScreen.clickables];
 
 const ui       = createUI(camera, renderer, controls);
 const navState = createNavigationState();
@@ -381,7 +385,7 @@ document.addEventListener('mousedown', () => {
   // UI overlay actions need the cursor back; room transitions stay locked.
   const uiActions = new Set([
     'openPanel', 'openPoster', 'openBook',
-    'enterRabbitHole', 'openReport', 'openFinDuMonde'
+    'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos'
   ]);
   if (uiActions.has(action)) controls.unlock();
 
@@ -391,6 +395,9 @@ document.addEventListener('mousedown', () => {
   if (action === 'enterRabbitHole') ui.openRabbitHole();
   if (action === 'openReport')      ui.openReport();
   if (action === 'openFinDuMonde')  ui.openFinDuMonde();
+  if (action === 'openGlobeVideos') ui.openGlobeVideos();
+  if (action === 'selectCountry')   globeScreen.selectCountry(obj.userData.country);
+  if (action === 'resetGlobeScreen') globeScreen.reset();
   if (action === 'enterNatureRoom') window.__transitionToRoom('nature');
   if (action === 'returnToAIRoom')  window.__transitionToRoom('ai');
   if (action === 'enterAIRoom')     window.__transitionToRoom('ai');
