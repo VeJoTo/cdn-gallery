@@ -7,6 +7,7 @@ import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
+import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
@@ -185,13 +186,16 @@ function trackChildren(builder) {
 }
 
 // ── AI room ──
+let globeScreen;
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   createRoom(scene);
+  globeScreen = createGlobeScreenInstallation(scene, camera);
   return createObjects(scene);
 });
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
 const holoPlayPauseBtn = tv.userData.playPauseBtn;
 addUpdateCallback(sceneUpdate);
+addUpdateCallback(globeScreen.update);
 
 // ── Book particle burst ───────────────────────────────────────────────────────
 function spawnBookParticles(worldPos) {
@@ -565,7 +569,7 @@ window.__toggleMagnifier = () => {
   }
 };
 
-const clickableObjects = [pedestal, ...extras];
+const clickableObjects = [pedestal, ...extras, ...globeScreen.clickables];
 
 const ui       = createUI(camera, renderer, controls, scene);
 const _origUpdateHUD = ui.updateHUD.bind(ui);
@@ -589,10 +593,13 @@ const tvMouse     = new THREE.Vector2();
 const tvRaycaster = new THREE.Raycaster();
 let   tvHovered   = null;
 
+const stepbackBtn = document.getElementById('stepback-btn');
+
 function enterTVMode() {
   atTV = true;
   suppressFPOverlay = true;
   controls.unlock();
+  stepbackBtn?.classList.remove('hidden');
   // Show Read More if hologram is already visible and video has extra content
   if (hologramDiv.style.opacity !== '0' && aiArtVideos[currentVideoIndex]?.moreInfo) {
     tvReadMoreBtn?.classList.remove('hidden');
@@ -602,6 +609,7 @@ function enterTVMode() {
 function exitTVMode() {
   atTV = false;
   tvReadMoreBtn?.classList.add('hidden');
+  stepbackBtn?.classList.add('hidden');
   if (tvHovered) { clearHoverGlow(tvHovered); tvHovered = null; }
   renderer.domElement.style.cursor = '';
 }
@@ -890,7 +898,7 @@ document.addEventListener('mousedown', () => {
   // For openBook, only unlock on the second click (when already at pedestal).
   const uiActions = new Set([
     'openPanel', 'openPoster',
-    'enterRabbitHole', 'openReport', 'openFinDuMonde'
+    'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos'
   ]);
   const opensOverlay = uiActions.has(action) || (action === 'openBook' && alreadyAtHotspot);
   if (opensOverlay) {
@@ -907,6 +915,9 @@ document.addEventListener('mousedown', () => {
   if (action === 'enterRabbitHole')  ui.openRabbitHole();
   if (action === 'openReport')       ui.openReport();
   if (action === 'openFinDuMonde')   ui.openFinDuMonde();
+  if (action === 'openGlobeVideos')  ui.openGlobeVideos();
+  if (action === 'selectCountry')    globeScreen.selectCountry(obj.userData.country);
+  if (action === 'resetGlobeScreen') globeScreen.reset();
   if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
   if (action === 'returnToAIRoom')   window.__transitionToRoom('ai');
   if (action === 'enterAIRoom')      window.__transitionToRoom('ai');
@@ -915,6 +926,28 @@ document.addEventListener('mousedown', () => {
   if (action === 'toggleTV')         window.__toggleTV?.();
   if (action === 'showInfo')         window.__showInfo?.();
   if (action === 'toggleMagnifier')  window.__toggleMagnifier?.();
+});
+
+function stepBackFromTV() {
+  nav.clearSaved();          // reset nav state without restoring the old position
+  exitTVMode();
+  const target = { x: -7.5, y: 1.6, z: 0 };
+  gsap.to(camera.position, {
+    x: target.x, y: target.y, z: target.z,
+    duration: 0.8,
+    ease: 'power2.inOut',
+    onComplete: () => {
+      camera.lookAt(-10, 1.6, 0);
+      if (controls?.target) controls.target.set(-10, 1.6, 0);
+      controls.lock();
+    }
+  });
+}
+
+stepbackBtn?.addEventListener('click', stepBackFromTV);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && atTV) stepBackFromTV();
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {

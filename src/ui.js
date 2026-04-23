@@ -361,7 +361,8 @@ export function createUI(camera, renderer, controls, scene) {
       !bookOverlay.classList.contains('hidden') ||
       !rhOverlay.classList.contains('hidden') ||
       !reportOverlay.classList.contains('hidden') ||
-      !fdmOverlay.classList.contains('hidden')
+      !fdmOverlay.classList.contains('hidden') ||
+      !globeVideosOverlay.classList.contains('hidden')
     );
   }
 
@@ -693,6 +694,26 @@ export function createUI(camera, renderer, controls, scene) {
   reportClose.addEventListener('click', closeReport);
   reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
 
+  // ── Globe videos overlay ─────────────────────────
+  const globeVideosOverlay = document.getElementById('globe-videos-overlay');
+  const globeVideosClose   = document.getElementById('globe-videos-close');
+  const globeVideoIframes  = [1, 2, 3, 4].map(n => document.getElementById(`globe-video-${n}`));
+
+  function openGlobeVideos() {
+    for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
+    globeVideosOverlay.classList.remove('hidden');
+    unlockForOverlay();
+  }
+
+  function closeGlobeVideos() {
+    for (const iframe of globeVideoIframes) iframe.src = '';
+    globeVideosOverlay.classList.add('hidden');
+    relockAfterOverlay();
+  }
+
+  globeVideosClose.addEventListener('click', closeGlobeVideos);
+  globeVideosOverlay.addEventListener('click', (e) => { if (e.target === globeVideosOverlay) closeGlobeVideos(); });
+
   // ── Fin du Monde overlay ────────────────────────
   const fdmOverlay = document.getElementById('findumonde-overlay');
   const fdmClose   = document.getElementById('findumonde-close');
@@ -766,6 +787,7 @@ export function createUI(camera, renderer, controls, scene) {
       closeRabbitHole();
       closeReport();
       closeFinDuMonde();
+      closeGlobeVideos();
       return;
     }
 
@@ -791,6 +813,7 @@ export function createUI(camera, renderer, controls, scene) {
     openRabbitHole,
     openReport,
     openFinDuMonde,
+    openGlobeVideos,
     updateHints,
     toggleInventory,
     isInventoryOpen,
