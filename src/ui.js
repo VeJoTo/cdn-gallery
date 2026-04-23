@@ -1,4 +1,5 @@
 // src/ui.js
+import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -72,7 +73,7 @@ export function getPrevPageIndex(current) {
   return Math.max(current - 1, 0);
 }
 
-export function createUI(camera, renderer, controls) {
+export function createUI(camera, renderer, controls, scene) {
   // Helper: unlock pointer when opening overlays, re-lock when closing
   function unlockForOverlay() {
     // Free cursor — no pointer lock to manage
@@ -291,6 +292,18 @@ export function createUI(camera, renderer, controls) {
               <li>Talk to the Guide</li>
             </ul>
           </div>
+          <div class="sticky-note settings-stickynote">
+            <h3>Settings</h3>
+            <label class="sky-toggle" aria-label="Toggle day or night sky">
+              <span class="sky-toggle-label">Sky</span>
+              <span class="sky-toggle-pill">
+                <span class="sky-toggle-icon sky-toggle-sun" aria-hidden="true">☀</span>
+                <input type="checkbox" class="sky-toggle-input" id="sky-mode-checkbox" />
+                <span class="sky-toggle-knob"></span>
+                <span class="sky-toggle-icon sky-toggle-moon" aria-hidden="true">🌙</span>
+              </span>
+            </label>
+          </div>
           <div class="scrapbook-doodle" style="position:absolute;bottom:20px;right:20px;font-size:24px;transform:rotate(-8deg);opacity:0.5">✨</div>
         </div>
         <div class="scrapbook-spine"></div>
@@ -324,6 +337,16 @@ export function createUI(camera, renderer, controls) {
         </div>
       </div>
     `;
+    // Reflect current sky mode and wire the checkbox
+    const skyCheckbox = inventoryContent.querySelector('#sky-mode-checkbox');
+    if (skyCheckbox) {
+      skyCheckbox.checked = getSkyMode() === 'night';
+      skyCheckbox.addEventListener('change', () => {
+        const nextMode = skyCheckbox.checked ? 'night' : 'day';
+        setSkyMode(nextMode);
+        applySkyMode(scene, nextMode);
+      });
+    }
     inventoryOverlay.classList.remove('hidden');
   }
 

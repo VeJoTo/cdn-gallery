@@ -567,7 +567,7 @@ window.__toggleMagnifier = () => {
 
 const clickableObjects = [pedestal, ...extras];
 
-const ui       = createUI(camera, renderer, controls);
+const ui       = createUI(camera, renderer, controls, scene);
 const _origUpdateHUD = ui.updateHUD.bind(ui);
 ui.updateHUD = (id) => {
   _origUpdateHUD(id);
