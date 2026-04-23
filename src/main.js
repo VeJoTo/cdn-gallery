@@ -9,9 +9,9 @@ import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
+import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
-import { applySkyMode, getSkyMode } from './sky.js';
 
 const canvas = document.getElementById('gallery-canvas');
 
@@ -780,6 +780,7 @@ function transitionToRoom(targetRoom) {
       camera.position.set(0, EYE_HEIGHT, 10);
       camera.lookAt(0, EYE_HEIGHT, 0);
       currentRoom = 'ai';
+      clearSkyObjects(scene);
       scene.background = new THREE.Color(0xf4f6f8);
       scene.fog = null;
     }

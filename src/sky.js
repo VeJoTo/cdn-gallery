@@ -75,6 +75,10 @@ function removeSkyObjects(scene) {
   }
 }
 
+export function clearSkyObjects(scene) {
+  removeSkyObjects(scene);
+}
+
 export function applySkyMode(scene, mode) {
   const resolved = VALID_MODES.has(mode) ? mode : 'day';
   removeSkyObjects(scene);
