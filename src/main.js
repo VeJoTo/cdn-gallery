@@ -7,6 +7,7 @@ import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
+import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
@@ -183,13 +184,16 @@ function trackChildren(builder) {
 }
 
 // ── AI room ──
+let globeScreen;
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   createRoom(scene);
+  globeScreen = createGlobeScreenInstallation(scene, camera);
   return createObjects(scene);
 });
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
 const holoPlayPauseBtn = tv.userData.playPauseBtn;
 addUpdateCallback(sceneUpdate);
+addUpdateCallback(globeScreen.update);
 
 // ── Book particle burst ───────────────────────────────────────────────────────
 function spawnBookParticles(worldPos) {
@@ -563,7 +567,7 @@ window.__toggleMagnifier = () => {
   }
 };
 
-const clickableObjects = [pedestal, ...extras];
+const clickableObjects = [pedestal, ...extras, ...globeScreen.clickables];
 
 const ui       = createUI(camera, renderer, controls);
 const _origUpdateHUD = ui.updateHUD.bind(ui);
@@ -887,7 +891,7 @@ document.addEventListener('mousedown', () => {
   // For openBook, only unlock on the second click (when already at pedestal).
   const uiActions = new Set([
     'openPanel', 'openPoster',
-    'enterRabbitHole', 'openReport', 'openFinDuMonde'
+    'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos'
   ]);
   const opensOverlay = uiActions.has(action) || (action === 'openBook' && alreadyAtHotspot);
   if (opensOverlay) {
@@ -904,6 +908,9 @@ document.addEventListener('mousedown', () => {
   if (action === 'enterRabbitHole')  ui.openRabbitHole();
   if (action === 'openReport')       ui.openReport();
   if (action === 'openFinDuMonde')   ui.openFinDuMonde();
+  if (action === 'openGlobeVideos')  ui.openGlobeVideos();
+  if (action === 'selectCountry')    globeScreen.selectCountry(obj.userData.country);
+  if (action === 'resetGlobeScreen') globeScreen.reset();
   if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
   if (action === 'returnToAIRoom')   window.__transitionToRoom('ai');
   if (action === 'enterAIRoom')      window.__transitionToRoom('ai');

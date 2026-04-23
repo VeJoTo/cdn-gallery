@@ -643,6 +643,26 @@ export function createUI(camera, renderer, controls) {
   reportClose.addEventListener('click', closeReport);
   reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
 
+  // ── Globe videos overlay ─────────────────────────
+  const globeVideosOverlay = document.getElementById('globe-videos-overlay');
+  const globeVideosClose   = document.getElementById('globe-videos-close');
+  const globeVideoIframes  = [1, 2, 3, 4].map(n => document.getElementById(`globe-video-${n}`));
+
+  function openGlobeVideos() {
+    for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
+    globeVideosOverlay.classList.remove('hidden');
+    unlockForOverlay();
+  }
+
+  function closeGlobeVideos() {
+    for (const iframe of globeVideoIframes) iframe.src = '';
+    globeVideosOverlay.classList.add('hidden');
+    relockAfterOverlay();
+  }
+
+  globeVideosClose.addEventListener('click', closeGlobeVideos);
+  globeVideosOverlay.addEventListener('click', (e) => { if (e.target === globeVideosOverlay) closeGlobeVideos(); });
+
   // ── Fin du Monde overlay ────────────────────────
   const fdmOverlay = document.getElementById('findumonde-overlay');
   const fdmClose   = document.getElementById('findumonde-close');
@@ -716,6 +736,7 @@ export function createUI(camera, renderer, controls) {
       closeRabbitHole();
       closeReport();
       closeFinDuMonde();
+      closeGlobeVideos();
     }
   });
 
@@ -732,6 +753,7 @@ export function createUI(camera, renderer, controls) {
     openRabbitHole,
     openReport,
     openFinDuMonde,
+    openGlobeVideos,
     updateHints
   };
 }
