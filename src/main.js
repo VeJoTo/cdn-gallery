@@ -9,7 +9,7 @@ import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
 import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
-import { createUI } from './ui.js';
+import { createUI, hasSeenIntro, markIntroSeen } from './ui.js';
 import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
@@ -107,6 +107,11 @@ document.addEventListener('keydown', (e) => {
     case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
     case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
     case 'KeyD': case 'ArrowRight': moveState.right = true; break;
+    case 'KeyG':
+      controls.unlock();
+      ui.openGatekeeperChat();
+      markIntroSeen();
+      break;
   }
 });
 
@@ -963,9 +968,11 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   transitionToRoom('exterior');
 });
 
-document.getElementById('guide-btn').addEventListener('click', () => {
-  controls.unlock();
-  ui.openGatekeeperChat();
+
+// Closing the Guide re-locks the cursor instantly (same user gesture, so the
+// browser allows it without the fp-overlay round-trip).
+document.getElementById('chat-close').addEventListener('click', () => {
+  try { controls.lock(); } catch { /* browser may refuse; fp-overlay will still reappear */ }
 });
 
 addUpdateCallback(() => ui.updateHints());
@@ -987,3 +994,10 @@ addUpdateCallback(() => {
 });
 
 animate();
+
+// First-spawn welcome — fires once per browser. Manual `G` before this
+// point sets the flag too, so the player never sees two intros.
+if (!hasSeenIntro()) {
+  ui.playIntro();
+  markIntroSeen();
+}

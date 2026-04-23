@@ -1,8 +1,40 @@
 // src/ui.js
 import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
+import { playIntro as runIntroDialogue } from './intro.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+export const INTRO_FLAG_KEY = 'cdn-gallery:intro-seen';
+
+export const INTRO_SCRIPT = [
+  { text: 'Welcome kids! 🪄' },
+  { text: "You've just stepped into the home of CDN — the Centre for Digital Narrative at the University of Bergen. Everything you see here is a visualization of the research happening at the centre." },
+  { text: "CDN studies how stories work in the digital age — games, AI that writes fiction, virtual worlds, interactive art. I'll be your guide through it." },
+  {
+    html: true,
+    text: 'Go ahead and look around: <strong>WASD</strong> to walk, <strong>mouse</strong> to look. You can call me back any time with the <strong>G</strong> key. Off you pop!'
+  }
+];
+
+// Safe localStorage readers — browser private mode / quota issues never break the app.
+export function hasSeenIntro(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return false;
+  try {
+    return storage.getItem(INTRO_FLAG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markIntroSeen(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return;
+  try {
+    storage.setItem(INTRO_FLAG_KEY, '1');
+  } catch {
+    /* swallow — worst case the player sees the intro again, which is tolerable */
+  }
 }
 
 export const BOOK_PAGES = [
@@ -260,12 +292,52 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   chatClose.addEventListener('click', closeGatekeeperChat);
+
+  // ── Intro sequence (first-visit welcome; see docs/superpowers/specs/…) ──
+  let isIntroPlaying = false;
+
+  function renderIntroChips() {
+    chatChips.innerHTML = SUGGESTED_QUESTIONS.map(q =>
+      `<button class="chat-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`
+    ).join('');
+    chatChips.querySelectorAll('.chat-chip').forEach(chip => {
+      chip.addEventListener('click', () => sendChatMessage(chip.dataset.q));
+    });
+  }
+
+  async function playIntro() {
+    const chatHeaderName = document.getElementById('chat-header-name');
+    const originalName = chatHeaderName?.textContent ?? 'The Guide';
+
+    chatMessages.innerHTML = '';
+    chatChips.innerHTML = '';
+    isIntroPlaying = true;
+    gatekeeperChat.classList.add('intro-mode');
+    if (chatHeaderName) chatHeaderName.textContent = 'Jason';
+    gatekeeperChat.classList.remove('hidden');
+    requestAnimationFrame(() => gatekeeperChat.classList.add('open'));
+
+    await runIntroDialogue({ script: INTRO_SCRIPT });
+
+    // Teardown: restore chat to its normal state for future G-key summons
+    isIntroPlaying = false;
+    gatekeeperChat.classList.remove('intro-mode');
+    if (chatHeaderName) chatHeaderName.textContent = originalName;
+    gatekeeperChat.classList.remove('open');
+    setTimeout(() => gatekeeperChat.classList.add('hidden'), 300);
+    // Render the chips so pressing G later shows the suggested questions
+    // without having to re-enter openGatekeeperChat.
+    renderIntroChips();
+  }
+
   chatSend.addEventListener('click', () => {
+    if (isIntroPlaying) return;
     sendChatMessage(chatInput.value);
     chatInput.value = '';
   });
   chatInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
+      if (isIntroPlaying) return;
       sendChatMessage(chatInput.value);
       chatInput.value = '';
     }
@@ -810,6 +882,7 @@ export function createUI(camera, renderer, controls, scene) {
     updateHUD,
     openPanelDrawer,
     openGatekeeperChat,
+    playIntro,
     openInventory,
     openBook,
     openRabbitHole,
