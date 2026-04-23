@@ -9,7 +9,7 @@ import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
 import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
-import { createUI, hasSeenIntro, markIntroSeen } from './ui.js';
+import { createUI } from './ui.js';
 import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
@@ -110,7 +110,6 @@ document.addEventListener('keydown', (e) => {
     case 'KeyG':
       controls.unlock();
       ui.openGatekeeperChat();
-      markIntroSeen();
       break;
   }
 });
@@ -472,13 +471,6 @@ window.__toggleTV = () => {
 // Clicking the TV screen overlay or hologram panel toggles play/pause
 tvOverlayDiv.addEventListener('click', () => window.__toggleTV?.());
 hologramDiv.addEventListener('click', () => window.__toggleTV?.());
-
-const soundCheckbox = document.getElementById('sound-checkbox');
-soundCheckbox?.addEventListener('change', () => {
-  const cmd = soundCheckbox.checked ? 'unMute' : 'mute';
-  tvVideoIframe.contentWindow?.postMessage(
-    JSON.stringify({ event: 'command', func: cmd, args: '' }), '*');
-});
 
 updateHologram(aiArtVideos[currentVideoIndex]);
 // hologram visible is fine — CSS3D visibility hides it until user enters AI room
@@ -995,9 +987,5 @@ addUpdateCallback(() => {
 
 animate();
 
-// First-spawn welcome — fires once per browser. Manual `G` before this
-// point sets the flag too, so the player never sees two intros.
-if (!hasSeenIntro()) {
-  ui.playIntro();
-  markIntroSeen();
-}
+// Welcome intro — fires on every page load.
+ui.playIntro();
