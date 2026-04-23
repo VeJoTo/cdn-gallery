@@ -319,15 +319,16 @@ export function createUI(camera, renderer, controls, scene) {
 
     await runIntroDialogue({ script: INTRO_SCRIPT });
 
-    // Teardown: restore chat to its normal state for future G-key summons
+    // Fade out while still in intro-mode so the normal guide chat doesn't
+    // flash during the 300ms opacity transition. Reset after hidden.
     isIntroPlaying = false;
-    gatekeeperChat.classList.remove('intro-mode');
-    if (chatHeaderName) chatHeaderName.textContent = originalName;
     gatekeeperChat.classList.remove('open');
-    setTimeout(() => gatekeeperChat.classList.add('hidden'), 300);
-    // Render the chips so pressing G later shows the suggested questions
-    // without having to re-enter openGatekeeperChat.
-    renderIntroChips();
+    setTimeout(() => {
+      gatekeeperChat.classList.add('hidden');
+      gatekeeperChat.classList.remove('intro-mode');
+      if (chatHeaderName) chatHeaderName.textContent = originalName;
+      renderIntroChips();
+    }, 300);
   }
 
   chatSend.addEventListener('click', () => {
