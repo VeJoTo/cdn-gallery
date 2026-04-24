@@ -770,15 +770,29 @@ export function createUI(camera, renderer, controls, scene) {
   reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
 
   // ── Globe videos overlay ─────────────────────────
-  const globeVideosOverlay = document.getElementById('globe-videos-overlay');
-  const globeVideosClose   = document.getElementById('globe-videos-close');
-  const globeVideoIframes  = [1, 2, 3, 4].map(n => document.getElementById(`globe-video-${n}`));
+  const globeVideosOverlay    = document.getElementById('globe-videos-overlay');
+  const globeVideosClose      = document.getElementById('globe-videos-close');
+  const globeVideoIframes     = [1, 2, 3, 4].map(n => document.getElementById(`globe-video-${n}`));
+  const globeVideosStartScreen = document.getElementById('globe-videos-start-screen');
+  const globeVideosStartBtn   = document.getElementById('globe-videos-start-btn');
+  const globeVideosColumns    = document.getElementById('globe-videos-columns');
 
-  function openGlobeVideos() {
-    for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
+  let _onGlobeStart = null;
+
+  function openGlobeVideos(onStart) {
+    _onGlobeStart = onStart || null;
+    globeVideosStartScreen.classList.remove('hidden');
+    globeVideosColumns.classList.add('hidden');
     globeVideosOverlay.classList.remove('hidden');
     unlockForOverlay();
   }
+
+  globeVideosStartBtn.addEventListener('click', () => {
+    globeVideosStartScreen.classList.add('hidden');
+    globeVideosColumns.classList.remove('hidden');
+    for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
+    if (_onGlobeStart) { _onGlobeStart(); _onGlobeStart = null; }
+  });
 
   function closeGlobeVideos() {
     for (const iframe of globeVideoIframes) iframe.src = '';

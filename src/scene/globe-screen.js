@@ -74,6 +74,71 @@ function latLonToVec3(lat, lon, radius) {
 
 // ── Screen canvas helpers ────────────────────────────────────────────────────
 
+function drawStartScreen(canvas) {
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#0d1f33';
+  ctx.fillRect(0, 0, W, H);
+
+  // Scan lines
+  for (let y = 0; y < H; y += 4) {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(0, y, W, 2);
+  }
+
+  ctx.textAlign = 'center';
+
+  // Heading
+  ctx.font = 'bold 54px sans-serif';
+  ctx.fillStyle = '#1b7ab8';
+  ctx.shadowColor = '#1b7ab8';
+  ctx.shadowBlur = 20;
+  ctx.fillText('Fin du Monde', W / 2, H / 2 - 80);
+  ctx.shadowBlur = 0;
+
+  // Start button — CDN Button 1 style
+  const BW = 320, BH = 80, BR = 20;
+  const bx = (W - BW) / 2, by = H / 2 - 30;
+
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 28;
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, BW, BH, BR);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = 'rgba(10,20,38,0.88)';
+  ctx.beginPath();
+  ctx.roundRect(bx, by, BW, BH, BR);
+  ctx.fill();
+
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, BW, BH, BR);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.font = 'bold 36px sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Start', W / 2, by + BH / 2);
+
+  // Hint
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = 'rgba(0,212,255,0.45)';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('click to begin', W / 2, H / 2 + 80);
+
+  ctx.textAlign = 'left';
+}
+
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = text.split(' ');
   let line = '';
@@ -91,7 +156,7 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   return y + lineHeight;
 }
 
-function drawDefaultScreen(canvas) {
+function drawDefaultScreen(canvas, locked = false) {
   const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d');
 
@@ -144,10 +209,17 @@ function drawDefaultScreen(canvas) {
 
   // CTA
   ctx.font = 'bold 17px sans-serif';
-  ctx.fillStyle = '#3dd6c0';
-  ctx.shadowColor = '#3dd6c0';
-  ctx.shadowBlur = 8;
-  wrapText(ctx, 'Press one of the highlighted parts on the globe to begin exploring!', 28, ty + 6, mid - 52, 24);
+  if (locked) {
+    ctx.fillStyle = '#00d4ff';
+    ctx.shadowColor = '#00d4ff';
+    ctx.shadowBlur = 12;
+    wrapText(ctx, '← Click the screen to unlock the globe', 28, ty + 6, mid - 52, 24);
+  } else {
+    ctx.fillStyle = '#3dd6c0';
+    ctx.shadowColor = '#3dd6c0';
+    ctx.shadowBlur = 8;
+    wrapText(ctx, 'Press one of the highlighted parts on the globe to begin exploring!', 28, ty + 6, mid - 52, 24);
+  }
   ctx.shadowBlur = 0;
 
   ctx.restore();
@@ -415,7 +487,7 @@ function buildGlobe(screenRef) {
     };
     markers.push(markerGroup);
 
-    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup });
+    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup, dotMat, btnMesh });
   }
 
   // Inner point light
@@ -477,7 +549,7 @@ function buildScreen() {
   const screenCanvas = document.createElement('canvas');
   screenCanvas.width  = 1024;
   screenCanvas.height = 640;
-  drawDefaultScreen(screenCanvas);
+  drawStartScreen(screenCanvas);
   const screenTex  = new THREE.CanvasTexture(screenCanvas);
   const screenMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(FW - 0.16, FH - 0.16),
@@ -549,17 +621,17 @@ export function createGlobeScreenInstallation(scene, camera) {
   const GLOBE_SCALE = 1.8;
 
   const screen = buildScreen();
-  screen.position.set(9.0, 1.5, -10.1);
+  screen.position.set(5.5, 1.5, -10.1);
   scene.add(screen);
 
   const pedestal = buildPedestal();
-  pedestal.position.set(5.5, 0, -10.0);
+  pedestal.position.set(9.0, 0, -10.0);
   pedestal.scale.setScalar(GLOBE_SCALE);
   scene.add(pedestal);
 
   const globe = buildGlobe(screen);
   // Base top is ~0.08 * GLOBE_SCALE; globe radius is 0.5 * GLOBE_SCALE — sit just above base
-  globe.position.set(5.5, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, -10.0);
+  globe.position.set(9.0, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, -10.0);
   globe.scale.setScalar(GLOBE_SCALE);
   scene.add(globe);
 
@@ -570,18 +642,48 @@ export function createGlobeScreenInstallation(scene, camera) {
   }
 
   const areaLight = new THREE.PointLight(CDN.blue, 0.8, 10);
-  areaLight.position.set(7.5, 3.5, -9.5);
+  areaLight.position.set(7.2, 3.5, -9.5);
   scene.add(areaLight);
 
-  // Fetch Vimeo thumbnails and redraw the screen as they arrive
+  // ── Locked state — markers dimmed and non-clickable until screen is read ──
+  let unlocked = false;
+  let unlockProgress = 1; // 0 = animating unlock, 1 = done
+
+  for (const { lineMat, markerGroup, dotMat, btnMesh } of globe.userData.billboardData) {
+    markerGroup.userData.clickable = false;
+    btnMesh.material.opacity = 0.25;
+    btnMesh.material.color.set(0x777777);
+    lineMat.opacity = 0.12;
+    dotMat.emissiveIntensity = 0.4;
+  }
+
+  // Fetch Vimeo thumbnails — redraw default screen once started and thumbnails arrive
   loadVimeoThumbnails(() => {
-    if (screen.userData.state === 'default') {
-      drawDefaultScreen(screen.userData.canvas);
+    if (unlocked && screen.userData.state === 'default') {
+      drawDefaultScreen(screen.userData.canvas, false);
       screen.userData.texture.needsUpdate = true;
     }
   });
 
   const _up = new THREE.Vector3(0, 1, 0);
+
+  function unlock() {
+    if (unlocked) return;
+    unlocked = true;
+    unlockProgress = 0;
+    for (const { markerGroup } of globe.userData.billboardData) {
+      markerGroup.userData.clickable = true;
+    }
+    drawDefaultScreen(screen.userData.canvas, false);
+    screen.userData.texture.needsUpdate = true;
+  }
+
+  function start() {
+    screen.userData.state = 'default';
+    screen.userData.screenMesh.userData.action = 'openGlobeVideos';
+    screen.userData.screenMesh.userData.hotspot = 'screen';
+    unlock();
+  }
 
   function selectCountry(country) {
     drawCountryScreen(screen.userData.canvas, country, () => {
@@ -594,16 +696,31 @@ export function createGlobeScreenInstallation(scene, camera) {
 
   function reset() {
     if (screen.userData.state === 'default') return;
-    drawDefaultScreen(screen.userData.canvas);
+    drawDefaultScreen(screen.userData.canvas, false);
     screen.userData.texture.needsUpdate = true;
     screen.userData.state = 'default';
     screen.userData.screenMesh.userData.action = 'openGlobeVideos';
   }
 
+  const _grey   = new THREE.Color(0x777777);
+  const _white  = new THREE.Color(0xffffff);
+  const _tmpCol = new THREE.Color();
+
   let elapsed = 0;
   function update(delta) {
     elapsed += delta;
     globe.rotation.y += delta * 0.06;
+
+    // Unlock fade animation (0.5s)
+    if (unlocked && unlockProgress < 1) {
+      unlockProgress = Math.min(1, unlockProgress + delta * 2);
+      for (const { lineMat, dotMat, btnMesh } of globe.userData.billboardData) {
+        btnMesh.material.opacity = 0.25 + 0.75 * unlockProgress;
+        _tmpCol.copy(_grey).lerp(_white, unlockProgress);
+        btnMesh.material.color.copy(_tmpCol);
+        dotMat.emissiveIntensity = 0.4 + 3.1 * unlockProgress;
+      }
+    }
 
     // Billboard: compute each label's world position, face camera
     for (const { dir, labelRadius, lineMesh, lineMat, markerGroup } of globe.userData.billboardData) {
@@ -614,7 +731,10 @@ export function createGlobeScreenInstallation(scene, camera) {
 
       lineMesh.position.copy(dotWorld.clone().lerp(lineEndW, 0.5));
       lineMesh.quaternion.setFromUnitVectors(_up, worldDir);
-      lineMat.opacity = 0.6 + Math.sin(elapsed * 2.5) * 0.35;
+      // Locked: fixed dim opacity. Unlocked: animated pulse
+      lineMat.opacity = unlocked
+        ? 0.6 + Math.sin(elapsed * 2.5) * 0.35
+        : 0.12;
 
       markerGroup.position.copy(labelWorld);
       markerGroup.lookAt(camera.position);
@@ -626,5 +746,5 @@ export function createGlobeScreenInstallation(scene, camera) {
     screen.userData.screenMesh,
   ];
 
-  return { clickables, selectCountry, reset, update };
+  return { clickables, selectCountry, reset, unlock, start, update };
 }
