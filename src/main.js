@@ -900,7 +900,7 @@ document.addEventListener('mousedown', () => {
   // For openBook, only unlock on the second click (when already at pedestal).
   const uiActions = new Set([
     'openPanel', 'openPoster',
-    'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos'
+    'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos',
   ]);
   const opensOverlay = uiActions.has(action) || (action === 'openBook' && alreadyAtHotspot);
   if (opensOverlay) {
@@ -917,7 +917,7 @@ document.addEventListener('mousedown', () => {
   if (action === 'enterRabbitHole')  ui.openRabbitHole();
   if (action === 'openReport')       ui.openReport();
   if (action === 'openFinDuMonde')   ui.openFinDuMonde();
-  if (action === 'openGlobeVideos')  ui.openGlobeVideos();
+  if (action === 'openGlobeVideos')  ui.openGlobeVideos(() => globeScreen.start());
   if (action === 'selectCountry')    globeScreen.selectCountry(obj.userData.country);
   if (action === 'resetGlobeScreen') globeScreen.reset();
   if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
