@@ -1665,7 +1665,7 @@ body:has(
 
 /* ── Left text panel ── */
 #globe-videos-text {
-  flex: 1;
+  flex: 3;
   padding-right: 24px;
   display: flex;
   flex-direction: column;
@@ -1717,7 +1717,7 @@ body:has(
 
 /* ── Right video grid ── */
 #globe-videos-grid {
-  flex: 1;
+  flex: 7;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
