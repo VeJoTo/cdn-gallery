@@ -10,6 +10,7 @@ import { createExteriorRoom } from './scene/exterior-room.js';
 import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
+import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
 
@@ -33,8 +34,8 @@ const cssScene = new THREE.Scene();
 
 // ── Scene ─────────────────────────────────────────
 export const scene = new THREE.Scene();
-// Start with exterior sky (overridden per room in transitions)
-scene.background = new THREE.Color(0x88bbf0);
+// Sky mode is applied later (after setRoomVisibility) so the skydome-visibility
+// changes aren't overridden. See the `setRoomVisibility('exterior')` call below.
 scene.fog = null;
 
 // ── Camera ────────────────────────────────────────
@@ -108,6 +109,10 @@ document.addEventListener('keydown', (e) => {
     case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
     case 'KeyA': case 'ArrowLeft':  moveState.left = true; break;
     case 'KeyD': case 'ArrowRight': moveState.right = true; break;
+    case 'KeyG':
+      controls.unlock();
+      ui.openGatekeeperChat();
+      break;
   }
 });
 
@@ -558,13 +563,6 @@ window.__toggleTV = () => {
 tvOverlayDiv.addEventListener('click', () => window.__toggleTV?.());
 hologramDiv.addEventListener('click', () => window.__toggleTV?.());
 
-const soundCheckbox = document.getElementById('sound-checkbox');
-soundCheckbox?.addEventListener('change', () => {
-  const cmd = soundCheckbox.checked ? 'unMute' : 'mute';
-  tvVideoIframe.contentWindow?.postMessage(
-    JSON.stringify({ event: 'command', func: cmd, args: '' }), '*');
-});
-
 updateHologram(aiArtVideos[currentVideoIndex]);
 // hologram visible is fine — CSS3D visibility hides it until user enters AI room
 
@@ -660,7 +658,7 @@ window.__toggleMagnifier = () => {
 
 const clickableObjects = [pedestal, ...extras, ...globeScreen.clickables];
 
-const ui       = createUI(camera, renderer, controls);
+const ui       = createUI(camera, renderer, controls, scene);
 const _origUpdateHUD = ui.updateHUD.bind(ui);
 ui.updateHUD = (id) => {
   _origUpdateHUD(id);
@@ -788,6 +786,9 @@ function setRoomVisibility(activeRoom) {
 
 // Start visible only in the spawn room.
 setRoomVisibility('exterior');
+// Apply persisted sky mode AFTER setRoomVisibility so night mode can hide the
+// skydome (which setRoomVisibility just made visible for the exterior room).
+applySkyMode(scene, getSkyMode());
 
 // ── Godrays composer for exterior sunlight ──
 const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
@@ -883,22 +884,26 @@ function transitionToRoom(targetRoom) {
       camera.position.set(NATURE_CENTER_X, EYE_HEIGHT, -3);
       camera.lookAt(NATURE_CENTER_X, EYE_HEIGHT, 0);
       currentRoom = 'nature';
-      scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else if (targetRoom === 'exterior') {
       camera.position.set(-20, EYE_HEIGHT, 8);
       camera.lookAt(-20, EYE_HEIGHT, 2);
       currentRoom = 'exterior';
-      scene.background = new THREE.Color(0x88bbf0);
       scene.fog = null;
     } else {
       camera.position.set(0, EYE_HEIGHT, 10);
       camera.lookAt(0, EYE_HEIGHT, 0);
       currentRoom = 'ai';
+      clearSkyObjects(scene);
       scene.background = new THREE.Color(0xf4f6f8);
       scene.fog = null;
     }
     setRoomVisibility(currentRoom);
+    // applySkyMode must run AFTER setRoomVisibility so its skydome-visibility
+    // changes (night = hide dome to reveal scene.background) aren't overridden.
+    if (currentRoom !== 'ai') {
+      applySkyMode(scene, getSkyMode());
+    }
     isTransitioning = false;
 
     // Fade the new room in smoothly.
@@ -1015,7 +1020,7 @@ document.addEventListener('mousedown', () => {
   // UI overlay actions need the cursor back; room transitions stay locked.
   const uiActions = new Set([
     'openPanel', 'openPoster',
-    'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos'
+    'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos',
   ]);
   const opensOverlay = uiActions.has(action) || atCoverZoom;
   if (opensOverlay) {
@@ -1032,7 +1037,7 @@ document.addEventListener('mousedown', () => {
   if (action === 'enterRabbitHole')  ui.openRabbitHole();
   if (action === 'openReport')       ui.openReport();
   if (action === 'openFinDuMonde')   ui.openFinDuMonde();
-  if (action === 'openGlobeVideos')  ui.openGlobeVideos();
+  if (action === 'openGlobeVideos')  ui.openGlobeVideos(() => globeScreen.start());
   if (action === 'selectCountry')    globeScreen.selectCountry(obj.userData.country);
   if (action === 'resetGlobeScreen') globeScreen.reset();
   if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
@@ -1075,13 +1080,11 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   transitionToRoom('exterior');
 });
 
-document.getElementById('guide-btn').addEventListener('click', () => {
-  controls.unlock();
-  ui.openGatekeeperChat();
-});
-document.getElementById('inventory-btn').addEventListener('click', () => {
-  controls.unlock();
-  ui.openInventory();
+
+// Closing the Guide re-locks the cursor instantly (same user gesture, so the
+// browser allows it without the fp-overlay round-trip).
+document.getElementById('chat-close').addEventListener('click', () => {
+  try { controls.lock(); } catch { /* browser may refuse; fp-overlay will still reappear */ }
 });
 
 addUpdateCallback(() => ui.updateHints());
@@ -1103,3 +1106,6 @@ addUpdateCallback(() => {
 });
 
 animate();
+
+// Welcome intro — fires on every page load.
+ui.playIntro();
