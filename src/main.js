@@ -72,6 +72,8 @@ crosshair.classList.add('hidden');
 fpOverlay.addEventListener('click', () => controls.lock());
 window.__hideFPOverlay = () => fpOverlay.classList.add('hidden');
 window.__relockControls = () => controls.lock();
+window.__showFPOverlay  = () => { fpOverlay.classList.remove('hidden'); crosshair.classList.add('hidden'); };
+window.__isControlsLocked = () => controls.isLocked;
 
 // TV cursor mode — set by enterTVMode(), cleared by exitTVMode()
 let atTV = false;
@@ -173,6 +175,13 @@ function animate() {
       camera.position.z - 2.6
     ) + Math.PI / 2;
     _bookGroup.position.y = 1.28 + Math.sin(Date.now() * 0.0015) * 0.025;
+  }
+  // Hide sign while book animation is running; restore handled by animation reset
+  const _signSprite = pedestal?.userData?.signGroup;
+  const _signLight  = pedestal?.userData?.signLight;
+  if (_signSprite && _bookGroup?.userData?.isAnimating) {
+    _signSprite.scale.set(0, 0, 0);
+    if (_signLight) _signLight.intensity = 0;
   }
   updateHoverHighlight();
   if (isTransitioning) {
@@ -278,9 +287,34 @@ window.__openBookWithAnimation = (openBookFn) => {
     camera.position.z - bookWorldPos.z
   ) + Math.PI / 2;
 
+  const signSprite = pedestal?.userData?.signGroup;
+  const signLight  = pedestal?.userData?.signLight;
+  // Scale to zero — zero-size quad generates no WebGL fragments, guaranteed invisible
+  if (signSprite) { gsap.killTweensOf(signSprite.scale); signSprite.scale.set(0, 0, 0); }
+  if (signLight)  signLight.intensity = 0;
+
   const tl = gsap.timeline();
 
-  tl.to(bookGroup.position, { y: origY + 0.08, duration: 0.5, ease: 'power2.out' });
+  // Zoom camera back out to the pedestal view while the book starts spinning
+  // Derive current lookAt from camera's forward direction (PointerLockControls has no .target)
+  const _fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+  const camProxy = {
+    px: camera.position.x, py: camera.position.y, pz: camera.position.z,
+    tx: camera.position.x + _fwd.x,
+    ty: camera.position.y + _fwd.y,
+    tz: camera.position.z + _fwd.z,
+  };
+  tl.to(camProxy, {
+    px: -2.0, py: 1.4, pz: 1.6,
+    tx: -2.8, ty: 1.2, tz: 2.6,
+    duration: 0.6, ease: 'power2.inOut',
+    onUpdate: () => {
+      camera.position.set(camProxy.px, camProxy.py, camProxy.pz);
+      camera.lookAt(camProxy.tx, camProxy.ty, camProxy.tz);
+    },
+  });
+
+  tl.to(bookGroup.position, { y: origY + 0.08, duration: 0.5, ease: 'power2.out' }, '<');
   tl.to(bookGroup.rotation, { y: bookGroup.rotation.y + Math.PI * 2, duration: 1.0, ease: 'power2.inOut' }, '<');
   tl.to(bookGroup.position, { y: origY + 0.15, duration: 0.4, ease: 'power2.out' });
   if (model) {
@@ -351,6 +385,12 @@ window.__openBookWithAnimation = (openBookFn) => {
         m.material.emissiveIntensity = m.material._origEmissiveIntensity ?? 0;
     });
     bookGroup.userData.isAnimating = false;
+    // Reset nav state back to pedestal so book interaction restarts from step 1
+    navState.resetTo('pedestal');
+    ui.updateHUD('pedestal');
+    // Fade sign back in — scale from 0 back to normal size
+    if (signSprite) gsap.to(signSprite.scale, { x: 0.72, y: 0.12, z: 1, duration: 0.6, ease: 'power2.out' });
+    if (signLight)  gsap.to(signLight, { intensity: 1.4, duration: 0.6, ease: 'power2.out' });
   }, '+=0.1');
 };
 
@@ -958,15 +998,26 @@ document.addEventListener('mousedown', () => {
   // Capture whether we're already at this hotspot before nav changes state
   const alreadyAtHotspot = hotspot && navState.current === hotspot && navState.canNavigate();
 
-  if (hotspot) nav.goTo(hotspot);
+  // Book uses a 3-step click sequence; all other objects navigate normally
+  const atCoverZoom = action === 'openBook' && navState.current === 'book-cover-zoom' && navState.canNavigate();
+  if (action === 'openBook') {
+    if (atCoverZoom) {
+      // Step 3 — at cover zoom: start animation (unlock cursor)
+    } else if (alreadyAtHotspot) {
+      nav.goTo('book-cover-zoom'); // Step 2 — zoom to cover
+    } else if (hotspot) {
+      nav.goTo(hotspot);           // Step 1 — navigate to pedestal
+    }
+  } else {
+    if (hotspot) nav.goTo(hotspot);
+  }
 
   // UI overlay actions need the cursor back; room transitions stay locked.
-  // For openBook, only unlock on the second click (when already at pedestal).
   const uiActions = new Set([
     'openPanel', 'openPoster',
     'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos'
   ]);
-  const opensOverlay = uiActions.has(action) || (action === 'openBook' && alreadyAtHotspot);
+  const opensOverlay = uiActions.has(action) || atCoverZoom;
   if (opensOverlay) {
     suppressFPOverlay = true;
     controls.unlock();
@@ -974,7 +1025,7 @@ document.addEventListener('mousedown', () => {
 
   if (action === 'openPanel')        ui.openPanelDrawer(panelId, panelTitle);
   if (action === 'openPoster')       ui.openPanelDrawer(panelId, panelTitle);
-  if (action === 'openBook' && alreadyAtHotspot) {
+  if (atCoverZoom) {
     if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
     else ui.openBook();
   }

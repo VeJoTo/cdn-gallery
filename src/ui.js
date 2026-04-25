@@ -577,9 +577,15 @@ export function createUI(camera, renderer, controls) {
   function closeBook() {
     clearBookParticles();
     bookOverlay.classList.add('hidden');
-    window.__hideFPOverlay?.();
-    window.__relockControls?.();
     relockAfterOverlay();
+    window.__relockControls?.();
+    // Fallback: if the browser rejected the pointer-lock request, show the
+    // re-engage overlay so the user isn't left with a frozen cursor.
+    setTimeout(() => {
+      if (window.__isControlsLocked?.() === false) {
+        window.__showFPOverlay?.();
+      }
+    }, 300);
   }
 
   let isFlipping = false;

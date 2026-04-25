@@ -186,8 +186,50 @@ function buildPedestal() {
     );
   }
 
-  // Flat platform surface — matches cube top face (0.42 * 0.82 = 0.344)
-  const platform = wireBox(0.344, 0.006, 0.344);
+  // Flat platform — rounded rectangle outline instead of sharp wireBox
+  function roundedWirePlatform(w, h, d, r, segs) {
+    const hw = w / 2, hd = d / 2;
+    const grp = new THREE.Group();
+
+    // Top and bottom rounded rectangle loops
+    for (const y of [h / 2, -h / 2]) {
+      const pts = [];
+      const corners = [
+        [ hw - r,  hd - r, 0              ],
+        [-hw + r,  hd - r, Math.PI / 2    ],
+        [-hw + r, -hd + r, Math.PI        ],
+        [ hw - r, -hd + r, Math.PI * 1.5  ],
+      ];
+      for (const [cx, cz, start] of corners) {
+        for (let i = 0; i <= segs; i++) {
+          const a = start + (Math.PI / 2) * (i / segs);
+          pts.push(new THREE.Vector3(cx + r * Math.cos(a), y, cz + r * Math.sin(a)));
+        }
+      }
+      pts.push(pts[0].clone()); // close the loop
+      grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), holoMat.clone()));
+    }
+
+    // Vertical edges at each corner arc midpoint
+    for (const [cx, cz, a] of [
+      [ hw - r,  hd - r, Math.PI / 4      ],
+      [-hw + r,  hd - r, Math.PI * 3 / 4  ],
+      [-hw + r, -hd + r, Math.PI * 5 / 4  ],
+      [ hw - r, -hd + r, Math.PI * 7 / 4  ],
+    ]) {
+      const x = cx + r * Math.cos(a), z = cz + r * Math.sin(a);
+      grp.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(x,  h / 2, z),
+          new THREE.Vector3(x, -h / 2, z),
+        ]),
+        holoMat.clone(),
+      ));
+    }
+    return grp;
+  }
+
+  const platform = roundedWirePlatform(0.344, 0.006, 0.344, 0.022, 7);
   holoStand.add(platform);
 
   // Disable raycasting on holoStand so clicks pass through to cube and book
@@ -330,6 +372,65 @@ function buildPedestal() {
   pageStack.userData = { clickable: true, hotspot: "pedestal", action: "openBook" };
   bookModel.add(pageStack);
 
+  // ── Stacked page edge lines ───────────────────────────────────────────────
+  {
+    const psHX   = (BH - 0.002) / 2;
+    const psHY   = (BT - CT * 2 - 0.002) / 2;
+    const psCZ   = -BW / 2 + SW + coverZ / 2;
+    const psHZ   = (coverZ - 0.002) / 2;
+    const pe     = 0.0006;
+    const inset  = 0.007;
+    const N      = 32; // total page lines
+
+    const baseVerts = [], accentVerts = [];
+
+    for (let i = 0; i <= N; i++) {
+      const y  = -psHY + (i / N) * psHY * 2;
+      const isAccent = (i % 4 === 0); // every 4th line is a brighter accent
+      const target = isAccent ? accentVerts : baseVerts;
+
+      // Fore-edge (+Z face)
+      target.push(
+        -psHX + inset, y, psCZ + psHZ + pe,
+         psHX - inset, y, psCZ + psHZ + pe,
+      );
+      // Top face (+Y)
+      target.push(
+        -psHX + inset, psHY + pe, psCZ - psHZ + inset,
+         psHX - inset, psHY + pe, psCZ - psHZ + inset,
+      );
+      // Bottom face (-Y) - subtler
+      baseVerts.push(
+        -psHX + inset, -psHY - pe, psCZ - psHZ + inset,
+         psHX - inset, -psHY - pe, psCZ - psHZ + inset,
+      );
+    }
+
+    const mkPageMat = (opacity, linewidth) => new LineMaterial({
+      color: 0xfff0d8,
+      transparent: true,
+      opacity,
+      linewidth,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+    });
+
+    // Base lines — faint, showing all individual pages
+    const baseGeo = new LineSegmentsGeometry();
+    baseGeo.setPositions(baseVerts);
+    const baseLines = new LineSegments2(baseGeo, mkPageMat(0.35, 1.0));
+    baseLines.raycast = () => {};
+    bookModel.add(baseLines);
+
+    // Accent lines — slightly brighter every 4th line (page signature divisions)
+    const accentGeo = new LineSegmentsGeometry();
+    accentGeo.setPositions(accentVerts);
+    const accentLines = new LineSegments2(accentGeo, mkPageMat(0.75, 1.4));
+    accentLines.raycast = () => {};
+    bookModel.add(accentLines);
+  }
+
   // Front cover — hinge at the spine Z-edge, rotates around X axis to open
   const frontCoverPivot = new THREE.Group();
   frontCoverPivot.position.set(0, BT / 2 - CT / 2, -BW / 2 + SW);
@@ -463,16 +564,10 @@ function buildPedestal() {
     imgPlane.position.set(0, CT / 2 + 0.002, coverZ / 2);
     frontCoverPivot.add(imgPlane);
   });
-  // ── Neon "AI Story" 3D sign above the book ──────────────────────────────
-  const SIGN_W = 0.48, SIGN_H = 0.12, SIGN_D = 0.022;
-  const signGroup = new THREE.Group();
-  // Face -X (toward camera) — same direction as the book cover
-  signGroup.rotation.y = -Math.PI / 2;
-  signGroup.position.set(-0.05, 0.32, 0);
-
-  // Canvas glow texture
+  // ── Neon "AI Storytelling" sign above the book — THREE.Sprite auto-faces the camera ──
+  // Canvas width matches sprite aspect ratio (0.72 / 0.12 = 6:1 → 768×128)
   const neonCanvas = document.createElement("canvas");
-  neonCanvas.width = 512;
+  neonCanvas.width = 768;
   neonCanvas.height = 128;
   const nctx = neonCanvas.getContext("2d");
 
@@ -481,43 +576,45 @@ function buildPedestal() {
 
   function drawNeonSign() {
     const NEON = "#0066ff";
-    const cx = 256, cy = 66;
-    nctx.clearRect(0, 0, 512, 128);
+    const cx = 384, cy = 66;
+    nctx.clearRect(0, 0, 768, 128);
     nctx.font = "68px 'Octosquares', sans-serif";
     nctx.textAlign = "center";
     nctx.textBaseline = "middle";
     nctx.shadowColor = NEON;
-    nctx.shadowBlur = 48; nctx.fillStyle = "rgba(0,102,255,0.18)"; nctx.fillText("AI Story", cx, cy);
-    nctx.shadowBlur = 28; nctx.fillStyle = "rgba(0,102,255,0.45)"; nctx.fillText("AI Story", cx, cy);
-    nctx.shadowBlur = 10; nctx.fillStyle = "rgba(0,102,255,0.85)"; nctx.fillText("AI Story", cx, cy);
-    nctx.shadowBlur =  4; nctx.fillStyle = "#eef0ff";               nctx.fillText("AI Story", cx, cy);
+    nctx.shadowBlur = 48; nctx.fillStyle = "rgba(0,102,255,0.18)"; nctx.fillText("AI Storytelling", cx, cy);
+    nctx.shadowBlur = 28; nctx.fillStyle = "rgba(0,102,255,0.45)"; nctx.fillText("AI Storytelling", cx, cy);
+    nctx.shadowBlur = 10; nctx.fillStyle = "rgba(0,102,255,0.85)"; nctx.fillText("AI Storytelling", cx, cy);
+    nctx.shadowBlur =  4; nctx.fillStyle = "#eef0ff";               nctx.fillText("AI Storytelling", cx, cy);
     neonTex.needsUpdate = true;
   }
   drawNeonSign();
   document.fonts.load("68px 'Octosquares'").then(() => drawNeonSign());
 
-  // Text plane sits just proud of the front face
-  const signTextPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(SIGN_W - 0.018, SIGN_H - 0.018),
-    new THREE.MeshBasicMaterial({
+  // Sprite always faces the camera — no manual billboard needed
+  const signSprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({
       map: neonTex,
       transparent: true,
       depthWrite: false,
+      depthTest: false,
       blending: THREE.AdditiveBlending,
-    }),
+    })
   );
-  signTextPlane.position.z = SIGN_D / 2 + 0.001;
-  signTextPlane.raycast = () => {};
-  signGroup.add(signTextPlane);
+  signSprite.scale.set(0.72, 0.12, 1);
+  signSprite.position.set(0, 1.62, 0);
+  signSprite.renderOrder = 999;
+  signSprite.raycast = () => {};
+  group.userData.signGroup = signSprite;
 
-  // Neon point light blooming off the front face
+  // Neon point light blooming around the sign
   const neonLight = new THREE.PointLight(0x0066ff, 1.4, 0.7);
-  neonLight.position.set(0, 0, SIGN_D / 2 + 0.02);
-  signGroup.add(neonLight);
-
-  bookGroup.add(signGroup);
+  neonLight.position.set(0, 1.62, 0.05);
+  group.userData.signLight = neonLight;
 
   group.add(bookGroup);
+  group.add(signSprite);
+  group.add(neonLight);
 
   // ── Smoke rising from the book ────────────────────────────────────────────
   const SMOKE_COUNT = 70;
