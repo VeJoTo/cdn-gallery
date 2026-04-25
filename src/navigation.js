@@ -18,6 +18,7 @@ export const HOTSPOTS = {
   'poster-1':         { position: { x: -1.4, y: 2.0, z: -1.5 }, target: { x: -1.4, y: 2.0,  z: -2.90 }, label: 'Pac-Man' },
   'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
   'poster-ai-cinema': { position: { x: 2.0,  y: 1.5, z: 2.2  }, target: { x: 3.42, y: 1.5,  z: 2.2   }, label: 'AI Cinema' },
+  'book-cover-zoom':  { position: { x: -2.55, y: 1.34, z: 2.3 }, target: { x: -2.8, y: 1.3,  z: 2.6   }, label: 'Book Cover', duration: 0.5 },
   exit:               { position: { x: 0,    y: 2,   z: 5    }, target: { x: 0,    y: 1,    z: 3     }, label: 'Exit' },
   table:          { position: { x: 0.5,  y: 1.2, z: -0.2 }, target: { x: 0,    y: 0.5, z: 0.5 }, label: 'Table' },
   'desk-left-monitor':  { position: { x: 1.0, y: 1.4, z: -1.8 }, target: { x: 1.25, y: 1.18, z: -3.0 }, label: 'Left Monitor' },
@@ -44,6 +45,10 @@ export function createNavigationState() {
       return true;
     },
     endTransition() {
+      transitioning = false;
+    },
+    resetTo(id) {
+      current = id;
       transitioning = false;
     }
   };
@@ -161,16 +166,26 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     // Capture whether we're already at this hotspot before nav changes state
     const alreadyAtHotspot = hotspot && navState.current === hotspot && navState.canNavigate();
 
-    // Zoom in if there's a hotspot
-    if (hotspot) nav.goTo(hotspot);
+    // Book uses a 3-step click sequence; all other objects navigate normally
+    if (action === 'openBook') {
+      if (navState.current === 'book-cover-zoom' && navState.canNavigate()) {
+        // Step 3 — at cover zoom: start animation
+        if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
+        else ui.openBook();
+      } else if (alreadyAtHotspot) {
+        // Step 2 — at pedestal: zoom to front cover
+        nav.goTo('book-cover-zoom');
+      } else {
+        // Step 1 — navigate to pedestal
+        if (hotspot) nav.goTo(hotspot);
+      }
+    } else {
+      if (hotspot) nav.goTo(hotspot);
+    }
 
     // Fire actions directly
     if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
-    if (action === 'openBook' && alreadyAtHotspot) {
-      if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
-      else ui.openBook();
-    }
     if (action === 'enterRabbitHole') ui.openRabbitHole();
     if (action === 'openReport')      ui.openReport();
     if (action === 'openFinDuMonde')  ui.openFinDuMonde();

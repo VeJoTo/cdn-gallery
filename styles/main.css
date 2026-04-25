@@ -1,4 +1,11 @@
 /* styles/main.css */
+@font-face {
+  font-family: 'Octosquares';
+  src: url('/fonts/TT Octosquares Trial Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
