@@ -111,11 +111,11 @@ export function createUI(camera, renderer, controls, scene) {
     // Free cursor — no pointer lock to manage
   }
   function relockAfterOverlay() {
-    // Hide step-back button and close panel drawer
     const sb = document.getElementById('stepback-btn');
     if (sb) sb.classList.add('hidden');
     panelDrawer.classList.remove('open');
     setTimeout(() => panelDrawer.classList.add('hidden'), 350);
+    try { controls.lock(); } catch { /* browser may refuse if no user gesture */ }
   }
   const breadcrumb       = document.getElementById('breadcrumb');
   const panelDrawer      = document.getElementById('panel-drawer');
