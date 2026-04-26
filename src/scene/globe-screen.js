@@ -615,23 +615,90 @@ function buildPedestal() {
   return group;
 }
 
+// ── Neon sign ────────────────────────────────────────────────────────────────
+
+function buildNeonSign(scene, leftX, rightX, z) {
+  const barY  = 4.5;
+  const cx    = (leftX + rightX) / 2;
+  const W = 1280, H = 200;
+  const planeW = rightX - leftX - 0.6;
+  const planeH = planeW * (H / W);
+  const panelY = barY - planeH / 2 - 0.06;
+
+  // Metal legs and top bar — dark charcoal grey, no reflections
+  const metalMat = new THREE.MeshStandardMaterial({
+    color: 0x4a4a4a, metalness: 0.0, roughness: 0.9,
+  });
+  scene.add(makeTube(new THREE.Vector3(leftX,  0,    z), new THREE.Vector3(leftX,  barY, z), 0.045, metalMat));
+  scene.add(makeTube(new THREE.Vector3(rightX, 0,    z), new THREE.Vector3(rightX, barY, z), 0.045, metalMat));
+  scene.add(makeTube(new THREE.Vector3(leftX,  barY, z), new THREE.Vector3(rightX, barY, z), 0.045, metalMat));
+
+  // Metal backing plate — dark charcoal grey, no reflections
+  const backingMat = new THREE.MeshStandardMaterial({
+    color: 0x383838, metalness: 0.0, roughness: 0.9,
+  });
+  const backing = new THREE.Mesh(
+    new THREE.BoxGeometry(planeW + 0.28, planeH + 0.22, 0.05),
+    backingMat
+  );
+  backing.position.set(cx, panelY, z - 0.01);
+  scene.add(backing);
+
+  // Canvas — transparent background, neon text only
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  const text = 'Fin du Monde';
+  ctx.font = 'bold 120px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (const [blur, alpha, fill] of [
+    [90, 0.20, '#00d4ff'],
+    [50, 0.35, '#00d4ff'],
+    [20, 0.60, '#00d4ff'],
+    [ 8, 1.00, '#ffffff'],
+  ]) {
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = '#00d4ff';
+    ctx.shadowBlur  = blur;
+    ctx.fillStyle   = fill;
+    ctx.fillText(text, W / 2, H / 2);
+  }
+  ctx.globalAlpha = 1.0;
+
+  const textMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(planeW, planeH),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.CanvasTexture(c),
+      transparent: true,
+      depthWrite: false,
+    })
+  );
+  textMesh.position.set(cx, panelY, z + 0.04);
+  scene.add(textMesh);
+
+}
+
 // ── Public API ───────────────────────────────────────────────────────────────
 
 export function createGlobeScreenInstallation(scene, camera) {
   const GLOBE_SCALE = 1.8;
 
+  const Z = -13.0;
+
   const screen = buildScreen();
-  screen.position.set(5.5, 1.5, -10.1);
+  screen.position.set(3.5, 1.5, Z);
   scene.add(screen);
 
   const pedestal = buildPedestal();
-  pedestal.position.set(9.0, 0, -10.0);
+  pedestal.position.set(7.0, 0, Z);
   pedestal.scale.setScalar(GLOBE_SCALE);
   scene.add(pedestal);
 
   const globe = buildGlobe(screen);
   // Base top is ~0.08 * GLOBE_SCALE; globe radius is 0.5 * GLOBE_SCALE — sit just above base
-  globe.position.set(9.0, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, -10.0);
+  globe.position.set(7.0, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, Z);
   globe.scale.setScalar(GLOBE_SCALE);
   scene.add(globe);
 
@@ -642,8 +709,11 @@ export function createGlobeScreenInstallation(scene, camera) {
   }
 
   const areaLight = new THREE.PointLight(CDN.blue, 0.8, 10);
-  areaLight.position.set(7.2, 3.5, -9.5);
+  areaLight.position.set(5.2, 3.5, Z + 0.5);
   scene.add(areaLight);
+
+  // Neon arch sign spanning both screen and globe
+  buildNeonSign(scene, 1.5, 8.8, Z);
 
   // ── Locked state — markers dimmed and non-clickable until screen is read ──
   let unlocked = false;
