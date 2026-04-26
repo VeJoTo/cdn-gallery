@@ -4,6 +4,7 @@ import { PointerLockControls } from 'three/addons/controls/PointerLockControls.j
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { aiArtVideos } from './videoData.js';
 import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
+import { createKulturKartet, handleKartetMapClick, handleKartetBtnClick, updateKartetHover, tickKartet } from './scene/kultur-kartet.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
@@ -223,15 +224,18 @@ function trackChildren(builder) {
 
 // ── AI room ──
 let globeScreen;
+let kulturKartet;
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   createRoom(scene);
   globeScreen = createGlobeScreenInstallation(scene, camera);
+  kulturKartet = createKulturKartet(scene);
   return createObjects(scene);
 });
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
 const holoPlayPauseBtn = tv.userData.playPauseBtn;
 addUpdateCallback(sceneUpdate);
 addUpdateCallback(globeScreen.update);
+addUpdateCallback((delta) => tickKartet(delta));
 
 // ── Book particle burst ───────────────────────────────────────────────────────
 function spawnBookParticles(worldPos) {
@@ -667,7 +671,7 @@ window.__toggleMagnifier = () => {
   }
 };
 
-const clickableObjects = [pedestal, ...extras, ...globeScreen.clickables];
+const clickableObjects = [pedestal, ...extras, ...globeScreen.clickables, ...kulturKartet.clickables];
 
 const ui       = createUI(camera, renderer, controls, scene);
 const _origUpdateHUD = ui.updateHUD.bind(ui);
@@ -953,6 +957,13 @@ function updateHoverHighlight() {
   const hits = centerRaycaster.intersectObjects(clickableObjects, true);
   const hitObj = hits.length ? findClickable(hits[0]) : null;
 
+  // UV-based hover for the Kultur-kartet map
+  if (hits.length && hits[0].object === kulturKartet.mapMesh && hits[0].uv) {
+    updateKartetHover(hits[0].uv);
+  } else {
+    updateKartetHover(null);
+  }
+
   if (lastHovered && lastHovered !== hitObj) {
     clearHoverGlow(lastHovered);
     lastHovered = null;
@@ -1051,6 +1062,8 @@ document.addEventListener('mousedown', () => {
   if (action === 'openGlobeVideos')  ui.openGlobeVideos(() => globeScreen.start());
   if (action === 'selectCountry')    globeScreen.selectCountry(obj.userData.country);
   if (action === 'resetGlobeScreen') globeScreen.reset();
+  if (action === 'kulturKartetMap') { const hit = hits[0]; if (hit?.uv) handleKartetMapClick(hit.uv); }
+  if (action === 'kulturKartetBtn') handleKartetBtnClick(obj.userData.btnMode);
   if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
   if (action === 'returnToAIRoom')   window.__transitionToRoom('ai');
   if (action === 'enterAIRoom')      window.__transitionToRoom('ai');
