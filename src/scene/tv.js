@@ -319,17 +319,16 @@ export function buildTV() {
   glowRing.position.set(0, 0.1, 0.138);
   group.add(glowRing);
 
-  // |◀ ▶ ▶| — outside bottom-left corner of TV frame
+  // Centred play/prev/next cluster
   const bottomBtns = [
-    { icon: '|◀', action: 'prevVideo', x: -0.82, y: -0.58, size: 0.10 },
-    { icon: '▶',   action: 'toggleTV',  x: -0.69, y: -0.58, size: 0.10 },
-    { icon: '▶|', action: 'nextVideo',  x: -0.56, y: -0.58, size: 0.10 },
+    { icon: '|◀', action: 'prevVideo', x: -0.13, y: -0.58, size: 0.10 },
+    { icon: '▶',  action: 'toggleTV',  x:  0.00, y: -0.58, size: 0.10 },
+    { icon: '▶|', action: 'nextVideo', x:  0.13, y: -0.58, size: 0.10 },
   ];
-  // MAG+ ⓘ 🔊 — outside bottom-right corner of TV frame
+  // ⓘ MAG+ — right cluster, symmetric to left
   const rightBtns = [
-    { icon: 'MAG+', action: 'toggleMagnifier', x:  0.63, y: -0.58, size: 0.13 },
-    { icon: 'ⓘ',    action: 'showInfo',        x:  0.76, y: -0.58, size: 0.10 },
-    { icon: '🔊',   action: 'toggleSound',     x:  0.89, y: -0.58, size: 0.10 },
+    { icon: 'ⓘ',    action: 'showInfo',        x:  0.72, y: -0.58, size: 0.10 },
+    { icon: 'MAG+', action: 'toggleMagnifier', x:  0.85, y: -0.58, size: 0.13 },
   ];
 
   let playPauseBtn = null, magBtn = null, infoBtn = null, speakerBtn = null, playlistBtn = null;
@@ -346,13 +345,18 @@ export function buildTV() {
     allButtons.push(btn);
     if (def.action === 'toggleMagnifier') magBtn  = btn;
     if (def.action === 'showInfo')        infoBtn = btn;
-    if (def.action === 'toggleSound')     { speakerBtn = btn; btn.visible = false; }
   }
 
-  // Playlist toggle — floats just outside the TV left edge
-  playlistBtn = makeHoloButton('PL', 'togglePlaylist', -0.95, -0.58, 0.09);
+  // 🔊 PL — left cluster, symmetric to right (ⓘ MAG+)
+  playlistBtn = makeHoloButton('PL', 'togglePlaylist', -0.85, -0.58, 0.09);
   group.add(playlistBtn);
   allButtons.push(playlistBtn);
+
+  const speakerBtnLeft = makeHoloButton('🔊', 'toggleSound', -0.72, -0.58, 0.10);
+  speakerBtnLeft.visible = false;
+  group.add(speakerBtnLeft);
+  allButtons.push(speakerBtnLeft);
+  speakerBtn = speakerBtnLeft;
 
   // ── Neon "AI Art" sign above the TV ──
   const signCanvas = document.createElement('canvas');

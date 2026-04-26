@@ -80,6 +80,8 @@ window.__isAtTV = () => atTV;
 // TV cursor mode — set by enterTVMode(), cleared by exitTVMode()
 let atTV = false;
 let suppressFPOverlay = false;
+// Free-cursor window after TV step-back — allows mouse-position nav clicks
+let _freeCursorAfterTV = false;
 
 // Re-lock pointer on first keydown after stepping back from TV
 let _tvRelockListener = null;
@@ -100,11 +102,14 @@ function _cancelRelockOnKey() {
 }
 
 controls.addEventListener('lock', () => {
+  // Don't clear _freeCursorAfterTV here — it persists into FPS mode so click-to-zoom
+  // still works. It's cleared when the user navigates to any hotspot (see ui.updateHUD).
   fpOverlay.classList.add('hidden');
   crosshair.classList.remove('hidden');
   exitTVMode();
   if (magActive) {
     magActive = false;
+    holoMagBtn?.userData.setActive(false);
     magDiv.style.display = 'none';
     magIframe.src = '';
   }
@@ -131,22 +136,9 @@ document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
   if (e.key === 'Escape') {
     if (magActive) { window.__toggleMagnifier?.(); e.stopImmediatePropagation(); return; }
-    if (atTV) {
-      stepBackFromTV();
-      crosshair.classList.add('hidden');
-      _scheduleRelockOnKey();
-      e.stopImmediatePropagation();
-      return;
-    }
+    if (atTV) { e.stopImmediatePropagation(); return; } // × button handles TV exit
     fpOverlay.classList.remove('hidden');
     crosshair.classList.add('hidden');
-    return;
-  }
-  if (e.code === 'ArrowDown' && atTV) {
-    stepBackFromTV();
-    crosshair.classList.add('hidden');
-    _scheduleRelockOnKey();
-    e.stopImmediatePropagation();
     return;
   }
   switch (e.code) {
@@ -513,17 +505,17 @@ tvOverlayCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvOverlayCSS3D);
 
 // ── Hologram info panel ───────────────────────────────────────────────────────
-// Portrait panel: 800 × 1200 px → physical 0.8 × 1.21 units (matches TV frame height)
+// Portrait panel: 800 px wide, height auto-fits content
 const hologramDiv = document.createElement('div');
 hologramDiv.style.cssText = `
-  position:relative; width:950px; height:1200px; box-sizing:border-box;
+  position:relative; width:800px; box-sizing:border-box;
   background:linear-gradient(160deg,rgba(2,0,28,0.94) 0%,rgba(10,0,40,0.90) 100%);
   border:1px solid rgba(255,255,255,0.35); border-top:2px solid rgba(0,212,255,0.9);
   border-bottom:2px solid rgba(255,255,255,0.5); border-radius:23px;
   box-shadow:inset 0 0 80px rgba(255,255,255,0.06),inset 0 0 160px rgba(0,212,255,0.06);
   font-family:'Courier New',monospace; color:#fff; pointer-events:auto; cursor:pointer;
-  display:flex; flex-direction:column; justify-content:flex-start;
-  overflow:hidden; padding:60px 70px; backdrop-filter:blur(2px);
+  display:flex; flex-direction:column;
+  padding:60px 70px; backdrop-filter:blur(2px);
   opacity:0; transition:opacity 0.4s ease;
 `;
 
@@ -564,7 +556,7 @@ function renderHoloPage(video) {
       <span data-holo-action="prevPage" style="${chevStyle(hasPrev)}">‹</span>
       <span data-holo-action="nextPage" style="${chevStyle(hasNext)}">›</span>
     </div>` : ''}
-    <div style="margin-top:auto;padding-top:16px;padding-bottom:4px;font-size:28px;color:rgba(255,255,255,0.7);letter-spacing:3px;display:flex;justify-content:space-between;flex-shrink:0">
+    <div style="margin-top:auto;padding-top:16px;padding-bottom:4px;font-size:22px;color:rgba(255,255,255,0.7);letter-spacing:2px;display:flex;justify-content:space-between;flex-shrink:0;white-space:nowrap;">
       <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
       <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ''}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
     </div>
@@ -594,39 +586,16 @@ window.__holoPageNext = () => {
 };
 
 
-// Info panel as a regular 2D overlay — CSS3D made child click events unreliable.
-const holoWrap = document.createElement('div');
-holoWrap.style.cssText = `
-  position:fixed; left:0; top:0;
-  width:950px; height:1200px;
-  transform-origin:top left;
-  pointer-events:none; z-index:10;
-`;
-holoWrap.appendChild(hologramDiv);
-document.body.appendChild(holoWrap);
+// Info panel — CSS3DObject so it is physically anchored to the wall next to the TV.
+// Scale: 1200 px → 1.21 world units (matches TV frame height as reference).
+const _panelScale = 1.21 / 1200;
+const holoPanelCSS3D = new CSS3DObject(hologramDiv);
+holoPanelCSS3D.scale.setScalar(_panelScale);
+cssScene.add(holoPanelCSS3D);
 
 // Show info panel for the first video on load (same behaviour as loadVideo)
 updateHologram(aiArtVideos[currentVideoIndex]);
 showHologram();
-
-// Resize the panel to exactly match the TV frame height and sit flush against its right edge.
-// TV body: group at (-10.95,2.65,0) rot.y=PI/2. Right edge from viewer = TV local x=+1.025 → worldZ=-1.025.
-const _tvTop      = new THREE.Vector3(-10.95, 3.355,  0);
-const _tvBot      = new THREE.Vector3(-10.95, 2.145,  0);
-const _tvRightEdge = new THREE.Vector3(-10.86, 2.75, -1.025);
-function matchPanelToTV() {
-  const top   = _tvTop.clone().project(camera);
-  const bot   = _tvBot.clone().project(camera);
-  const right = _tvRightEdge.clone().project(camera);
-  const tvHeightPx = (top.y - bot.y) * (window.innerHeight / 2);
-  const scale  = tvHeightPx / 1200;
-  const topPx  = (1 - top.y) * (window.innerHeight / 2);
-  const leftPx = (right.x + 1) / 2 * window.innerWidth + 8; // 8px gap
-  holoWrap.style.transform = `scale(${scale})`;
-  holoWrap.style.top  = `${topPx}px`;
-  holoWrap.style.left = `${leftPx}px`;
-}
-window.addEventListener('resize', matchPanelToTV);
 
 // ── Playlist panel ────────────────────────────────────────────────────────────
 let shuffleMode = false;
@@ -642,13 +611,9 @@ playlistDiv.style.cssText = `
   display:flex; flex-direction:column; overflow:hidden; backdrop-filter:blur(2px);
   opacity:0; transition:opacity 0.4s ease;
 `;
-const playlistWrap = document.createElement('div');
-playlistWrap.style.cssText = `
-  position:fixed; left:0; top:0; width:680px; height:1200px;
-  transform-origin:top left; pointer-events:none; z-index:10;
-`;
-playlistWrap.appendChild(playlistDiv);
-document.body.appendChild(playlistWrap);
+const playlistPanelCSS3D = new CSS3DObject(playlistDiv);
+playlistPanelCSS3D.scale.setScalar(_panelScale);
+cssScene.add(playlistPanelCSS3D);
 
 function showPlaylist() {
   playlistDiv.style.opacity = '1';
@@ -702,7 +667,7 @@ function renderPlaylist() {
 let playlistVisible = false;
 function togglePlaylist() {
   playlistVisible = !playlistVisible;
-  if (playlistVisible) { renderPlaylist(); matchPlaylistToTV(); showPlaylist(); }
+  if (playlistVisible) { renderPlaylist(); showPlaylist(); }
   else hidePlaylist();
   holoPlaylistBtn?.userData.setActive(playlistVisible);
 }
@@ -714,28 +679,17 @@ playlistDiv.addEventListener('click', (e) => {
   if (idx !== undefined) loadVideo(parseInt(idx, 10));
 });
 
-const _tvLeftEdge = new THREE.Vector3(-10.86, 2.75, 1.025);
-function matchPlaylistToTV() {
-  const top   = _tvTop.clone().project(camera);
-  const bot   = _tvBot.clone().project(camera);
-  const left  = _tvLeftEdge.clone().project(camera);
-  const tvHeightPx   = (top.y - bot.y) * (window.innerHeight / 2);
-  const scale        = tvHeightPx / 1200;
-  const topPx        = (1 - top.y) * (window.innerHeight / 2);
-  const rightEdgePx  = (left.x + 1) / 2 * window.innerWidth - 12;
-  playlistWrap.style.transform = `scale(${scale})`;
-  playlistWrap.style.top  = `${topPx}px`;
-  playlistWrap.style.left = `${rightEdgePx - 680 * scale}px`;
-}
-window.addEventListener('resize', matchPlaylistToTV);
-
 renderPlaylist();
 
-
-// Per-frame sync — keeps TV iframe and overlay locked to the TV screen face
+// Per-frame sync — keeps TV iframe, overlay, and side panels locked to the TV wall
 const _cssPos = new THREE.Vector3();
 const _cssQuat = new THREE.Quaternion();
 const screenMesh = tv.userData.screenMesh;
+// World-space half-widths of each panel at panelScale = 1.21/1200
+const _infoHalfW     = 800 * _panelScale / 2;  // ≈ 0.403 units
+const _playlistHalfW = 680 * _panelScale / 2;   // ≈ 0.343 units
+const _tvHalfW = 1.025; // TV edge to centre in world Z
+const _panelGap = 0.04; // gap between TV edge and panel edge (world units)
 addUpdateCallback(() => {
   screenMesh.getWorldPosition(_cssPos);
   screenMesh.getWorldQuaternion(_cssQuat);
@@ -743,6 +697,12 @@ addUpdateCallback(() => {
   tvCSS3D.quaternion.copy(_cssQuat);
   tvOverlayCSS3D.position.copy(_cssPos);
   tvOverlayCSS3D.quaternion.copy(_cssQuat);
+  // Info panel — right of TV from viewer (world −Z side)
+  holoPanelCSS3D.position.set(_cssPos.x, _cssPos.y, _cssPos.z - _tvHalfW - _panelGap - _infoHalfW);
+  holoPanelCSS3D.quaternion.copy(_cssQuat);
+  // Playlist panel — left of TV from viewer (world +Z side)
+  playlistPanelCSS3D.position.set(_cssPos.x, _cssPos.y, _cssPos.z + _tvHalfW + _panelGap + _playlistHalfW);
+  playlistPanelCSS3D.quaternion.copy(_cssQuat);
 });
 
 // ── TV playback state ─────────────────────────────────────────────────────────
@@ -977,7 +937,8 @@ const ui       = createUI(camera, renderer, controls, scene);
 const _origUpdateHUD = ui.updateHUD.bind(ui);
 ui.updateHUD = (id) => {
   _origUpdateHUD(id);
-  if (id === 'tv') enterTVMode(); else exitTVMode();
+  if (id === 'tv') enterTVMode();
+  else { exitTVMode(); _freeCursorAfterTV = false; }
 };
 const navState = createNavigationState();
 const nav      = createNavigationSystem(camera, navState, ui, controls);
@@ -1013,21 +974,52 @@ const tvMouse     = new THREE.Vector2();
 const tvRaycaster = new THREE.Raycaster();
 let   tvHovered   = null;
 
+// × button — click to step back from TV and re-lock controls in one gesture
+const tvBackBtn = document.createElement('button');
+tvBackBtn.innerHTML = '&times;';
+tvBackBtn.style.cssText = `
+  position:fixed; bottom:36px; left:50%; transform:translateX(-50%);
+  width:54px; height:54px; border-radius:50%; border:1.5px solid rgba(0,212,255,0.75);
+  background:rgba(0,0,0,0.55); color:rgba(0,212,255,0.9); font-size:30px; line-height:1;
+  cursor:pointer; display:none; align-items:center; justify-content:center;
+  box-shadow:0 0 14px rgba(0,212,255,0.35),inset 0 0 12px rgba(0,212,255,0.08);
+  text-shadow:0 0 8px rgba(0,212,255,0.7); z-index:100;
+  transition:background 0.15s, box-shadow 0.15s;
+`;
+document.body.appendChild(tvBackBtn);
+tvBackBtn.addEventListener('mouseenter', () => {
+  tvBackBtn.style.background = 'rgba(0,212,255,0.12)';
+  tvBackBtn.style.boxShadow  = '0 0 22px rgba(0,212,255,0.6),inset 0 0 14px rgba(0,212,255,0.15)';
+});
+tvBackBtn.addEventListener('mouseleave', () => {
+  tvBackBtn.style.background = 'rgba(0,0,0,0.55)';
+  tvBackBtn.style.boxShadow  = '0 0 14px rgba(0,212,255,0.35),inset 0 0 12px rgba(0,212,255,0.08)';
+});
+tvBackBtn.addEventListener('click', () => {
+  stepBackFromTV();
+  // Re-lock immediately — click is a valid user gesture so the browser allows it.
+  // _freeCursorAfterTV stays true through the lock event so click-to-zoom still works.
+  controls.lock();
+});
+
 function enterTVMode() {
-  _cancelRelockOnKey(); // discard pending re-lock if user navigated back to TV
+  _cancelRelockOnKey();
+  _freeCursorAfterTV = false;
   atTV = true;
   suppressFPOverlay = true;
   controls.unlock();
-  matchPanelToTV();
-  if (playlistVisible) { matchPlaylistToTV(); showPlaylist(); }
+  crosshair.classList.add('hidden');
+  tvBackBtn.style.display = 'flex';
+  if (playlistVisible) showPlaylist();
 }
 
 function exitTVMode() {
   atTV = false;
+  crosshair.classList.remove('hidden');
+  tvBackBtn.style.display = 'none';
   if (tvHovered) { clearHoverGlow(tvHovered); tvHovered = null; }
   renderer.domElement.style.cursor = '';
-  hideHologram();
-  hidePlaylist();
+  // Panels remain visible on the wall — positions are updated every frame
 }
 
 // Hover highlight while in TV mode (free mouse)
@@ -1099,8 +1091,10 @@ function setRoomVisibility(activeRoom) {
   }
   // CSS3DRenderer respects .visible — use it to suppress TV from other rooms
   const inAI = activeRoom === 'ai';
-  tvCSS3D.visible        = inAI;
-  tvOverlayCSS3D.visible = inAI;
+  tvCSS3D.visible             = inAI;
+  tvOverlayCSS3D.visible      = inAI;
+  holoPanelCSS3D.visible      = inAI;
+  playlistPanelCSS3D.visible  = inAI;
   if (!inAI) { hideHologram(); hidePlaylist(); }
 }
 
@@ -1399,13 +1393,16 @@ document.addEventListener('mousedown', () => {
   if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
   if (action === 'returnToAIRoom')   window.__transitionToRoom('ai');
   if (action === 'enterAIRoom')      window.__transitionToRoom('ai');
-  if (action === 'nextVideo')       window.__nextVideo?.();
-  if (action === 'prevVideo')       window.__prevVideo?.();
-  if (action === 'toggleTV')        window.__toggleTV?.();
-  if (action === 'showInfo')        window.__showInfo?.();
-  if (action === 'toggleMagnifier') window.__toggleMagnifier?.();
-  if (action === 'toggleSound')     window.__toggleSound?.();
-  if (action === 'togglePlaylist')  togglePlaylist();
+  // TV button actions only fire when the user is at the TV hotspot
+  if (atTV) {
+    if (action === 'nextVideo')       window.__nextVideo?.();
+    if (action === 'prevVideo')       window.__prevVideo?.();
+    if (action === 'toggleTV')        window.__toggleTV?.();
+    if (action === 'showInfo')        window.__showInfo?.();
+    if (action === 'toggleMagnifier') window.__toggleMagnifier?.();
+    if (action === 'toggleSound')     window.__toggleSound?.();
+    if (action === 'togglePlaylist')  togglePlaylist();
+  }
 });
 
 let _stepBackTween = null;
@@ -1416,6 +1413,7 @@ window.__cancelStepBack = () => {
 function stepBackFromTV() {
   nav.clearSaved();
   exitTVMode();
+  _freeCursorAfterTV = true;
   const target = { x: -7.5, y: 1.6, z: 0 };
   if (_stepBackTween) _stepBackTween.kill();
   _stepBackTween = gsap.to(camera.position, {
@@ -1429,6 +1427,38 @@ function stepBackFromTV() {
     }
   });
 }
+
+// After TV step-back, clicking the TV mesh, any holographic button, or either panel zooms back in.
+const _tvButtonActions = new Set(['toggleTV','showInfo','toggleMagnifier','toggleSound','togglePlaylist','nextVideo','prevVideo']);
+document.addEventListener('mousedown', (e) => {
+  if (!_freeCursorAfterTV) return;
+
+  // Panels are CSS3DObjects — raycasting misses them. Use bounding rect instead.
+  for (const panel of [hologramDiv, playlistDiv]) {
+    if (panel.style.opacity === '0') continue;
+    const r = panel.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+      nav.goTo('tv'); return;
+    }
+  }
+
+  // 3D objects: include `tv` group so holographic button children are raycasted.
+  // In pointer lock mode clientX/Y are stale — use crosshair (screen centre) instead.
+  let castMouse;
+  if (controls.isLocked) {
+    castMouse = screenCenter; // { x: 0, y: 0 }
+  } else {
+    const rect = renderer.domElement.getBoundingClientRect();
+    tvMouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+    tvMouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+    castMouse = tvMouse;
+  }
+  tvRaycaster.setFromCamera(castMouse, camera);
+  const hits = tvRaycaster.intersectObjects([...clickableObjects, tv], true);
+  const obj = hits.length ? findClickable(hits[0]) : null;
+  const isTVArea = obj?.userData.hotspot === 'tv' || _tvButtonActions.has(obj?.userData.action);
+  if (isTVArea) nav.goTo('tv');
+});
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   exitTVMode();
