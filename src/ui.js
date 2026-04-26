@@ -879,6 +879,7 @@ export function createUI(camera, renderer, controls, scene) {
   // ── Global keyboard shortcuts ────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (window.__isAtTV?.()) return; // TV handles its own ESC — don't trigger relock
       closePanelDrawer();
       closeGatekeeperChat();
       closeInventory();

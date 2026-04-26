@@ -77,8 +77,9 @@ export function createNavigationSystem(camera, state, ui, controls) {
     const h = HOTSPOTS[id];
     if (!h) { state.endTransition(); return; }
 
-    // Kill any running tween
+    // Kill any running tween (including any TV step-back tween)
     if (activeTween) activeTween.kill();
+    window.__cancelStepBack?.();
 
     // Save current position so user can return
     if (!savedPosition) {

@@ -75,10 +75,29 @@ window.__hideFPOverlay = () => fpOverlay.classList.add('hidden');
 window.__relockControls = () => controls.lock();
 window.__showFPOverlay  = () => { fpOverlay.classList.remove('hidden'); crosshair.classList.add('hidden'); };
 window.__isControlsLocked = () => controls.isLocked;
+window.__isAtTV = () => atTV;
 
 // TV cursor mode — set by enterTVMode(), cleared by exitTVMode()
 let atTV = false;
 let suppressFPOverlay = false;
+
+// Re-lock pointer on first keydown after stepping back from TV
+let _tvRelockListener = null;
+function _scheduleRelockOnKey() {
+  _cancelRelockOnKey();
+  _tvRelockListener = (ev) => {
+    if (ev.key === 'Escape') return; // another ESC shouldn't re-lock
+    _cancelRelockOnKey();
+    if (!controls.isLocked && !atTV && !magActive) controls.lock();
+  };
+  document.addEventListener('keydown', _tvRelockListener, true);
+}
+function _cancelRelockOnKey() {
+  if (_tvRelockListener) {
+    document.removeEventListener('keydown', _tvRelockListener, true);
+    _tvRelockListener = null;
+  }
+}
 
 controls.addEventListener('lock', () => {
   fpOverlay.classList.add('hidden');
@@ -94,12 +113,13 @@ controls.addEventListener('lock', () => {
 // This is the fallback path when controls.lock() fails from a non-canvas gesture
 // (e.g. step-back button after TV mode).
 renderer.domElement.addEventListener('click', () => {
-  if (!controls.isLocked) controls.lock();
+  if (!controls.isLocked && !atTV && !magActive) controls.lock();
 });
 
 controls.addEventListener('unlock', () => {
-  // FP overlay only appears on initial load and Escape — never on arbitrary
-  // unlocks (TV mode, panel opens, etc.). Canvas click listener handles re-entry.
+  // When pointer lock drops outside of TV/magnifier mode, hide the crosshair
+  // so the cursor is visibly free. Canvas click re-enters FPS mode.
+  if (!atTV && !magActive) crosshair.classList.add('hidden');
 });
 
 // ── Movement (WASD relative to look direction) ──
@@ -110,10 +130,23 @@ const moveState = { forward: false, backward: false, left: false, right: false }
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
   if (e.key === 'Escape') {
-    if (magActive) { window.__toggleMagnifier?.(); return; } // close magnifier, no overlay
-    if (atTV) stepBackFromTV();
+    if (magActive) { window.__toggleMagnifier?.(); e.stopImmediatePropagation(); return; }
+    if (atTV) {
+      stepBackFromTV();
+      crosshair.classList.add('hidden');
+      _scheduleRelockOnKey();
+      e.stopImmediatePropagation();
+      return;
+    }
     fpOverlay.classList.remove('hidden');
     crosshair.classList.add('hidden');
+    return;
+  }
+  if (e.code === 'ArrowDown' && atTV) {
+    stepBackFromTV();
+    crosshair.classList.add('hidden');
+    _scheduleRelockOnKey();
+    e.stopImmediatePropagation();
     return;
   }
   switch (e.code) {
@@ -980,20 +1013,17 @@ const tvMouse     = new THREE.Vector2();
 const tvRaycaster = new THREE.Raycaster();
 let   tvHovered   = null;
 
-const stepbackBtn = document.getElementById('stepback-btn');
-
 function enterTVMode() {
+  _cancelRelockOnKey(); // discard pending re-lock if user navigated back to TV
   atTV = true;
   suppressFPOverlay = true;
   controls.unlock();
-  stepbackBtn?.classList.remove('hidden');
   matchPanelToTV();
   if (playlistVisible) { matchPlaylistToTV(); showPlaylist(); }
 }
 
 function exitTVMode() {
   atTV = false;
-  stepbackBtn?.classList.add('hidden');
   if (tvHovered) { clearHoverGlow(tvHovered); tvHovered = null; }
   renderer.domElement.style.cursor = '';
   hideHologram();
@@ -1378,26 +1408,27 @@ document.addEventListener('mousedown', () => {
   if (action === 'togglePlaylist')  togglePlaylist();
 });
 
+let _stepBackTween = null;
+window.__cancelStepBack = () => {
+  if (_stepBackTween) { _stepBackTween.kill(); _stepBackTween = null; }
+};
+
 function stepBackFromTV() {
   nav.clearSaved();
   exitTVMode();
   const target = { x: -7.5, y: 1.6, z: 0 };
-  gsap.to(camera.position, {
+  if (_stepBackTween) _stepBackTween.kill();
+  _stepBackTween = gsap.to(camera.position, {
     x: target.x, y: target.y, z: target.z,
     duration: 0.8,
     ease: 'power2.inOut',
     onComplete: () => {
+      _stepBackTween = null;
       camera.lookAt(-10, 1.6, 0);
       if (controls?.target) controls.target.set(-10, 1.6, 0);
     }
   });
 }
-
-stepbackBtn?.addEventListener('click', () => {
-  stepBackFromTV();
-  controls.lock();
-});
-
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   exitTVMode();
