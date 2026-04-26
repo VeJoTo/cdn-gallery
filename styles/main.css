@@ -45,7 +45,8 @@ body:has(
   #inventory-overlay:not(.hidden),
   #rabbit-hole-overlay:not(.hidden),
   #report-overlay:not(.hidden),
-  #findumonde-overlay:not(.hidden)
+  #findumonde-overlay:not(.hidden),
+  #globe-videos-overlay:not(.hidden)
 ) #fp-overlay {
   display: none;
 }

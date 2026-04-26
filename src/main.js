@@ -90,11 +90,16 @@ controls.addEventListener('lock', () => {
     magIframe.src = '';
   }
 });
+// Clicking the canvas while unlocked re-locks without showing the FP overlay.
+// This is the fallback path when controls.lock() fails from a non-canvas gesture
+// (e.g. step-back button after TV mode).
+renderer.domElement.addEventListener('click', () => {
+  if (!controls.isLocked) controls.lock();
+});
+
 controls.addEventListener('unlock', () => {
-  if (suppressFPOverlay) { suppressFPOverlay = false; return; }
-  if (atTV) return; // already in TV cursor mode — don't show fpOverlay
-  fpOverlay.classList.remove('hidden');
-  crosshair.classList.add('hidden');
+  // FP overlay only appears on initial load and Escape — never on arbitrary
+  // unlocks (TV mode, panel opens, etc.). Canvas click listener handles re-entry.
 });
 
 // ── Movement (WASD relative to look direction) ──
@@ -104,6 +109,12 @@ const moveState = { forward: false, backward: false, left: false, right: false }
 
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape') {
+    if (atTV) stepBackFromTV();
+    fpOverlay.classList.remove('hidden');
+    crosshair.classList.add('hidden');
+    return;
+  }
   switch (e.code) {
     case 'KeyW': case 'ArrowUp':    moveState.forward = true; break;
     case 'KeyS': case 'ArrowDown':  moveState.backward = true; break;
@@ -1051,7 +1062,7 @@ document.addEventListener('mousedown', () => {
 });
 
 function stepBackFromTV() {
-  nav.clearSaved();          // reset nav state without restoring the old position
+  nav.clearSaved();
   exitTVMode();
   const target = { x: -7.5, y: 1.6, z: 0 };
   gsap.to(camera.position, {
@@ -1061,16 +1072,15 @@ function stepBackFromTV() {
     onComplete: () => {
       camera.lookAt(-10, 1.6, 0);
       if (controls?.target) controls.target.set(-10, 1.6, 0);
-      controls.lock();
     }
   });
 }
 
-stepbackBtn?.addEventListener('click', stepBackFromTV);
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && atTV) stepBackFromTV();
+stepbackBtn?.addEventListener('click', () => {
+  stepBackFromTV();
+  controls.lock();
 });
+
 
 document.getElementById('reset-btn').addEventListener('click', () => {
   exitTVMode();
