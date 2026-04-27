@@ -685,7 +685,7 @@ function buildNeonSign(scene, leftX, rightX, z) {
 export function createGlobeScreenInstallation(scene, camera) {
   const GLOBE_SCALE = 1.8;
 
-  const Z = -13.0;
+  const Z = -9.5;
 
   const screen = buildScreen();
   screen.position.set(3.5, 1.5, Z);
