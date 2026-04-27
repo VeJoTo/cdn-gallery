@@ -788,16 +788,24 @@ export function createUI(camera, renderer, controls, scene) {
   const globeVideosColumns    = document.getElementById('globe-videos-columns');
 
   let _onGlobeStart = null;
+  let _globeStarted = false;
 
   function openGlobeVideos(onStart) {
     _onGlobeStart = onStart || null;
-    globeVideosStartScreen.classList.remove('hidden');
-    globeVideosColumns.classList.add('hidden');
+    if (_globeStarted) {
+      globeVideosStartScreen.classList.add('hidden');
+      globeVideosColumns.classList.remove('hidden');
+      for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
+    } else {
+      globeVideosStartScreen.classList.remove('hidden');
+      globeVideosColumns.classList.add('hidden');
+    }
     globeVideosOverlay.classList.remove('hidden');
     unlockForOverlay();
   }
 
   globeVideosStartBtn.addEventListener('click', () => {
+    _globeStarted = true;
     globeVideosStartScreen.classList.add('hidden');
     globeVideosColumns.classList.remove('hidden');
     for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
