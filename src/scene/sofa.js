@@ -4,7 +4,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 
 export function createSofa(scene) {
   const group = new THREE.Group();
-  group.position.set(-8, 0, 0);
+  group.position.set(-5.5, 0, 0);
   group.rotation.y = Math.PI / 2;
 
   // Clickable — navigates to the 'seat-sofa' hotspot
