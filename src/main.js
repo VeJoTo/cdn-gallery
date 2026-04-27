@@ -496,7 +496,7 @@ tvVideoIframe.style.height = '720px';
 tvVideoIframe.style.borderRadius = '23px';
 tvVideoIframe.style.border = 'none';
 
-const tvScale = 1.92 / 1280;
+const tvScale = (1.92 * 1.5) / 1280;
 const tvCSS3D = new CSS3DObject(tvVideoIframe);
 tvCSS3D.scale.set(tvScale, tvScale, tvScale);
 cssScene.add(tvCSS3D);
@@ -591,8 +591,8 @@ window.__holoPageNext = () => {
 
 
 // Info panel — CSS3DObject so it is physically anchored to the wall next to the TV.
-// Scale: 1200 px → 1.21 world units (matches TV frame height as reference).
-const _panelScale = 1.21 / 1200;
+// Scale: 1200 px → 1.815 world units (TV frame height at 1.5× scale).
+const _panelScale = (1.21 * 1.5) / 1200;
 const holoPanelCSS3D = new CSS3DObject(hologramDiv);
 holoPanelCSS3D.scale.setScalar(_panelScale);
 cssScene.add(holoPanelCSS3D);
@@ -692,7 +692,7 @@ const screenMesh = tv.userData.screenMesh;
 // World-space half-widths of each panel at panelScale = 1.21/1200
 const _infoHalfW     = 800 * _panelScale / 2;  // ≈ 0.403 units
 const _playlistHalfW = 680 * _panelScale / 2;   // ≈ 0.343 units
-const _tvHalfW = 1.025; // TV edge to centre in world Z
+const _tvHalfW = 1.025 * 1.5; // TV edge to centre in world Z (1.5× scale)
 const _panelGap = 0.04; // gap between TV edge and panel edge (world units)
 addUpdateCallback(() => {
   screenMesh.getWorldPosition(_cssPos);
@@ -728,7 +728,7 @@ function _markPlaying() {
     magIframe.src = buildVideoSrc(aiArtVideos[currentVideoIndex], 1, t, true); // magnifier always muted
   }
   // Hints: info after 5 s of playback, magnifier after 10 s (ULDN videos only)
-  gsap.delayedCall(5, () => {
+  gsap.delayedCall(2, () => {
     if (isPlaying && atTV && hologramDiv.style.opacity === '0') _startInfoHint();
   });
   gsap.delayedCall(10, () => {
@@ -804,10 +804,8 @@ window.__prevVideo = () => loadVideo(currentVideoIndex - 1);
 window.__showInfo = () => {
   _stopInfoHint();
   if (hologramDiv.style.opacity !== '0') { hideHologram(); return; }
+  _infoEverUsed = true;
   showHologram();
-  tvCommand('pauseVideo', 'pause');
-  _markPaused();
-  holoPlayPauseBtn?.userData.updateIcon('▶');
 };
 
 window.__toggleTV = () => {
@@ -866,31 +864,9 @@ magDiv.appendChild(magIframe);
 let magActive   = false;
 let _tvRect     = null; // {left,top,width,height} of TV screen in screen px
 
-// Project the TV screen mesh corners to 2D screen coordinates
+// Get the screen rect of the CSS3D video overlay — exact match to where the video renders.
 function getTVScreenRect() {
-  const sm = tv.userData.screenMesh;
-  sm.geometry.computeBoundingBox();
-  const b = sm.geometry.boundingBox;
-  const corners = [
-    new THREE.Vector3(b.min.x, b.min.y, 0),
-    new THREE.Vector3(b.max.x, b.min.y, 0),
-    new THREE.Vector3(b.max.x, b.max.y, 0),
-    new THREE.Vector3(b.min.x, b.max.y, 0),
-  ].map(v => {
-    v.applyMatrix4(sm.matrixWorld);
-    v.project(camera);
-    return {
-      x: (v.x + 1) / 2 * window.innerWidth,
-      y: (-v.y + 1) / 2 * window.innerHeight,
-    };
-  });
-  const xs = corners.map(p => p.x), ys = corners.map(p => p.y);
-  return {
-    left:   Math.min(...xs),
-    top:    Math.min(...ys),
-    width:  Math.max(...xs) - Math.min(...xs),
-    height: Math.max(...ys) - Math.min(...ys),
-  };
+  return tvOverlayDiv.getBoundingClientRect();
 }
 
 function _positionMagIframe(mx, my) {
@@ -921,6 +897,7 @@ document.addEventListener('mousemove', (e) => {
 window.__toggleMagnifier = () => {
   _stopMagHint();
   magActive = !magActive;
+  if (magActive) _magEverUsed = true;
   holoMagBtn?.userData.setActive(magActive);
   if (magActive) {
     _tvRect = getTVScreenRect();
@@ -1013,25 +990,28 @@ tvBackBtn.addEventListener('click', () => {
 });
 
 // Shared helper — pulse scale + glow on a holo button then restore
-function _pulseHoloBtn(btn, onDone) {
+// opts: { scalePeak, emissivePeak } for per-button intensity tuning
+function _pulseHoloBtn(btn, onDone, opts = {}) {
   if (!btn) return null;
+  const scalePeak    = opts.scalePeak    ?? 1.07;
+  const emissivePeak = opts.emissivePeak ?? 0.55;
   const meshes = [];
   btn.traverse(c => { if (c.isMesh && c.material?.emissive) meshes.push(c); });
   const tl = gsap.timeline({
     repeat: 2, repeatDelay: 0.3,
     onComplete: () => { if (onDone) onDone(); },
   });
-  tl.to(btn.scale, { x: 1.15, y: 1.15, z: 1.15, duration: 0.25, ease: 'power2.out' }, 0)
-    .to(btn.scale, { x: 1.0,  y: 1.0,  z: 1.0,  duration: 0.35, ease: 'power2.in'  }, 0.25);
+  tl.to(btn.scale, { x: scalePeak, y: scalePeak, z: scalePeak, duration: 0.6, ease: 'power2.out' }, 0)
+    .to(btn.scale, { x: 1.0,       y: 1.0,       z: 1.0,       duration: 0.8, ease: 'power2.in'  }, 0.6);
   const proxy = { i: 0.25 };
   tl.to(proxy, {
-    i: 1.0, duration: 0.25, ease: 'power2.out',
+    i: emissivePeak, duration: 0.6, ease: 'power2.out',
     onUpdate: () => meshes.forEach(m => { m.material.emissiveIntensity = proxy.i; }),
   }, 0)
   .to(proxy, {
-    i: 0.25, duration: 0.35, ease: 'power2.in',
+    i: 0.25, duration: 0.8, ease: 'power2.in',
     onUpdate: () => meshes.forEach(m => { m.material.emissiveIntensity = proxy.i; }),
-  }, 0.25);
+  }, 0.6);
   return tl;
 }
 
@@ -1046,11 +1026,13 @@ function _restoreBtn(btn) {
 
 let _infoHintTween = null;
 let _magHintTween  = null;
+let _infoEverUsed  = false;
+let _magEverUsed   = false;
 
 function _startInfoHint() {
-  if (!holoInfoBtn || holoInfoBtn.userData.isActive) return;
+  if (!holoInfoBtn || holoInfoBtn.userData.isActive || _infoEverUsed) return;
   if (_infoHintTween) _infoHintTween.kill();
-  _infoHintTween = _pulseHoloBtn(holoInfoBtn);
+  _infoHintTween = _pulseHoloBtn(holoInfoBtn, null, { emissivePeak: 0.75 });
 }
 function _stopInfoHint() {
   if (_infoHintTween) { _infoHintTween.kill(); _infoHintTween = null; }
@@ -1058,10 +1040,10 @@ function _stopInfoHint() {
 }
 
 function _startMagHint() {
-  if (!holoMagBtn || holoMagBtn.userData.isActive) return;
+  if (!holoMagBtn || holoMagBtn.userData.isActive || _magEverUsed) return;
   if (!aiArtVideos[currentVideoIndex]?.uldn) return;
   if (_magHintTween) _magHintTween.kill();
-  _magHintTween = _pulseHoloBtn(holoMagBtn);
+  _magHintTween = _pulseHoloBtn(holoMagBtn, null, { scalePeak: 1.12, emissivePeak: 0.9 });
 }
 function _stopMagHint() {
   if (_magHintTween) { _magHintTween.kill(); _magHintTween = null; }

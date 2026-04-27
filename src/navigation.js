@@ -13,7 +13,7 @@ export const HOTSPOTS = {
   pedestal:       { position: { x: -2.0, y: 1.4, z: 1.6  }, target: { x: -2.8, y: 1.2, z: 2.6  }, label: 'Magic Tome' },
   'holo-sphere':  { position: { x: 0,    y: 1.7, z: 2.5  }, target: { x: 0,    y: 1.8, z: 0    }, label: 'Floating Motifs' },
   'rabbit-hole':  { position: { x: -0.2, y: 1.2, z: -1.5 }, target: { x: -0.8, y: 0.2, z: -2.4 }, label: 'Rabbit Hole' },
-  tv:                 { position: { x: -9.3, y: 2.75, z: 0   }, target: { x: -10.814, y: 2.75, z: 0 }, label: 'TV', duration: 1.1 },
+  tv:                 { position: { x: -8.5, y: 2.05, z: 0   }, target: { x: -10.75, y: 2.05, z: 0 }, label: 'TV', duration: 1.1 },
   'poster-0':         { position: { x: -2.5, y: 2.0, z: -1.5 }, target: { x: -2.5, y: 2.0,  z: -2.90 }, label: 'Galaga' },
   'poster-1':         { position: { x: -1.4, y: 2.0, z: -1.5 }, target: { x: -1.4, y: 2.0,  z: -2.90 }, label: 'Pac-Man' },
   'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
@@ -29,7 +29,7 @@ export const HOTSPOTS = {
   'seat-chair':         { position: { x: 1.8, y: 1.6, z: -2.3 }, target: { x: 1.8, y: 1.3, z: -3.0 }, label: 'Seated at desk' },
   'seat-bench':         { position: { x: 21.9, y: 0.65, z: 1.5 }, target: { x: 20, y: 1.0, z: 0 }, label: 'Enjoying the garden...' },
   screen:               { position: { x: 3.5,  y: 1.6,  z: -10.5 }, target: { x: 3.5, y: 1.5, z: -13.0 }, label: 'Screen' },
-  'seat-sofa':          { position: { x: -8.0, y: 1.1,  z: 0   }, target: { x: -10.9, y: 2.2, z: 0 }, label: 'Sitting on sofa', duration: 0.8 }
+  'seat-sofa':          { position: { x: -8.0, y: 1.1,  z: 0   }, target: { x: -10.9, y: 1.9, z: 0 }, label: 'Sitting on sofa', duration: 0.8 }
 };
 
 export function createNavigationState() {

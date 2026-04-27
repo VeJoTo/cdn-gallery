@@ -263,7 +263,7 @@ function roundedRectShape(w, h, r) {
 
 export function buildTV() {
   const group = new THREE.Group();
-  group.position.set(-10.95, 2.65, 0);
+  group.position.set(-10.95, 1.9, 0);
   group.rotation.y = Math.PI / 2;
 
   const R = 0.06;
@@ -410,6 +410,8 @@ export function buildTV() {
   tvSpot.shadow.camera.far  = 5;
   tvSpot.shadow.bias = -0.001;
   group.add(tvSpot);
+
+  group.scale.set(1.5, 1.5, 1.5);
 
   group.userData = {
     clickable: true,
