@@ -9,7 +9,7 @@ export function createSofa(scene) {
 
   // Clickable — navigates to the 'seat-sofa' hotspot
   group.userData.clickable = true;
-  group.userData.hotspot   = 'seat-sofa';
+  group.userData.hotspot   = 'tv';
 
   // ── Materials — medium slate gray, clearly lighter than the room ──────────
   const frameMat = new THREE.MeshPhysicalMaterial({

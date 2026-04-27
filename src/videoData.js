@@ -1,4 +1,4 @@
-const algoMutatingMoreInfo = `These works, including Machine City and Mechanical Treehouse, explore how AI can redefine digital writing. Through the ULDN process, artists Dr. Jason Nelson and Dr. Alinta Krauth create immersive, interactive worlds where organic creatures and fantastic machines collide with emerging story fragments.\n\nMoving far beyond simple "prompt and generate" methods, their process involves stitching together hundreds of individual image fragments into complex visual concepts. The result is a unique fusion of AI's painterly possibilities and intricate digital storytelling.`;
+const algoMutatingMoreInfo = `These works explore AI as a medium for new forms of digital writing — a process the artists call Ultra Large Digital Narratives (ULDN). The resulting animated, interactive worlds weave together organic creatures and fantastic machines, with fragments of story emerging across the visual display.\n\nDr. Jason Nelson and Dr. Alinta Krauth (Center for Digital Narrative / EphemerLab) move well beyond simple "prompt and generate" methods: each piece is built from hundreds of individual image fragments, stitched into layered visual and narrative concepts that exploit AI's painterly and anticipatory possibilities.`;
 
 export const aiArtVideos = [
   {
@@ -7,6 +7,7 @@ export const aiArtVideos = [
     artist: 'Jason Nelson & Alinta Krauth',
     description: 'This video is part of the Ultra Large Digital Narrative Series, showcasing the fascinating world of AlgoMutating Digital Creatures',
     moreInfo: algoMutatingMoreInfo,
+    uldn: true,
   },
   {
     id: 'pGXdy8JAFew',
@@ -14,6 +15,7 @@ export const aiArtVideos = [
     artist: 'Jason Nelson & Alinta Krauth',
     description: 'This video is part of the Ultra Large Digital Narrative Series, featuring the intriguing world of AlgoMutating Digital Creatures',
     moreInfo: algoMutatingMoreInfo,
+    uldn: true,
   },
   {
     id: 'NKKS769trzA',
@@ -21,6 +23,7 @@ export const aiArtVideos = [
     artist: 'Jason Nelson & Alinta Krauth',
     description: 'This video is part of the Ultra Large Digital Narrative Series, showcasing the fascinating world of AlgoMutating Digital Creatures.',
     moreInfo: algoMutatingMoreInfo,
+    uldn: true,
   },
   {
     id: '8vYwobYn0yc',
@@ -28,6 +31,7 @@ export const aiArtVideos = [
     artist: 'Jason Nelson & Alinta Krauth',
     description: 'This video is part of the Ultra Large Digital Narrative Series, featuring the intriguing world of AlgoMutating Digital Creatures.',
     moreInfo: algoMutatingMoreInfo,
+    uldn: true,
   },
   {
     id: 'AA0XkX6sTKI',
@@ -35,6 +39,7 @@ export const aiArtVideos = [
     artist: 'Jason Nelson & Alinta Krauth',
     description: 'This video is part of the Ultra Large Digital Narrative Series, showcasing the fascinating world of AlgoMutating Digital Creatures.',
     moreInfo: algoMutatingMoreInfo,
+    uldn: true,
   },
   {
     id: 'UmQG7r9tYTI',
@@ -42,6 +47,7 @@ export const aiArtVideos = [
     artist: 'Jason Nelson & Alinta Krauth',
     description: 'An AI-collaborative digital artwork exploring the intersection of machine creativity and organic structure.',
     moreInfo: algoMutatingMoreInfo,
+    uldn: true,
   },
   {
     id: '1139698598',
