@@ -1771,25 +1771,52 @@ body:has(
   flex: 7;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-auto-rows: 160px;
   gap: 10px;
-  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+  align-content: start;
+}
+
+#globe-videos-grid::-webkit-scrollbar {
+  width: 4px;
+}
+#globe-videos-grid::-webkit-scrollbar-track {
+  background: rgba(0,212,255,0.05);
+}
+#globe-videos-grid::-webkit-scrollbar-thumb {
+  background: rgba(0,212,255,0.3);
+  border-radius: 2px;
 }
 
 .globe-video-cell {
   background: #081629;
   border: 1px solid rgba(27,122,184,0.35);
   border-radius: 6px;
-  overflow: visible;
+  overflow: hidden;
   position: relative;
-  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .globe-video-cell iframe {
   width: 100%;
-  height: 100%;
+  flex: 1;
   display: block;
   border: none;
+  min-height: 0;
+}
+
+.globe-video-broadcast-label {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(0,212,255,0.6);
+  padding: 4px 0;
+  flex-shrink: 0;
 }
 
 .globe-video-placeholder {
