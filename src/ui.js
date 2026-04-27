@@ -452,7 +452,9 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function closeInventory() {
+    const wasOpen = !inventoryOverlay.classList.contains('hidden');
     inventoryOverlay.classList.add('hidden');
+    if (!wasOpen) return;
     window.__hideFPOverlay?.();
     window.__relockControls?.();
   }
@@ -701,9 +703,11 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function closeBook() {
+    const wasOpen = !bookOverlay.classList.contains('hidden');
     clearBookParticles();
     bookOverlay.classList.add('hidden');
     relockAfterOverlay();
+    if (!wasOpen) return; // book wasn't open — skip relock/fallback
     window.__relockControls?.();
     // Fallback: if the browser rejected the pointer-lock request, show the
     // re-engage overlay so the user isn't left with a frozen cursor.
@@ -875,6 +879,7 @@ export function createUI(camera, renderer, controls, scene) {
   // ── Global keyboard shortcuts ────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (window.__isAtTV?.()) return; // TV handles its own ESC — don't trigger relock
       closePanelDrawer();
       closeGatekeeperChat();
       closeInventory();
