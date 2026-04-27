@@ -782,7 +782,7 @@ export function createUI(camera, renderer, controls, scene) {
   // ── Globe videos overlay ─────────────────────────
   const globeVideosOverlay    = document.getElementById('globe-videos-overlay');
   const globeVideosClose      = document.getElementById('globe-videos-close');
-  const globeVideoIframes     = [1, 2, 3, 4].map(n => document.getElementById(`globe-video-${n}`));
+  const globeVideoIframes     = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => document.getElementById(`globe-video-${n}`));
   const globeVideosStartScreen = document.getElementById('globe-videos-start-screen');
   const globeVideosStartBtn   = document.getElementById('globe-videos-start-btn');
   const globeVideosColumns    = document.getElementById('globe-videos-columns');
