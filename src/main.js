@@ -727,6 +727,13 @@ function _markPlaying() {
     const t = approxCurrentTime();
     magIframe.src = buildVideoSrc(aiArtVideos[currentVideoIndex], 1, t, true); // magnifier always muted
   }
+  // Hints: info after 5 s of playback, magnifier after 10 s (ULDN videos only)
+  gsap.delayedCall(5, () => {
+    if (isPlaying && atTV && hologramDiv.style.opacity === '0') _startInfoHint();
+  });
+  gsap.delayedCall(10, () => {
+    if (isPlaying && atTV && !magActive) _startMagHint();
+  });
 }
 function _markPaused() {
   _playOffset = approxCurrentTime();
@@ -795,6 +802,7 @@ window.__toggleSound = () => {
 window.__prevVideo = () => loadVideo(currentVideoIndex - 1);
 
 window.__showInfo = () => {
+  _stopInfoHint();
   if (hologramDiv.style.opacity !== '0') { hideHologram(); return; }
   showHologram();
   tvCommand('pauseVideo', 'pause');
@@ -807,9 +815,6 @@ window.__toggleTV = () => {
     tvCommand('pauseVideo', 'pause');
     _markPaused();
     holoPlayPauseBtn?.userData.updateIcon('▶');
-  } else if (_playOffset === 0 && hologramDiv.style.opacity === '0') {
-    // Video hasn't started and panel is hidden — show panel first
-    showHologram();
   } else {
     tvCommand('playVideo', 'play');
     _markPlaying();
@@ -914,6 +919,7 @@ document.addEventListener('mousemove', (e) => {
 });
 
 window.__toggleMagnifier = () => {
+  _stopMagHint();
   magActive = !magActive;
   holoMagBtn?.userData.setActive(magActive);
   if (magActive) {
@@ -1006,6 +1012,62 @@ tvBackBtn.addEventListener('click', () => {
   controls.lock();
 });
 
+// Shared helper — pulse scale + glow on a holo button then restore
+function _pulseHoloBtn(btn, onDone) {
+  if (!btn) return null;
+  const meshes = [];
+  btn.traverse(c => { if (c.isMesh && c.material?.emissive) meshes.push(c); });
+  const tl = gsap.timeline({
+    repeat: 2, repeatDelay: 0.3,
+    onComplete: () => { if (onDone) onDone(); },
+  });
+  tl.to(btn.scale, { x: 1.15, y: 1.15, z: 1.15, duration: 0.25, ease: 'power2.out' }, 0)
+    .to(btn.scale, { x: 1.0,  y: 1.0,  z: 1.0,  duration: 0.35, ease: 'power2.in'  }, 0.25);
+  const proxy = { i: 0.25 };
+  tl.to(proxy, {
+    i: 1.0, duration: 0.25, ease: 'power2.out',
+    onUpdate: () => meshes.forEach(m => { m.material.emissiveIntensity = proxy.i; }),
+  }, 0)
+  .to(proxy, {
+    i: 0.25, duration: 0.35, ease: 'power2.in',
+    onUpdate: () => meshes.forEach(m => { m.material.emissiveIntensity = proxy.i; }),
+  }, 0.25);
+  return tl;
+}
+
+function _restoreBtn(btn) {
+  if (!btn) return;
+  btn.scale.setScalar(1.0);
+  btn.traverse(c => {
+    if (c.isMesh && c.material?.emissive)
+      c.material.emissiveIntensity = btn.userData.isActive ? 1.1 : 0.25;
+  });
+}
+
+let _infoHintTween = null;
+let _magHintTween  = null;
+
+function _startInfoHint() {
+  if (!holoInfoBtn || holoInfoBtn.userData.isActive) return;
+  if (_infoHintTween) _infoHintTween.kill();
+  _infoHintTween = _pulseHoloBtn(holoInfoBtn);
+}
+function _stopInfoHint() {
+  if (_infoHintTween) { _infoHintTween.kill(); _infoHintTween = null; }
+  _restoreBtn(holoInfoBtn);
+}
+
+function _startMagHint() {
+  if (!holoMagBtn || holoMagBtn.userData.isActive) return;
+  if (!aiArtVideos[currentVideoIndex]?.uldn) return;
+  if (_magHintTween) _magHintTween.kill();
+  _magHintTween = _pulseHoloBtn(holoMagBtn);
+}
+function _stopMagHint() {
+  if (_magHintTween) { _magHintTween.kill(); _magHintTween = null; }
+  _restoreBtn(holoMagBtn);
+}
+
 function enterTVMode() {
   _cancelRelockOnKey();
   _freeCursorAfterTV = false;
@@ -1019,6 +1081,8 @@ function enterTVMode() {
 
 function exitTVMode() {
   atTV = false;
+  _stopInfoHint();
+  _stopMagHint();
   crosshair.classList.remove('hidden');
   tvBackBtn.style.display = 'none';
   if (tvHovered) { clearHoverGlow(tvHovered); tvHovered = null; }
