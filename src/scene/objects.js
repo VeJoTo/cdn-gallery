@@ -568,8 +568,8 @@ export function createObjects(scene) {
 
   const tv = buildTV();
 
-  // Futuristic sofa in front of the TV wall
-  createSofa(scene);
+  // Sofa in front of the TV wall — clickable to sit down
+  const sofa = createSofa(scene);
 
   // Magical book pedestal — positioned at (-2.8, 0, 2.6), nav hotspot 'pedestal'
   const pedestal = buildPedestal();
@@ -604,6 +604,6 @@ export function createObjects(scene) {
     pedestal,
     tv,
     sceneUpdate,
-    extras: [pedestal, holoSphere, portal, tv]
+    extras: [pedestal, holoSphere, portal, tv, sofa]
   };
 }

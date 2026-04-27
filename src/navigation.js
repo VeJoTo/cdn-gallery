@@ -25,7 +25,8 @@ export const HOTSPOTS = {
   'seat-beanbag-left':  { position: { x: -0.8, y: 0.5, z: 1.2 }, target: { x: 0, y: 0.5, z: 0.5 }, label: 'Relaxing...' },
   'seat-beanbag-right': { position: { x: 0.8, y: 0.5, z: 1.2 }, target: { x: 0, y: 0.5, z: 0.5 }, label: 'Relaxing...' },
   'seat-chair':         { position: { x: 1.8, y: 1.6, z: -2.3 }, target: { x: 1.8, y: 1.3, z: -3.0 }, label: 'Seated at desk' },
-  'seat-bench':         { position: { x: 21.9, y: 0.65, z: 1.5 }, target: { x: 20, y: 1.0, z: 0 }, label: 'Enjoying the garden...' }
+  'seat-bench':         { position: { x: 21.9, y: 0.65, z: 1.5 }, target: { x: 20, y: 1.0, z: 0 }, label: 'Enjoying the garden...' },
+  'seat-sofa':          { position: { x: -8.0, y: 1.1,  z: 0   }, target: { x: -10.9, y: 2.2, z: 0 }, label: 'Sitting on sofa', duration: 0.8 }
 };
 
 export function createNavigationState() {
