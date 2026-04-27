@@ -50,3 +50,83 @@ describe('Gatekeeper answer()', () => {
     expect(answer('CDN')).toEqual(answer('cdn'));
   });
 });
+
+import { INTRO_SCRIPT, INTRO_FLAG_KEY, hasSeenIntro, markIntroSeen } from '../ui.js';
+
+describe('Intro script', () => {
+  it('has exactly four bubbles', () => {
+    expect(INTRO_SCRIPT.length).toBe(4);
+  });
+
+  it('opens with "Welcome kids!"', () => {
+    expect(INTRO_SCRIPT[0].text).toMatch(/^Welcome kids!/);
+  });
+
+  it('names CDN + UiB in bubble 2', () => {
+    expect(INTRO_SCRIPT[1].text).toMatch(/Centre for Digital Narrative/);
+    expect(INTRO_SCRIPT[1].text).toMatch(/University of Bergen/);
+  });
+
+  it('bubble 4 carries inline strong markup for the key names', () => {
+    const b4 = INTRO_SCRIPT[3];
+    expect(b4.html).toBe(true);
+    expect(b4.text).toContain('<strong>WASD</strong>');
+    expect(b4.text).toContain('<strong>mouse</strong>');
+    expect(b4.text).toContain('<strong>G</strong>');
+  });
+
+  it('only bubble 4 uses html markup', () => {
+    for (let i = 0; i < 3; i++) {
+      expect(INTRO_SCRIPT[i].html).toBeFalsy();
+    }
+  });
+});
+
+describe('Intro flag helpers', () => {
+  it('exports a stable key namespace for the flag', () => {
+    expect(INTRO_FLAG_KEY).toBe('cdn-gallery:intro-seen');
+  });
+
+  it('hasSeenIntro reads the flag from the provided storage', () => {
+    const store = { [INTRO_FLAG_KEY]: '1' };
+    const storage = {
+      getItem: (k) => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = v; }
+    };
+    expect(hasSeenIntro(storage)).toBe(true);
+  });
+
+  it('hasSeenIntro returns false when the flag is absent', () => {
+    const storage = {
+      getItem: () => null,
+      setItem: () => {}
+    };
+    expect(hasSeenIntro(storage)).toBe(false);
+  });
+
+  it('hasSeenIntro returns false if storage throws (private mode, etc.)', () => {
+    const storage = {
+      getItem: () => { throw new Error('no storage'); },
+      setItem: () => {}
+    };
+    expect(hasSeenIntro(storage)).toBe(false);
+  });
+
+  it('markIntroSeen writes "1" to the flag', () => {
+    const store = {};
+    const storage = {
+      getItem: (k) => store[k] ?? null,
+      setItem: (k, v) => { store[k] = v; }
+    };
+    markIntroSeen(storage);
+    expect(store[INTRO_FLAG_KEY]).toBe('1');
+  });
+
+  it('markIntroSeen swallows errors from storage', () => {
+    const storage = {
+      getItem: () => null,
+      setItem: () => { throw new Error('quota'); }
+    };
+    expect(() => markIntroSeen(storage)).not.toThrow();
+  });
+});

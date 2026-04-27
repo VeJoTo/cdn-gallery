@@ -13,11 +13,13 @@ export const HOTSPOTS = {
   pedestal:       { position: { x: -2.0, y: 1.4, z: 1.6  }, target: { x: -2.8, y: 1.2, z: 2.6  }, label: 'Magic Tome' },
   'holo-sphere':  { position: { x: 0,    y: 1.7, z: 2.5  }, target: { x: 0,    y: 1.8, z: 0    }, label: 'Floating Motifs' },
   'rabbit-hole':  { position: { x: -0.2, y: 1.2, z: -1.5 }, target: { x: -0.8, y: 0.2, z: -2.4 }, label: 'Rabbit Hole' },
-  tv:                 { position: { x: -9.2, y: 2.75, z: 0   }, target: { x: -10.814, y: 2.75, z: 0 }, label: 'TV', duration: 1.1 },
+  tv:                 { position: { x: -9.3, y: 2.75, z: 0   }, target: { x: -10.814, y: 2.75, z: 0 }, label: 'TV', duration: 1.1 },
   'poster-0':         { position: { x: -2.5, y: 2.0, z: -1.5 }, target: { x: -2.5, y: 2.0,  z: -2.90 }, label: 'Galaga' },
   'poster-1':         { position: { x: -1.4, y: 2.0, z: -1.5 }, target: { x: -1.4, y: 2.0,  z: -2.90 }, label: 'Pac-Man' },
   'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
   'poster-ai-cinema': { position: { x: 2.0,  y: 1.5, z: 2.2  }, target: { x: 3.42, y: 1.5,  z: 2.2   }, label: 'AI Cinema' },
+  'book-cover-zoom':  { position: { x: -2.55, y: 1.34, z: 2.3 }, target: { x: -2.8, y: 1.3,  z: 2.6   }, label: 'Book Cover', duration: 0.5 },
+  'kultur-kartet':    { position: { x: -8.0, y: 1.9, z: 5.3  }, target: { x: -10.9, y: 2.0, z: 5.3  }, label: 'Kultur-kartet' },
   exit:               { position: { x: 0,    y: 2,   z: 5    }, target: { x: 0,    y: 1,    z: 3     }, label: 'Exit' },
   table:          { position: { x: 0.5,  y: 1.2, z: -0.2 }, target: { x: 0,    y: 0.5, z: 0.5 }, label: 'Table' },
   'desk-left-monitor':  { position: { x: 1.0, y: 1.4, z: -1.8 }, target: { x: 1.25, y: 1.18, z: -3.0 }, label: 'Left Monitor' },
@@ -26,6 +28,7 @@ export const HOTSPOTS = {
   'seat-beanbag-right': { position: { x: 0.8, y: 0.5, z: 1.2 }, target: { x: 0, y: 0.5, z: 0.5 }, label: 'Relaxing...' },
   'seat-chair':         { position: { x: 1.8, y: 1.6, z: -2.3 }, target: { x: 1.8, y: 1.3, z: -3.0 }, label: 'Seated at desk' },
   'seat-bench':         { position: { x: 21.9, y: 0.65, z: 1.5 }, target: { x: 20, y: 1.0, z: 0 }, label: 'Enjoying the garden...' },
+  screen:               { position: { x: 3.5,  y: 1.6,  z: -10.5 }, target: { x: 3.5, y: 1.5, z: -13.0 }, label: 'Screen' },
   'seat-sofa':          { position: { x: -8.0, y: 1.1,  z: 0   }, target: { x: -10.9, y: 2.2, z: 0 }, label: 'Sitting on sofa', duration: 0.8 }
 };
 
@@ -44,6 +47,10 @@ export function createNavigationState() {
       return true;
     },
     endTransition() {
+      transitioning = false;
+    },
+    resetTo(id) {
+      current = id;
       transitioning = false;
     }
   };
@@ -72,8 +79,9 @@ export function createNavigationSystem(camera, state, ui, controls) {
     const h = HOTSPOTS[id];
     if (!h) { state.endTransition(); return; }
 
-    // Kill any running tween
+    // Kill any running tween (including any TV step-back tween)
     if (activeTween) activeTween.kill();
+    window.__cancelStepBack?.();
 
     // Save current position so user can return
     if (!savedPosition) {
@@ -161,16 +169,26 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     // Capture whether we're already at this hotspot before nav changes state
     const alreadyAtHotspot = hotspot && navState.current === hotspot && navState.canNavigate();
 
-    // Zoom in if there's a hotspot
-    if (hotspot) nav.goTo(hotspot);
+    // Book uses a 3-step click sequence; all other objects navigate normally
+    if (action === 'openBook') {
+      if (navState.current === 'book-cover-zoom' && navState.canNavigate()) {
+        // Step 3 — at cover zoom: start animation
+        if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
+        else ui.openBook();
+      } else if (alreadyAtHotspot) {
+        // Step 2 — at pedestal: zoom to front cover
+        nav.goTo('book-cover-zoom');
+      } else {
+        // Step 1 — navigate to pedestal
+        if (hotspot) nav.goTo(hotspot);
+      }
+    } else {
+      if (hotspot) nav.goTo(hotspot);
+    }
 
     // Fire actions directly
     if (action === 'openPanel')       ui.openPanelDrawer(panelId, panelTitle);
     if (action === 'openPoster')      ui.openPanelDrawer(panelId, panelTitle);
-    if (action === 'openBook' && alreadyAtHotspot) {
-      if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
-      else ui.openBook();
-    }
     if (action === 'enterRabbitHole') ui.openRabbitHole();
     if (action === 'openReport')      ui.openReport();
     if (action === 'openFinDuMonde')  ui.openFinDuMonde();

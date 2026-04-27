@@ -1,7 +1,40 @@
 // src/ui.js
+import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
+import { playIntro as runIntroDialogue } from './intro.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+export const INTRO_FLAG_KEY = 'cdn-gallery:intro-seen';
+
+export const INTRO_SCRIPT = [
+  { text: 'Welcome kids! 🪄' },
+  { text: "You've just stepped into the home of CDN — the Centre for Digital Narrative at the University of Bergen. Everything you see here is a visualization of the research happening at the centre." },
+  { text: "CDN studies how stories work in the digital age — games, AI that writes fiction, virtual worlds, interactive art. I'll be your guide through it." },
+  {
+    html: true,
+    text: 'Go ahead and look around: <strong>WASD</strong> to walk, <strong>mouse</strong> to look. Press <strong>E</strong> to open your inventory, and call me back any time with the <strong>G</strong> key. Off you pop!'
+  }
+];
+
+// Safe localStorage readers — browser private mode / quota issues never break the app.
+export function hasSeenIntro(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return false;
+  try {
+    return storage.getItem(INTRO_FLAG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markIntroSeen(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return;
+  try {
+    storage.setItem(INTRO_FLAG_KEY, '1');
+  } catch {
+    /* swallow — worst case the player sees the intro again, which is tolerable */
+  }
 }
 
 export const BOOK_PAGES = [
@@ -72,17 +105,17 @@ export function getPrevPageIndex(current) {
   return Math.max(current - 1, 0);
 }
 
-export function createUI(camera, renderer, controls) {
+export function createUI(camera, renderer, controls, scene) {
   // Helper: unlock pointer when opening overlays, re-lock when closing
   function unlockForOverlay() {
     // Free cursor — no pointer lock to manage
   }
   function relockAfterOverlay() {
-    // Hide step-back button and close panel drawer
     const sb = document.getElementById('stepback-btn');
     if (sb) sb.classList.add('hidden');
     panelDrawer.classList.remove('open');
     setTimeout(() => panelDrawer.classList.add('hidden'), 350);
+    try { controls.lock(); } catch { /* browser may refuse if no user gesture */ }
   }
   const breadcrumb       = document.getElementById('breadcrumb');
   const panelDrawer      = document.getElementById('panel-drawer');
@@ -259,12 +292,53 @@ export function createUI(camera, renderer, controls) {
   }
 
   chatClose.addEventListener('click', closeGatekeeperChat);
+
+  // ── Intro sequence (first-visit welcome; see docs/superpowers/specs/…) ──
+  let isIntroPlaying = false;
+
+  function renderIntroChips() {
+    chatChips.innerHTML = SUGGESTED_QUESTIONS.map(q =>
+      `<button class="chat-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`
+    ).join('');
+    chatChips.querySelectorAll('.chat-chip').forEach(chip => {
+      chip.addEventListener('click', () => sendChatMessage(chip.dataset.q));
+    });
+  }
+
+  async function playIntro() {
+    const chatHeaderName = document.getElementById('chat-header-name');
+    const originalName = chatHeaderName?.textContent ?? 'The Guide';
+
+    chatMessages.innerHTML = '';
+    chatChips.innerHTML = '';
+    isIntroPlaying = true;
+    gatekeeperChat.classList.add('intro-mode');
+    if (chatHeaderName) chatHeaderName.textContent = 'Jason';
+    gatekeeperChat.classList.remove('hidden');
+    requestAnimationFrame(() => gatekeeperChat.classList.add('open'));
+
+    await runIntroDialogue({ script: INTRO_SCRIPT });
+
+    // Fade out while still in intro-mode so the normal guide chat doesn't
+    // flash during the 300ms opacity transition. Reset after hidden.
+    isIntroPlaying = false;
+    gatekeeperChat.classList.remove('open');
+    setTimeout(() => {
+      gatekeeperChat.classList.add('hidden');
+      gatekeeperChat.classList.remove('intro-mode');
+      if (chatHeaderName) chatHeaderName.textContent = originalName;
+      renderIntroChips();
+    }, 300);
+  }
+
   chatSend.addEventListener('click', () => {
+    if (isIntroPlaying) return;
     sendChatMessage(chatInput.value);
     chatInput.value = '';
   });
   chatInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
+      if (isIntroPlaying) return;
       sendChatMessage(chatInput.value);
       chatInput.value = '';
     }
@@ -290,6 +364,18 @@ export function createUI(camera, renderer, controls) {
               <li>Visit the rabbit hole</li>
               <li>Talk to the Guide</li>
             </ul>
+          </div>
+          <div class="sticky-note settings-stickynote">
+            <h3>Settings</h3>
+            <label class="sky-toggle" aria-label="Toggle day or night sky">
+              <span class="sky-toggle-label">Sky</span>
+              <span class="sky-toggle-pill">
+                <span class="sky-toggle-icon sky-toggle-sun" aria-hidden="true">☀</span>
+                <input type="checkbox" class="sky-toggle-input" id="sky-mode-checkbox" />
+                <span class="sky-toggle-knob"></span>
+                <span class="sky-toggle-icon sky-toggle-moon" aria-hidden="true">🌙</span>
+              </span>
+            </label>
           </div>
           <div class="scrapbook-doodle" style="position:absolute;bottom:20px;right:20px;font-size:24px;transform:rotate(-8deg);opacity:0.5">✨</div>
         </div>
@@ -324,11 +410,53 @@ export function createUI(camera, renderer, controls) {
         </div>
       </div>
     `;
+    // Reflect current sky mode and wire the checkbox
+    const skyCheckbox = inventoryContent.querySelector('#sky-mode-checkbox');
+    if (skyCheckbox) {
+      skyCheckbox.checked = getSkyMode() === 'night';
+      skyCheckbox.addEventListener('change', () => {
+        const nextMode = skyCheckbox.checked ? 'night' : 'day';
+        setSkyMode(nextMode);
+        applySkyMode(scene, nextMode);
+      });
+    }
     inventoryOverlay.classList.remove('hidden');
   }
 
+  function isInventoryOpen() {
+    return !inventoryOverlay.classList.contains('hidden');
+  }
+
+  function isAnyOtherOverlayOpen() {
+    return (
+      !panelDrawer.classList.contains('hidden') ||
+      !gatekeeperChat.classList.contains('hidden') ||
+      !bookOverlay.classList.contains('hidden') ||
+      !rhOverlay.classList.contains('hidden') ||
+      !reportOverlay.classList.contains('hidden') ||
+      !fdmOverlay.classList.contains('hidden') ||
+      !globeVideosOverlay.classList.contains('hidden')
+    );
+  }
+
+  function toggleInventory() {
+    if (isInventoryOpen()) {
+      closeInventory();
+      return;
+    }
+    if (isAnyOtherOverlayOpen()) return;
+    // Release pointer lock before showing the overlay — same behavior the
+    // old Inventory button had (`controls.unlock(); openInventory();`).
+    controls.unlock();
+    openInventory();
+  }
+
   function closeInventory() {
+    const wasOpen = !inventoryOverlay.classList.contains('hidden');
     inventoryOverlay.classList.add('hidden');
+    if (!wasOpen) return;
+    window.__hideFPOverlay?.();
+    window.__relockControls?.();
   }
 
   inventoryClose.addEventListener('click', closeInventory);
@@ -575,11 +703,19 @@ export function createUI(camera, renderer, controls) {
   }
 
   function closeBook() {
+    const wasOpen = !bookOverlay.classList.contains('hidden');
     clearBookParticles();
     bookOverlay.classList.add('hidden');
-    window.__hideFPOverlay?.();
-    window.__relockControls?.();
     relockAfterOverlay();
+    if (!wasOpen) return; // book wasn't open — skip relock/fallback
+    window.__relockControls?.();
+    // Fallback: if the browser rejected the pointer-lock request, show the
+    // re-engage overlay so the user isn't left with a frozen cursor.
+    setTimeout(() => {
+      if (window.__isControlsLocked?.() === false) {
+        window.__showFPOverlay?.();
+      }
+    }, 300);
   }
 
   let isFlipping = false;
@@ -642,6 +778,40 @@ export function createUI(camera, renderer, controls) {
 
   reportClose.addEventListener('click', closeReport);
   reportOverlay.addEventListener('click', (e) => { if (e.target === reportOverlay) closeReport(); });
+
+  // ── Globe videos overlay ─────────────────────────
+  const globeVideosOverlay    = document.getElementById('globe-videos-overlay');
+  const globeVideosClose      = document.getElementById('globe-videos-close');
+  const globeVideoIframes     = [1, 2, 3, 4].map(n => document.getElementById(`globe-video-${n}`));
+  const globeVideosStartScreen = document.getElementById('globe-videos-start-screen');
+  const globeVideosStartBtn   = document.getElementById('globe-videos-start-btn');
+  const globeVideosColumns    = document.getElementById('globe-videos-columns');
+
+  let _onGlobeStart = null;
+
+  function openGlobeVideos(onStart) {
+    _onGlobeStart = onStart || null;
+    globeVideosStartScreen.classList.remove('hidden');
+    globeVideosColumns.classList.add('hidden');
+    globeVideosOverlay.classList.remove('hidden');
+    unlockForOverlay();
+  }
+
+  globeVideosStartBtn.addEventListener('click', () => {
+    globeVideosStartScreen.classList.add('hidden');
+    globeVideosColumns.classList.remove('hidden');
+    for (const iframe of globeVideoIframes) iframe.src = iframe.dataset.src;
+    if (_onGlobeStart) { _onGlobeStart(); _onGlobeStart = null; }
+  });
+
+  function closeGlobeVideos() {
+    for (const iframe of globeVideoIframes) iframe.src = '';
+    globeVideosOverlay.classList.add('hidden');
+    relockAfterOverlay();
+  }
+
+  globeVideosClose.addEventListener('click', closeGlobeVideos);
+  globeVideosOverlay.addEventListener('click', (e) => { if (e.target === globeVideosOverlay) closeGlobeVideos(); });
 
   // ── Fin du Monde overlay ────────────────────────
   const fdmOverlay = document.getElementById('findumonde-overlay');
@@ -706,9 +876,10 @@ export function createUI(camera, renderer, controls) {
   rhOverlay.addEventListener('scroll', checkRHSections);
   rhClimbBack.addEventListener('click', closeRabbitHole);
 
-  // ── Global Escape key ────────────────────────────
+  // ── Global keyboard shortcuts ────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (window.__isAtTV?.()) return; // TV handles its own ESC — don't trigger relock
       closePanelDrawer();
       closeGatekeeperChat();
       closeInventory();
@@ -716,6 +887,16 @@ export function createUI(camera, renderer, controls) {
       closeRabbitHole();
       closeReport();
       closeFinDuMonde();
+      closeGlobeVideos();
+      return;
+    }
+
+    // "E" toggles the inventory, but not while the user is typing.
+    if (e.key === 'e' || e.key === 'E') {
+      if (e.repeat) return;
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+      toggleInventory();
     }
   });
 
@@ -727,11 +908,15 @@ export function createUI(camera, renderer, controls) {
     updateHUD,
     openPanelDrawer,
     openGatekeeperChat,
+    playIntro,
     openInventory,
     openBook,
     openRabbitHole,
     openReport,
     openFinDuMonde,
-    updateHints
+    openGlobeVideos,
+    updateHints,
+    toggleInventory,
+    isInventoryOpen,
   };
 }

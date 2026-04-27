@@ -1,4 +1,11 @@
 /* styles/main.css */
+@font-face {
+  font-family: 'Octosquares';
+  src: url('/fonts/TT Octosquares Trial Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -27,6 +34,22 @@ body {
   cursor: pointer;
 }
 #fp-overlay.hidden { display: none; }
+
+/* Keep the "click to explore" prompt suppressed while any UI overlay is open —
+   the unlocked cursor is already being used to talk to the Guide, browse a
+   panel, etc., so the prompt would just overlay on top and look wrong. */
+body:has(
+  #gatekeeper-chat:not(.hidden),
+  #panel-drawer:not(.hidden),
+  #book-overlay:not(.hidden),
+  #inventory-overlay:not(.hidden),
+  #rabbit-hole-overlay:not(.hidden),
+  #report-overlay:not(.hidden),
+  #findumonde-overlay:not(.hidden),
+  #globe-videos-overlay:not(.hidden)
+) #fp-overlay {
+  display: none;
+}
 
 #fp-instructions {
   text-align: center;
@@ -274,51 +297,6 @@ body {
   background: rgba(0,212,255,0.35);
 }
 
-.toggle-switch {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  display: inline-block;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  inset: 0;
-  background: #1a2540;
-  border-radius: 24px;
-  cursor: pointer;
-  transition: background 0.3s;
-  border: 1px solid #00d4ff;
-}
-
-.toggle-slider::before {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  left: 2px;
-  bottom: 2px;
-  background: #00d4ff;
-  border-radius: 50%;
-  transition: transform 0.3s;
-}
-
-.toggle-switch input:checked + .toggle-slider {
-  background: #00d4ff;
-  border-color: #00d4ff;
-}
-
-.toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(20px);
-  background: #e0e8f0;
-}
-
 #tv-read-more {
   position: fixed;
   top: 62%;
@@ -343,55 +321,6 @@ body {
   box-shadow: 0 0 24px rgba(0, 212, 255, 0.55);
 }
 #tv-read-more.hidden { display: none; }
-
-#sound-toggle {
-  position: fixed;
-  top: 18px;
-  right: 210px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 40;
-}
-
-#sound-label {
-  color: #00d4ff;
-  font-size: 13px;
-  user-select: none;
-}
-
-
-#guide-btn {
-  position: fixed;
-  top: 16px;
-  right: 120px;
-  background: rgba(10,15,26,0.6);
-  border: 1px solid #00d4ff;
-  color: #00d4ff;
-  padding: 8px 18px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  letter-spacing: 0.05em;
-  transition: background 0.2s, color 0.2s;
-}
-#guide-btn:hover { background: #00d4ff; color: #0a0f1a; }
-
-#inventory-btn {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  background: rgba(10,15,26,0.6);
-  border: 1px solid #00d4ff;
-  color: #00d4ff;
-  padding: 8px 18px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  letter-spacing: 0.05em;
-  transition: background 0.2s, color 0.2s;
-}
-#inventory-btn:hover { background: #00d4ff; color: #0a0f1a; }
 
 /* ── Hotspot hints ──────────────────────────────── */
 #hotspot-hints { position: fixed; top: 0; left: 0; pointer-events: none; }
@@ -1317,6 +1246,7 @@ body {
   z-index: 50;
   display: flex;
   align-items: flex-end;
+  justify-content: center;
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
@@ -1328,15 +1258,19 @@ body {
 #gatekeeper-chat.hidden { display: none; }
 
 #guide-portrait {
-  width: 380px;
+  width: 420px;
   height: auto;
   max-height: 90vh;
   object-fit: contain;
   object-position: bottom;
   align-self: flex-end;
-  filter: drop-shadow(4px 0 20px rgba(0,212,255,0.4));
   flex-shrink: 0;
-  margin-left: 20px;
+  /* guide.png has ~23% transparent padding on its left edge and ~27% on its
+     right edge. Compensate with negative margins so flex centering aligns
+     Jason's visible silhouette, not the padded image box. */
+  margin-left: -97px;
+  margin-right: -100px;
+  margin-bottom: -50px;
 }
 
 #guide-dialog {
@@ -1704,6 +1638,178 @@ body {
   color: rgba(224,232,240,0.5);
 }
 
+/* ── Globe videos overlay ───────────────────────── */
+#globe-videos-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,15,26,0.96);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#globe-videos-overlay.hidden { display: none; }
+
+#globe-videos-start-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+#globe-videos-start-screen.hidden { display: none; }
+
+#globe-videos-start-title {
+  font-size: 48px;
+  color: #1b7ab8;
+  text-shadow: 0 0 20px rgba(27,122,184,0.8);
+  margin: 0;
+}
+
+#globe-videos-start-btn {
+  padding: 18px 64px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffffff;
+  background: rgba(10,20,38,0.88);
+  border: 2px solid #00d4ff;
+  border-radius: 40px;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(0,212,255,0.5), inset 0 0 12px rgba(0,212,255,0.1);
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+#globe-videos-start-btn:hover {
+  box-shadow: 0 0 40px rgba(0,212,255,0.85), inset 0 0 20px rgba(0,212,255,0.2);
+  transform: scale(1.03);
+}
+
+#globe-videos-start-hint {
+  font-size: 16px;
+  color: rgba(0,212,255,0.45);
+  margin: 0;
+}
+
+#globe-videos-columns.hidden { display: none; }
+
+#globe-videos-content {
+  position: relative;
+  width: min(1500px, 96vw);
+  height: min(820px, 90vh);
+  background: #0d1f33;
+  border: 1px solid #00d4ff;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 0 36px rgba(0,212,255,0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+#globe-videos-columns {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Left text panel ── */
+#globe-videos-text {
+  flex: 3;
+  padding-right: 24px;
+  display: flex;
+  flex-direction: column;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.08) 3px,
+    rgba(0,0,0,0.08) 4px
+  );
+}
+
+#globe-videos-title {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1b7ab8;
+  text-shadow: 0 0 14px #1b7ab8;
+  margin-bottom: 10px;
+}
+
+.globe-videos-divider {
+  height: 1px;
+  background: rgba(27,122,184,0.5);
+  margin-bottom: 16px;
+}
+
+.globe-videos-body {
+  font-size: 18px;
+  color: #b8d8e8;
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+.globe-videos-cta {
+  margin-top: auto;
+  font-size: 17px;
+  font-weight: bold;
+  color: #3dd6c0;
+  text-shadow: 0 0 8px rgba(61,214,192,0.6);
+  line-height: 1.5;
+}
+
+/* ── Column divider ── */
+.globe-videos-col-divider {
+  width: 1px;
+  background: rgba(0,212,255,0.2);
+  margin: 0 24px;
+  flex-shrink: 0;
+}
+
+/* ── Right video grid ── */
+#globe-videos-grid {
+  flex: 7;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+  min-height: 0;
+}
+
+.globe-video-cell {
+  background: #081629;
+  border: 1px solid rgba(27,122,184,0.35);
+  border-radius: 6px;
+  overflow: visible;
+  position: relative;
+  min-height: 0;
+}
+
+.globe-video-cell iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: none;
+}
+
+.globe-video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.globe-video-play {
+  font-size: 28px;
+  color: rgba(0,212,255,0.4);
+}
+
+.globe-video-label {
+  font-size: 13px;
+  color: rgba(184,216,232,0.4);
+}
+
 #report-hint {
   margin-top: 16px;
   font-size: 13px;
@@ -1723,4 +1829,131 @@ body {
 #fade-overlay.active {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* ── Settings sticky-note (inventory) ────────── */
+.settings-stickynote {
+  /* Inherits .sticky-note — this class just differentiates for future tweaks */
+  margin-top: 14px;
+}
+
+.settings-stickynote h3 {
+  margin: 0 0 10px 0;
+}
+
+/* ── Sky toggle (sun / moon pill) ────────────── */
+.sky-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sky-toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sky-toggle-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 62px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 14px;
+  background: #e6e6ea;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: background 0.25s ease;
+}
+
+.sky-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.sky-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, background 0.25s ease;
+  z-index: 1;
+}
+
+.sky-toggle-icon {
+  font-size: 14px;
+  line-height: 1;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.sky-toggle-sun { color: #f2b732; }
+.sky-toggle-moon { color: #6f7280; }
+
+/* Checked = night */
+.sky-toggle-input:checked ~ .sky-toggle-knob {
+  transform: translateX(32px);
+  background: #1d2033;
+}
+
+.sky-toggle-input:checked + .sky-toggle-knob + .sky-toggle-moon {
+  color: #e9e3c4;
+}
+
+.sky-toggle:has(.sky-toggle-input:checked) .sky-toggle-pill {
+  background: #2a2f44;
+}
+
+.sky-toggle:has(.sky-toggle-input:checked) .sky-toggle-sun {
+  color: #7a6d3a;
+}
+
+/* ── Intro-mode variant on #gatekeeper-chat ───────
+   During the first-spawn intro we hide the normal chat chrome (chips + input)
+   and show a small "Space / ESC" hint footer instead. */
+#chat-footer {
+  font-size: 11px;
+  color: rgba(0, 212, 255, 0.6);
+  letter-spacing: 0.05em;
+  text-align: right;
+  margin-top: 8px;
+}
+#gatekeeper-chat:not(.intro-mode) #chat-footer {
+  display: none;
+}
+#gatekeeper-chat.intro-mode #chat-chips,
+#gatekeeper-chat.intro-mode #chat-input-row {
+  display: none;
+}
+
+/* Intro dialogue is more cinematic — bigger box, more padding, larger body text */
+#gatekeeper-chat.intro-mode #guide-dialog {
+  max-width: 720px;
+  padding: 32px 36px;
+  margin: 0 0 40px 0;
+}
+#gatekeeper-chat.intro-mode #chat-header-name {
+  font-size: 20px;
+}
+#gatekeeper-chat.intro-mode #chat-messages {
+  font-size: 17px;
+  line-height: 1.55;
+  min-height: 96px;
+}
+#gatekeeper-chat.intro-mode #chat-messages .chat-msg,
+#gatekeeper-chat.intro-mode #chat-messages {
+  font-size: 17px;
 }
