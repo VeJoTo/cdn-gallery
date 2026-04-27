@@ -6,6 +6,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { createSofa } from "./sofa.js";
 
 function buildPortal() {
   const group = new THREE.Group();
@@ -1009,6 +1010,9 @@ export function createObjects(scene) {
 
   const tv = buildTV();
 
+  // Sofa in front of the TV wall — clickable to sit down
+  const sofa = createSofa(scene);
+
   // Magical book pedestal — positioned at (-2.8, 0, 2.6), nav hotspot 'pedestal'
   const pedestal = buildPedestal();
   scene.add(pedestal);
@@ -1042,6 +1046,6 @@ export function createObjects(scene) {
     pedestal,
     tv,
     sceneUpdate,
-    extras: [pedestal, holoSphere, portal, tv],
+    extras: [pedestal, holoSphere, portal, tv, sofa],
   };
 }
