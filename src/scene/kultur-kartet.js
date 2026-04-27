@@ -674,7 +674,7 @@ export function createKulturKartet(scene) {
     .catch(err => console.error('[kultur-kartet] map load failed:', err));
 
   // ── 3D layout – all panels on x = -10.9, rotation.y = π/2
-  const WALL_X = -10.9;
+  const WALL_X = -7.9;
   const PW = 1.65, PH = 2.0; // scene units (aspect matches 512×620)
 
   const mapMesh = new THREE.Mesh(

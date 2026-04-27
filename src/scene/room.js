@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 
 // Gallery dimensions — museum-hall scale, white cube.
-export const ROOM_WIDTH  = 22;  // X
-export const ROOM_DEPTH  = 30;  // Z
+export const ROOM_WIDTH  = 16;  // X
+export const ROOM_DEPTH  = 22;  // Z
 export const ROOM_HEIGHT = 7;   // Y
 
 export function createRoom(scene) {
