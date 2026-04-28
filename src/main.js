@@ -4,7 +4,7 @@ import { PointerLockControls } from 'three/addons/controls/PointerLockControls.j
 import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { aiArtVideos } from './videoData.js';
 import { createRoom, ROOM_WIDTH, ROOM_DEPTH } from './scene/room.js';
-import { createKulturKartet, handleKartetMapClick, handleKartetBtnClick, updateKartetHover, tickKartet } from './scene/kultur-kartet.js';
+import { createKulturKartet, handleKartetMapClick, handleKartetBtnClick, handleKartetTextClick, updateKartetHover, updateKartetBtnHover, updateKartetTextHover, tickKartet } from './scene/kultur-kartet.js';
 import { createObjects } from './scene/objects.js';
 import { createNatureRoom, NATURE_CENTER_X } from './scene/nature-room.js';
 import { createExteriorRoom } from './scene/exterior-room.js';
@@ -1330,6 +1330,17 @@ function updateHoverHighlight() {
     updateKartetHover(null);
   }
 
+  // UV-based hover for the Kultur-kartet text panel (Next story button)
+  if (hits.length && hits[0].object === kulturKartet.textMesh && hits[0].uv) {
+    updateKartetTextHover(hits[0].uv);
+  } else {
+    updateKartetTextHover(null);
+  }
+
+  // Button hover for the Kultur-kartet buttons
+  const btnHit = hitObj && hitObj.userData.action === 'kulturKartetBtn' ? hitObj : null;
+  updateKartetBtnHover(btnHit ? (btnHit.userData.btnIdx ?? -1) : -1);
+
   if (lastHovered && lastHovered !== hitObj) {
     clearHoverGlow(lastHovered);
     lastHovered = null;
@@ -1464,7 +1475,8 @@ document.addEventListener('mousedown', () => {
   if (action === 'openGlobeVideos')  ui.openGlobeVideos(() => globeScreen.start());
   if (action === 'selectCountry')    globeScreen.selectCountry(obj.userData.country);
   if (action === 'resetGlobeScreen') globeScreen.reset();
-  if (action === 'kulturKartetMap') { const hit = hits[0]; if (hit?.uv) handleKartetMapClick(hit.uv); }
+  if (action === 'kulturKartetMap')  { const hit = hits[0]; if (hit?.uv) handleKartetMapClick(hit.uv); }
+  if (action === 'kulturKartetText') { const hit = hits[0]; if (hit?.uv) handleKartetTextClick(hit.uv); }
   if (action === 'kulturKartetBtn') handleKartetBtnClick(obj.userData.btnMode);
   if (action === 'enterNatureRoom')  window.__transitionToRoom('nature');
   if (action === 'returnToAIRoom')   window.__transitionToRoom('ai');
