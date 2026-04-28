@@ -401,14 +401,8 @@ export function buildTV() {
   signMesh.raycast = () => {};
   group.add(signMesh);
 
-  // PointLight in front of TV — no target needed, casts shadows of buttons onto the body
   const tvSpot = new THREE.PointLight(0xffffff, 1.2, 5);
   tvSpot.position.set(0, 0.3, 2.5);
-  tvSpot.castShadow = true;
-  tvSpot.shadow.mapSize.set(1024, 1024);
-  tvSpot.shadow.camera.near = 0.1;
-  tvSpot.shadow.camera.far  = 5;
-  tvSpot.shadow.bias = -0.001;
   group.add(tvSpot);
 
   group.scale.set(1.5, 1.5, 1.5);

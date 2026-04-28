@@ -993,15 +993,6 @@ function buildHoloSphere() {
 }
 
 export function createObjects(scene) {
-  const centralPedestal = buildCentralPedestal();
-
-  const holoSphere = buildHoloSphere();
-  holoSphere.userData.clickable = true;
-  holoSphere.userData.hotspot = "holo-sphere";
-  holoSphere.userData.action = "openPanel";
-  holoSphere.userData.panelId = "floating-motifs";
-  holoSphere.userData.panelTitle = "Floating Motifs";
-
   // Portal on the right wall — click to enter the garden room.
   const portal = buildPortal();
   portal.scale.setScalar(1.5);
@@ -1019,19 +1010,11 @@ export function createObjects(scene) {
   scene.add(pedestal.userData.smokePoints);
   scene.add(pedestal.userData.cubeSmokePoints);
 
-  scene.add(centralPedestal, holoSphere, portal, tv);
+  scene.add(portal, tv);
 
   let elapsed = 0;
   function sceneUpdate(delta) {
     elapsed += delta;
-    holoSphere.userData.wireframe.rotation.y += delta * 0.35;
-    holoSphere.userData.wireframe.rotation.x += delta * 0.12;
-    holoSphere.userData.particles.rotation.y -= delta * 0.2;
-    holoSphere.userData.ringA.rotation.y += delta * 0.6;
-    holoSphere.userData.ringB.rotation.y -= delta * 0.9;
-    const pulse = 1 + Math.sin(elapsed * 1.4) * 0.03;
-    holoSphere.scale.setScalar(pulse);
-
     for (const ring of portal.userData.rings) {
       ring.rotation.z += ring.userData.spinSpeed * delta;
     }
@@ -1046,6 +1029,6 @@ export function createObjects(scene) {
     pedestal,
     tv,
     sceneUpdate,
-    extras: [pedestal, holoSphere, portal, tv, sofa],
+    extras: [pedestal, portal, tv, sofa],
   };
 }
