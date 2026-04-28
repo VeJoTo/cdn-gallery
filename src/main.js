@@ -476,14 +476,14 @@ cssScene.add(tvOverlayCSS3D);
 // Portrait panel: 800 px wide, height auto-fits content
 const hologramDiv = document.createElement('div');
 hologramDiv.style.cssText = `
-  position:relative; width:680px; box-sizing:border-box;
+  position:relative; width:680px; height:1200px; box-sizing:border-box;
   background:linear-gradient(160deg,rgba(2,0,28,0.94) 0%,rgba(10,0,40,0.90) 100%);
   border:1px solid rgba(255,255,255,0.35); border-top:2px solid rgba(0,212,255,0.9);
   border-bottom:2px solid rgba(255,255,255,0.5); border-radius:23px;
   box-shadow:inset 0 0 80px rgba(255,255,255,0.06),inset 0 0 160px rgba(0,212,255,0.06);
   font-family:'Courier New',monospace; color:#fff; pointer-events:auto; cursor:pointer;
   display:flex; flex-direction:column;
-  padding:60px 52px; backdrop-filter:blur(2px);
+  padding:60px 52px 260px 52px; backdrop-filter:blur(2px);
   opacity:0; transition:opacity 0.4s ease;
 `;
 
@@ -515,27 +515,32 @@ function renderHoloPage(video) {
     `transition:color 0.2s,text-shadow 0.2s`;
   hologramDiv.innerHTML = `
     <span data-holo-action="close" style="position:absolute;top:22px;right:28px;font-size:56px;line-height:1;cursor:pointer;user-select:none;pointer-events:auto;color:rgba(255,255,255,0.45)">×</span>
-    <div style="color:#fff;font-size:24px;letter-spacing:5px;text-transform:uppercase;margin-bottom:32px;text-shadow:0 0 10px #fff,0 0 20px rgba(255,255,255,0.6)">◈ &nbsp;NOW PLAYING &nbsp;◈</div>
-    <div style="font-size:44px;font-weight:bold;color:#fff;margin-bottom:24px;line-height:1.25;text-shadow:0 0 20px rgba(255,255,255,0.5)">${video.title}</div>
-    <div style="font-size:37px;color:rgba(168,216,234,0.9);margin-bottom:32px">${video.artist}</div>
-    ${bodyText ? `<div style="font-size:34px;color:rgba(0,212,255,0.85);border-top:1px solid rgba(255,255,255,0.2);padding-top:28px;line-height:1.6;overflow:hidden">${bodyText}</div>` : ''}
-    ${multiPage ? `
-    <div style="display:flex;gap:40px;margin-top:28px;pointer-events:none">
-      <span data-holo-action="prevPage" style="${chevStyle(hasPrev)}">‹</span>
-      <span data-holo-action="nextPage" style="${chevStyle(hasNext)}">›</span>
-    </div>` : ''}
-    <div style="margin-top:auto;padding-top:16px;padding-bottom:4px;font-size:22px;color:rgba(255,255,255,0.7);letter-spacing:2px;display:flex;justify-content:space-between;flex-shrink:0;white-space:nowrap;">
-      <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
-      <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ''}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
+    <div style="font-family:'Octosquares',sans-serif;color:#fff;font-size:24px;letter-spacing:5px;text-transform:uppercase;margin-bottom:32px;text-shadow:0 0 10px #fff,0 0 20px rgba(255,255,255,0.6)">◈ &nbsp;NOW PLAYING &nbsp;◈</div>
+    <div style="font-family:'Octosquares',sans-serif;font-size:44px;font-weight:bold;color:#fff;margin-bottom:24px;line-height:1.25;text-shadow:0 0 20px rgba(255,255,255,0.5)">${video.title}</div>
+    <div style="font-family:'Octosquares',sans-serif;font-size:37px;color:rgba(168,216,234,0.9);margin-bottom:32px">${video.artist}</div>
+    ${bodyText ? `<div style="font-family:'Roboto',sans-serif;font-size:34px;color:rgba(0,212,255,0.85);border-top:1px solid rgba(255,255,255,0.2);padding-top:28px;line-height:1.6;overflow:hidden">${bodyText}</div>` : ''}
+    <div style="position:absolute;bottom:60px;left:52px;right:52px">
+      ${multiPage ? `
+      <div style="display:flex;gap:40px;margin-bottom:36px;pointer-events:none">
+        <span data-holo-action="prevPage" style="${chevStyle(hasPrev)}">‹</span>
+        <span data-holo-action="nextPage" style="${chevStyle(hasNext)}">›</span>
+      </div>` : ''}
+      <div style="font-family:'Octosquares',sans-serif;padding-top:24px;padding-bottom:4px;font-size:22px;color:rgba(255,255,255,0.7);letter-spacing:2px;display:flex;justify-content:space-between;white-space:nowrap;border-top:1px solid rgba(255,255,255,0.1)">
+        <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
+        <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ''}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
+      </div>
     </div>
   `;
 }
 
 function updateHologram(video) {
-  // Use moreInfo split into paragraphs, falling back to description as single page
-  const longText = video.moreInfo || video.description || '';
-  holoPages = longText.split('\n\n').map(p => p.trim()).filter(Boolean);
-  if (!holoPages.length) holoPages = [''];
+  // Page 1: description. Page 2+: moreInfo paragraphs.
+  const pages = [];
+  if (video.description) pages.push(video.description);
+  if (video.moreInfo) {
+    video.moreInfo.split('\n\n').map(p => p.trim()).filter(Boolean).forEach(p => pages.push(p));
+  }
+  holoPages = pages.length ? pages : [''];
   currentHoloPage = 0;
   renderHoloPage(video);
 }
@@ -1012,14 +1017,12 @@ let _infoEverUsed       = false;
 let _magEverUsed        = false;
 
 function _startInfoHint() {
-  // Only hint on the first video — all others auto-show the info panel via loadVideo
   if (!holoInfoBtn || holoInfoBtn.userData.isActive || _infoEverUsed) return;
-  if (currentVideoIndex !== 0) return;
   if (_infoHintTween) _infoHintTween.kill();
   _infoHintTween = _pulseHoloBtn(holoInfoBtn, null, { emissivePeak: 0.75 });
   // Auto-open the panel after 6 s if the user still hasn't clicked
   if (_infoAutoShowTimer) _infoAutoShowTimer.kill();
-  _infoAutoShowTimer = gsap.delayedCall(6, () => {
+  _infoAutoShowTimer = gsap.delayedCall(4, () => {
     _infoAutoShowTimer = null;
     if (!_infoEverUsed && hologramDiv.style.opacity === '0') {
       _infoEverUsed = true;
@@ -1054,6 +1057,18 @@ function enterTVMode() {
   crosshair.classList.add('hidden');
   tvBackBtn.style.display = 'flex';
   if (playlistVisible) showPlaylist();
+  if (_infoEverUsed) {
+    // Returning user — show panel immediately
+    showHologram();
+  } else {
+    // First visit — hint the info button, auto-show panel after 4 s
+    hideHologram();
+    _startInfoHint();
+  }
+  // Magnifier hint: fire after 5 s in TV mode for ULDN videos, regardless of play state
+  gsap.delayedCall(12, () => {
+    if (atTV && !_magEverUsed && aiArtVideos[currentVideoIndex]?.uldn) _startMagHint();
+  });
 }
 
 function exitTVMode() {
@@ -1500,10 +1515,11 @@ function stepBackFromTV() {
   });
 }
 
-// After TV step-back, clicking the TV mesh, any holographic button, or either panel zooms back in.
+// Clicking the TV mesh, any holographic button, or either panel always zooms in — regardless of
+// whether the user has been to the TV before or has stepped back. Only skip if already there.
 const _tvButtonActions = new Set(['toggleTV','showInfo','toggleMagnifier','toggleSound','togglePlaylist','nextVideo','prevVideo']);
 document.addEventListener('mousedown', (e) => {
-  if (!_freeCursorAfterTV) return;
+  if (atTV) return;
 
   // Both panels are CSS3DObjects — raycasting misses them. Use bounding rect instead.
   // In pointer-lock mode clientX/Y are stale; use the screen centre (crosshair) instead.
