@@ -214,8 +214,8 @@ function animate() {
   }
   if (_bookGroup && !_bookGroup.userData.isAnimating) {
     _bookGroup.rotation.y = Math.atan2(
-      camera.position.x - (-2.8),
-      camera.position.z - 2.6
+      camera.position.x - (-6.5),
+      camera.position.z - (-9.0)
     ) + Math.PI / 2;
     _bookGroup.position.y = 1.28 + Math.sin(Date.now() * 0.0015) * 0.025;
   }
@@ -345,7 +345,7 @@ window.__openBookWithAnimation = (openBookFn) => {
     }
   });
 
-  const bookWorldPos = new THREE.Vector3(-2.8, origY, 2.6);
+  const bookWorldPos = new THREE.Vector3(-6.5, origY, -9.0);
   const facingY = Math.atan2(
     camera.position.x - bookWorldPos.x,
     camera.position.z - bookWorldPos.z
@@ -359,72 +359,35 @@ window.__openBookWithAnimation = (openBookFn) => {
 
   const tl = gsap.timeline();
 
-  // Zoom camera back out to the pedestal view while the book starts spinning
-  // Derive current lookAt from camera's forward direction (PointerLockControls has no .target)
-  const _fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-  const camProxy = {
-    px: camera.position.x, py: camera.position.y, pz: camera.position.z,
-    tx: camera.position.x + _fwd.x,
-    ty: camera.position.y + _fwd.y,
-    tz: camera.position.z + _fwd.z,
-  };
-  tl.to(camProxy, {
-    px: -2.0, py: 1.4, pz: 1.6,
-    tx: -2.8, ty: 1.2, tz: 2.6,
-    duration: 0.6, ease: 'power2.inOut',
-    onUpdate: () => {
-      camera.position.set(camProxy.px, camProxy.py, camProxy.pz);
-      camera.lookAt(camProxy.tx, camProxy.ty, camProxy.tz);
-    },
-  });
+  tl.to(bookGroup.position, { y: origY + 0.04, duration: 0.25, ease: 'power2.out' });
+  tl.to(bookGroup.rotation, { y: bookGroup.rotation.y + Math.PI * 2, duration: 0.6, ease: 'power2.inOut' }, '<');
 
-  tl.to(bookGroup.position, { y: origY + 0.08, duration: 0.5, ease: 'power2.out' }, '<');
-  tl.to(bookGroup.rotation, { y: bookGroup.rotation.y + Math.PI * 2, duration: 1.0, ease: 'power2.inOut' }, '<');
-  tl.to(bookGroup.position, { y: origY + 0.15, duration: 0.4, ease: 'power2.out' });
-  if (model) {
-    tl.to(model.rotation,     { z: 0,       duration: 0.55, ease: 'power2.inOut' });
-    tl.to(bookGroup.rotation, { y: facingY, duration: 0.35, ease: 'power2.out' }, '<0.15');
-    // Tilt the book toward the camera so the open pages face the user
-    tl.to(model.rotation, { z: 0.65, duration: 0.4, ease: 'power2.out' }, '+=0.05');
-  }
-
-  // Open the front cover, flip 4 pages, then reveal the open spread
+  // Open the front cover, flip 2 pages, then reveal the open spread
   const frontCoverPivot   = bookGroup.userData.frontCoverPivot;
   const openPagesGroup    = bookGroup.userData.openPagesGroup;
   const pageFlipPivots    = bookGroup.userData.pageFlipPivots ?? [];
   const spineHoloObjects  = bookGroup.userData.spineHoloObjects ?? [];
   if (frontCoverPivot) {
-    tl.to(frontCoverPivot.rotation, { x: -Math.PI, duration: 0.6, ease: 'power2.inOut' }, '+=0.12');
-    // Hide spine details just as the first page starts flipping
+    tl.to(frontCoverPivot.rotation, { x: -Math.PI, duration: 0.3, ease: 'power2.inOut' }, '+=0.05');
     tl.add(() => { spineHoloObjects.forEach(o => { o.visible = false; }); });
-    // Flip 4 pages one after another — each at a slightly different speed
-    const flipDurations = [0.34, 0.26, 0.20, 0.24];
-    pageFlipPivots.forEach((pivot, i) => {
-      tl.to(pivot.rotation, { x: -Math.PI, duration: flipDurations[i], ease: 'power2.inOut' }, '+=0.08');
-    });
+    tl.to(pageFlipPivots[0].rotation, { x: -Math.PI, duration: 0.2, ease: 'power2.inOut' }, '+=0.05');
     tl.add(() => { if (openPagesGroup) openPagesGroup.visible = true; });
-    tl.to({}, { duration: 0.35 }); // hold on the open spread
+    tl.to({}, { duration: 0.1 });
   }
 
   meshes.forEach(m => {
     if (m.material?.emissive)
-      tl.to(m.material, { emissiveIntensity: 8.0, duration: 0.55, ease: 'power2.in' }, '<');
+      tl.to(m.material, { emissiveIntensity: 1.6, duration: 0.3, ease: 'power2.in' }, '<');
   });
 
-  // Move toward camera as it dissolves — direction in pedestal-local space
-  const towardCam = new THREE.Vector3(
-    camera.position.x - bookWorldPos.x,
-    0,
-    camera.position.z - bookWorldPos.z,
-  ).normalize();
-  tl.to(bookGroup.scale,    { x: 1.5, y: 1.5, z: 1.5, duration: 0.4, ease: 'power2.in' }, '+=0.1');
-  tl.to(bookGroup.position, { x: towardCam.x * 0.6, y: origY + 0.2, z: towardCam.z * 0.6, duration: 0.4, ease: 'power2.in' }, '<');
+  // Fade out gently in place
+  tl.to(bookGroup.position, { y: origY + 0.06, duration: 0.3, ease: 'power2.out' }, '+=0.05');
   meshes.forEach(m => {
-    tl.to(m.material, { opacity: 0, duration: 0.4, ease: 'power2.in' }, '<');
+    tl.to(m.material, { opacity: 0, duration: 0.3, ease: 'power2.in' }, '<');
   });
   if (openPagesGroup) {
     openPagesGroup.children.forEach(pg => {
-      tl.to(pg.material, { opacity: 0, duration: 0.4, ease: 'power2.in' }, '<');
+      tl.to(pg.material, { opacity: 0, duration: 0.5, ease: 'power2.in' }, '<');
     });
   }
   tl.add(() => {
@@ -937,8 +900,8 @@ nav.goTo = (id) => {
       const bookGroup = pedestal?.userData?.bookGroup;
       if (!bookGroup || bookGroup.userData.isAnimating) return;
       const targetY = Math.atan2(
-        camera.position.x - (-2.8),
-        camera.position.z - 2.6
+        camera.position.x - (-6.5),
+        camera.position.z - (-9.0)
       ) + Math.PI / 2;
       gsap.to(bookGroup.rotation, { y: targetY, duration: 0.5, ease: 'power2.out' });
     }, dur);
@@ -1458,16 +1421,19 @@ document.addEventListener('mousedown', () => {
   // Capture whether we're already at this hotspot before nav changes state
   const alreadyAtHotspot = hotspot && navState.current === hotspot && navState.canNavigate();
 
-  // Book uses a 3-step click sequence; all other objects navigate normally
-  const atCoverZoom = action === 'openBook' && navState.current === 'book-cover-zoom' && navState.canNavigate();
   if (action === 'openBook') {
-    if (atCoverZoom) {
-      // Step 3 — at cover zoom: start animation (unlock cursor)
-    } else if (alreadyAtHotspot) {
-      nav.goTo('book-cover-zoom'); // Step 2 — zoom to cover
-    } else if (hotspot) {
-      nav.goTo(hotspot);           // Step 1 — navigate to pedestal
-    }
+    const startAnim = () => {
+      suppressFPOverlay = true;
+      // Keep controls locked during the animation — unlocking early causes a browser
+      // pointer-lock-release mouse event that snaps the camera. Only unlock when the
+      // book panel is ready to open.
+      if (window.__openBookWithAnimation) {
+        window.__openBookWithAnimation(() => { controls.unlock(); ui.openBook(); });
+      } else {
+        controls.unlock(); ui.openBook();
+      }
+    };
+    startAnim();
   } else {
     if (hotspot) nav.goTo(hotspot);
   }
@@ -1477,7 +1443,7 @@ document.addEventListener('mousedown', () => {
     'openPanel', 'openPoster',
     'enterRabbitHole', 'openReport', 'openFinDuMonde', 'openGlobeVideos',
   ]);
-  const opensOverlay = uiActions.has(action) || atCoverZoom;
+  const opensOverlay = uiActions.has(action);
   if (opensOverlay) {
     suppressFPOverlay = true;
     controls.unlock();
@@ -1485,10 +1451,7 @@ document.addEventListener('mousedown', () => {
 
   if (action === 'openPanel')        ui.openPanelDrawer(panelId, panelTitle);
   if (action === 'openPoster')       ui.openPanelDrawer(panelId, panelTitle);
-  if (atCoverZoom) {
-    if (window.__openBookWithAnimation) window.__openBookWithAnimation(() => ui.openBook());
-    else ui.openBook();
-  }
+
   if (action === 'enterRabbitHole')  ui.openRabbitHole();
   if (action === 'openReport')       ui.openReport();
   if (action === 'openFinDuMonde')   ui.openFinDuMonde();

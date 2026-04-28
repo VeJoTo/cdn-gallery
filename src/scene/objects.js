@@ -146,7 +146,8 @@ function buildPortal() {
 
 function buildPedestal() {
   const group = new THREE.Group();
-  group.position.set(-2.8, 0, 2.6);
+  group.position.set(-6.5, -0.9, -9.0);
+  group.scale.setScalar(2.4);
 
   // White glossy cube stand
   const cube = new THREE.Mesh(
@@ -240,6 +241,11 @@ function buildPedestal() {
 
   group.add(holoStand);
 
+  // Accent light — makes the book visible from across the room
+  const pedestalLight = new THREE.PointLight(0x00d4ff, 2.0, 5);
+  pedestalLight.position.set(0, 1.6, 0);
+  group.add(pedestalLight);
+
   // Book group (will bob — referenced via userData for the update loop)
   const bookGroup = new THREE.Group();
   bookGroup.position.y = 1.28;
@@ -256,7 +262,7 @@ function buildPedestal() {
     new THREE.MeshStandardMaterial({
       color: 0x12082a,
       emissive: new THREE.Color(0x00cfff),
-      emissiveIntensity: 0.4,
+      emissiveIntensity: 1.4,
       roughness: 0.7,
       metalness: 0.15,
     });
@@ -724,8 +730,8 @@ function buildPedestal() {
   });
   const cubeSmokePoints = new THREE.Points(cubeSmokeGeo, cubeSmokeMat);
 
-  const CUBE_WX = -2.8,
-    CUBE_WZ = 2.6;
+  const CUBE_WX = -6.5,
+    CUBE_WZ = -9.0;
   const CUBE_HALF = 0.21;
   const CUBE_BOTTOM = 0.63,
     CUBE_TOP = 1.05;
