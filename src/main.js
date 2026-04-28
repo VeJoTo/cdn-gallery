@@ -580,7 +580,7 @@ playlistDiv.style.cssText = `
   border:1px solid rgba(255,255,255,0.35); border-top:2px solid rgba(0,212,255,0.9);
   border-bottom:2px solid rgba(255,255,255,0.5); border-radius:23px;
   box-shadow:inset 0 0 80px rgba(255,255,255,0.06),inset 0 0 160px rgba(0,212,255,0.06);
-  font-family:'Courier New',monospace; color:#fff; pointer-events:auto;
+  font-family:'Roboto',sans-serif; color:#fff; pointer-events:auto;
   display:flex; flex-direction:column; backdrop-filter:blur(2px);
   opacity:0; transition:opacity 0.4s ease;
 `;
@@ -607,21 +607,21 @@ function renderPlaylist() {
       border-left:4px solid rgba(0,212,255,${active ? '0.9' : '0'});
       background:${active ? 'rgba(0,212,255,0.10)' : 'transparent'};
     ">
-      <span style="font-size:30px;color:rgba(0,212,255,${active ? '0.9' : '0.3'});min-width:40px;flex-shrink:0">${num}</span>
+      <span style="font-family:'Octosquares',sans-serif;font-size:28px;color:rgba(0,212,255,${active ? '0.9' : '0.3'});min-width:40px;flex-shrink:0">${num}</span>
       <div style="overflow:hidden;min-width:0">
-        <div style="font-size:30px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+        <div style="font-family:'Roboto',sans-serif;font-size:30px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
           color:${active ? '#00d4ff' : '#fff'};text-shadow:${active ? '0 0 10px rgba(0,212,255,0.5)' : 'none'}">${v.title}</div>
-        <div style="font-size:24px;color:rgba(168,216,234,0.65);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.artist}</div>
+        <div style="font-family:'Roboto',sans-serif;font-size:24px;font-weight:400;color:rgba(168,216,234,0.65);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.artist}</div>
       </div>
     </div>`;
   }).join('');
 
   playlistDiv.innerHTML = `
     <div style="padding:32px 28px 22px;border-bottom:1px solid rgba(255,255,255,0.18);flex-shrink:0">
-      <div style="font-size:26px;letter-spacing:5px;text-transform:uppercase;margin-bottom:20px;
+      <div style="font-family:'Octosquares',sans-serif;font-size:26px;letter-spacing:5px;text-transform:uppercase;margin-bottom:20px;
         text-shadow:0 0 10px #fff,0 0 20px rgba(255,255,255,0.6)">◈ &nbsp;PLAYLIST &nbsp;◈</div>
       <div data-playlist-action="shuffle" style="
-        display:inline-flex;align-items:center;gap:10px;font-size:24px;letter-spacing:3px;
+        display:inline-flex;align-items:center;gap:10px;font-family:'Octosquares',sans-serif;font-size:22px;letter-spacing:3px;
         cursor:pointer;padding:10px 20px;border-radius:8px;
         border:1px solid rgba(0,212,255,${shuffleMode ? '0.9' : '0.3'});
         color:rgba(0,212,255,${shuffleMode ? '1' : '0.45'});
@@ -631,7 +631,7 @@ function renderPlaylist() {
     </div>
     <div style="flex:1;overflow-y:auto;overflow-x:hidden">${items}</div>
     <div style="padding:16px 28px;border-top:1px solid rgba(255,255,255,0.14);
-      font-size:22px;color:rgba(255,255,255,0.45);letter-spacing:3px;flex-shrink:0">
+      font-family:'Octosquares',sans-serif;font-size:20px;color:rgba(255,255,255,0.45);letter-spacing:3px;flex-shrink:0">
       ${aiArtVideos.length}&nbsp;VIDEOS
     </div>
   `;
