@@ -713,8 +713,8 @@ export function createKulturKartet(scene) {
     .then(() => { buildHitCanvas(); drawMap(); })
     .catch(err => console.error('[kultur-kartet] map load failed:', err));
 
-  // ── 3D layout – all panels on x = -10.9, rotation.y = π/2
-  const WALL_X = -7.9;
+  // ── 3D layout – all panels on right wall (x = +7.9), rotation.y = -π/2
+  const WALL_X = 7.9;
   const PW = 1.65, PH = 2.0; // scene units (aspect matches 512×620)
 
   const mapMesh = new THREE.Mesh(
@@ -722,7 +722,7 @@ export function createKulturKartet(scene) {
     new THREE.MeshBasicMaterial({ map: _mapTex, side: THREE.DoubleSide })
   );
   mapMesh.position.set(WALL_X, 2.3, 4.3);
-  mapMesh.rotation.y = Math.PI / 2;
+  mapMesh.rotation.y = -Math.PI / 2;
   mapMesh.userData = { clickable: true, action: 'kulturKartetMap', hotspot: 'kultur-kartet' };
   scene.add(mapMesh);
 
@@ -731,7 +731,7 @@ export function createKulturKartet(scene) {
     new THREE.MeshBasicMaterial({ map: _textTex, side: THREE.DoubleSide })
   );
   textMesh.position.set(WALL_X, 2.3, 6.3);
-  textMesh.rotation.y = Math.PI / 2;
+  textMesh.rotation.y = -Math.PI / 2;
   textMesh.userData = { clickable: true, action: 'kulturKartetText', hotspot: 'kultur-kartet' };
   scene.add(textMesh);
 
@@ -748,8 +748,8 @@ export function createKulturKartet(scene) {
     new THREE.BoxGeometry(SIGN_W + 0.22, SIGN_H + 0.14, 0.02),
     backingMat
   );
-  backingBoard.position.set(WALL_X + 0.01, SIGN_Y, SIGN_Z);
-  backingBoard.rotation.y = Math.PI / 2;
+  backingBoard.position.set(WALL_X - 0.01, SIGN_Y, SIGN_Z);
+  backingBoard.rotation.y = -Math.PI / 2;
   scene.add(backingBoard);
 
   // Neon text canvas — transparent, rendered in front of the backing board
@@ -762,8 +762,8 @@ export function createKulturKartet(scene) {
     new THREE.PlaneGeometry(SIGN_W, SIGN_H),
     new THREE.MeshBasicMaterial({ map: _titleTex, transparent: true, depthWrite: false, side: THREE.DoubleSide })
   );
-  titleMesh.position.set(WALL_X + 0.025, SIGN_Y, SIGN_Z);
-  titleMesh.rotation.y = Math.PI / 2;
+  titleMesh.position.set(WALL_X - 0.025, SIGN_Y, SIGN_Z);
+  titleMesh.rotation.y = -Math.PI / 2;
   scene.add(titleMesh);
 
   // Thin separator between panels
@@ -772,7 +772,7 @@ export function createKulturKartet(scene) {
     new THREE.MeshBasicMaterial({ color: 0x004455 })
   );
   sep.position.set(WALL_X, 2.3, 5.3);
-  sep.rotation.y = Math.PI / 2;
+  sep.rotation.y = -Math.PI / 2;
   scene.add(sep);
 
   // ── Buttons (2 × Button 1 style, centred across the panel span)
@@ -792,7 +792,7 @@ export function createKulturKartet(scene) {
       new THREE.MeshBasicMaterial({ map: bTex, transparent: true, side: THREE.DoubleSide })
     );
     bMesh.position.set(WALL_X, 0.65, BTN_ZS[i]);
-    bMesh.rotation.y = Math.PI / 2;
+    bMesh.rotation.y = -Math.PI / 2;
     bMesh.userData = {
       clickable: true, action: 'kulturKartetBtn',
       btnMode: BTN_MODES[i], btnIdx: i, hotspot: 'kultur-kartet',
