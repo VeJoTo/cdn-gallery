@@ -1522,14 +1522,16 @@ document.addEventListener('mousedown', (e) => {
   if (atTV) return;
 
   // Both panels are CSS3DObjects — raycasting misses them. Use bounding rect instead.
-  // In pointer-lock mode clientX/Y are stale; use the screen centre (crosshair) instead.
-  const _cx = controls.isLocked ? window.innerWidth  / 2 : e.clientX;
-  const _cy = controls.isLocked ? window.innerHeight / 2 : e.clientY;
-  for (const panel of [hologramDiv, playlistDiv]) {
-    if (panel.style.opacity === '0') continue;
-    const r = panel.getBoundingClientRect();
-    if (_cx >= r.left && _cx <= r.right && _cy >= r.top && _cy <= r.bottom) {
-      nav.goTo('tv'); return;
+  // Only do this in free-cursor mode (_freeCursorAfterTV); in pointer-lock mode the
+  // panel can render near screen centre from anywhere in the room and falsely triggers
+  // TV navigation (e.g. clicking the book pans to the TV).
+  if (_freeCursorAfterTV && !controls.isLocked) {
+    for (const panel of [hologramDiv, playlistDiv]) {
+      if (panel.style.opacity === '0') continue;
+      const r = panel.getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+        nav.goTo('tv'); return;
+      }
     }
   }
 
