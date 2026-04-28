@@ -9,7 +9,7 @@ const SOFA_URL = '/cdn-gallery/models/SketchFab/sofa.glb';
 
 export function createSofa(scene) {
   const group = new THREE.Group();
-  group.position.set(-5.5, -0.18, 0);
+  group.position.set(-4.0, -0.18, 0);
   group.rotation.y = Math.PI / 2 + Math.PI;
   group.userData.clickable = true;
   group.userData.hotspot   = 'tv';
