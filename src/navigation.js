@@ -6,6 +6,7 @@ export const HOTSPOTS = {
   overview:       { position: { x: 0, y: 1.6, z: 2 }, target: { x: 0, y: 1.6, z: 0 }, label: 'Overview' },
   'arcade-left':  { position: { x: -1.8, y: 1.5, z: 0.8  }, target: { x: -3.15, y: 1.4, z: 0.8  }, label: 'Arcade 1' },
   'arcade-right': { position: { x: -1.8, y: 1.5, z: -0.5 }, target: { x: -3.15, y: 1.4, z: -0.5 }, label: 'Arcade 2' },
+  arcade:         { position: { x: 5.5,  y: 1.5, z: 7.0  }, target: { x: 5.5,  y: 1.5,  z: 9.5  }, label: 'Pac-Man Arcade' },
   'wall-left':    { position: { x: -1,   y: 2,   z: 0  }, target: { x: -3.5, y: 1.5, z: 0 }, label: 'Left Wall' },
   'wall-right':   { position: { x: 1,    y: 2,   z: 0  }, target: { x: 3.5,  y: 1.5, z: 0 }, label: 'Right Wall' },
   desk:           { position: { x: 1.8,  y: 1.5, z: -0.6 }, target: { x: 1.8,  y: 1.2, z: -2.6 }, label: 'Gaming Desk' },

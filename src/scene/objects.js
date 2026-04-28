@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { ROOM_WIDTH } from "./room.js";
 import { buildTV } from "./tv.js";
 import { createSofa } from "./sofa.js";
+import { createArcade } from "./arcade.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
@@ -1010,6 +1011,9 @@ export function createObjects(scene) {
   // Sofa in front of the TV wall — clickable to sit down
   const sofa = createSofa(scene);
 
+  // Pac-Man arcade cabinet — entry wall, user's left
+  const arcade = createArcade(scene);
+
   // Magical book pedestal — positioned at (-2.8, 0, 2.6), nav hotspot 'pedestal'
   const pedestal = buildPedestal();
   scene.add(pedestal);
@@ -1029,12 +1033,14 @@ export function createObjects(scene) {
 
     pedestal.userData.updateSmoke(delta);
     pedestal.userData.updateCubeSmoke(delta);
+
+    arcade.userData.mixer?.update(delta);
   }
 
   return {
     pedestal,
     tv,
     sceneUpdate,
-    extras: [pedestal, portal, tv, sofa],
+    extras: [pedestal, portal, tv, sofa, arcade],
   };
 }
