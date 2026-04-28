@@ -57,13 +57,14 @@ let _selected       = null;
 let _hovered        = null;
 let _guessTarget    = null;
 let _guessResult    = null;
-let _flashTimer     = 0;
-let _nextRoundTimer = 0;
-let _lastCountdown  = 0;
+let _lastGuessed    = null;
 let _textAlpha      = 1.0;
 let _activeFade     = null;
 let _neonAlpha      = 1.0;
 let _neonFlTimer    = 0;
+let _hoveredBtn     = -1;
+let _nextBtnBounds  = null;   // { x, y, w, h } in canvas pixels when correct; null otherwise
+let _nextBtnHovered = false;
 
 // Geo rendering state (populated after async data load)
 let _pathGen   = null;   // geoPath generator (no canvas context → returns SVG strings)
@@ -178,6 +179,14 @@ function getCountryAtUV(u, v) {
   return HIT_TO_KEY[r] || null;
 }
 
+function getNextBtnAtUV(u, v) {
+  if (!_nextBtnBounds) return false;
+  const px = u * TEXT_W;
+  const py = (1 - v) * TEXT_H;
+  const { x, y, w, h } = _nextBtnBounds;
+  return px >= x && px <= x + w && py >= y && py <= y + h;
+}
+
 // ── Drawing helpers ───────────────────────────────────────────────────────────
 
 function wrapText(ctx, text, x, y, maxW, lineH) {
@@ -246,29 +255,36 @@ function fadeAndSwitch(applyFn) {
 
 // ── Map canvas ────────────────────────────────────────────────────────────────
 
+// Neon sign canvas — 4-layer glow matching the Fin du Monde sign approach
 function drawTitle() {
   if (!_titleCtx) return;
   const ctx = _titleCtx;
-  ctx.clearRect(0, 0, 640, 60);
-  ctx.font = `24px 'Octosquares', sans-serif`;
+  const W = 1024, H = 140;
+  ctx.clearRect(0, 0, W, H);
+  const text = 'THE CULTURE MAP';
+  ctx.font = `64px 'Octosquares', sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = C.cyan;
-  ctx.globalAlpha = _neonAlpha;
-  ctx.shadowColor = C.cyan;
-  ctx.shadowBlur = 48; ctx.fillText('THE CULTURE MAP', 320, 30);
-  ctx.shadowBlur = 24; ctx.fillText('THE CULTURE MAP', 320, 30);
-  ctx.shadowBlur = 12; ctx.fillText('THE CULTURE MAP', 320, 30);
-  ctx.shadowBlur =  6; ctx.fillText('THE CULTURE MAP', 320, 30);
-  ctx.shadowBlur =  0; ctx.shadowColor = 'transparent';
+  for (const [blur, base, fill] of [
+    [90, 0.20, '#00d4ff'],
+    [50, 0.35, '#00d4ff'],
+    [20, 0.60, '#00d4ff'],
+    [ 8, 1.00, '#ffffff'],
+  ]) {
+    ctx.globalAlpha = base * _neonAlpha;
+    ctx.shadowColor = '#00d4ff';
+    ctx.shadowBlur  = blur;
+    ctx.fillStyle   = fill;
+    ctx.fillText(text, W / 2, H / 2);
+  }
   ctx.globalAlpha = 1.0;
   _titleTex.needsUpdate = true;
 }
 
 function borderStyle(key) {
   if (_mode === 'guesser') {
-    if (_guessResult === 'correct' && _guessTarget === key) return { color: C.mint,  lw: 2.5 };
-    if (_guessResult === 'wrong'   && _hovered    === key) return { color: C.coral, lw: 2.5 };
+    if (_guessResult === 'correct' && _guessTarget  === key) return { color: '#30c060', lw: 2.5 };
+    if (_guessResult === 'wrong'   && _lastGuessed  === key) return { color: '#e03030', lw: 2.5 };
     if (_hovered === key) return { color: C.coral, lw: 2.0 };
   } else {
     if (_selected === key) return { color: C.coral, lw: 2.5 };
@@ -306,7 +322,11 @@ function drawMap() {
   for (const key of ['norway', 'sweden', 'denmark', 'finland']) {
     const p = _paths[key];
     if (!p) continue;
-    ctx.fillStyle = FILL[key];
+    if (_mode === 'guesser' && key === _lastGuessed) {
+      ctx.fillStyle = _guessResult === 'correct' ? '#30c060' : '#e03030';
+    } else {
+      ctx.fillStyle = FILL[key];
+    }
     ctx.fill(p);
   }
 
@@ -377,6 +397,9 @@ function drawTextPanel() {
   ctx.fillStyle = C.cyan;
   ctx.fillRect(0, 4, 3, H - 4);
 
+  // Reset next-button hit area; only set when the correct state is drawn
+  _nextBtnBounds = null;
+
   // Content fades during mode transitions
   ctx.globalAlpha = _textAlpha;
 
@@ -416,8 +439,8 @@ function drawTextPanel() {
     ctx.fillRect(PAD, y, W - PAD * 2, 1);
     y += 18;
 
-    ctx.fillStyle = 'rgba(255,255,255,0.38)';
-    ctx.font = `12px ${FB}`;
+    ctx.fillStyle = C.cyan;
+    ctx.font = `16px ${FB}`;
     wrapText(ctx, '→  Use "Story-guesser" to test how well you can identify a country from an AI-generated excerpt.', PAD, y, W - PAD * 2, 19);
 
   } else if (_mode === 'explore' && _selected) {
@@ -444,8 +467,8 @@ function drawTextPanel() {
     ctx.fillRect(PAD, y, W - PAD * 2, 1);
     y += 18;
 
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = `11px ${FB}`;
+    ctx.fillStyle = C.cyan;
+    ctx.font = `16px ${FB}`;
     wrapText(ctx,
       'AI-generated story. Language model trained predominantly on Anglo-American texts (CDN research, University of Bergen).',
       PAD, y, W - PAD * 2, 17);
@@ -461,23 +484,41 @@ function drawTextPanel() {
 
       ctx.fillStyle = 'rgba(255,255,255,0.8)';
       ctx.font = `16px ${FB}`;
-      ctx.fillText('Correct! Here is the full story:', PAD, 96);
+      ctx.fillText('Here is the full story:', PAD, 96);
 
       ctx.fillStyle = C.teal;
       ctx.fillRect(PAD, 110, W - PAD * 2, 2);
 
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
       ctx.font = `italic 16px ${FB}`;
-      wrapText(ctx, data.fullStory, PAD, 134, W - PAD * 2, 26);
+      let ny = wrapText(ctx, data.fullStory, PAD, 134, W - PAD * 2, 26);
 
-      if (_nextRoundTimer > 0) {
-        const secs = Math.ceil(_nextRoundTimer);
-        ctx.fillStyle = 'rgba(0,229,255,0.55)';
-        ctx.font = `12px ${FB}`;
-        ctx.textAlign = 'center';
-        ctx.fillText(`↻  Next story in ${secs}s`, W / 2, H - 50);
-        ctx.textAlign = 'left';
-      }
+      // "Correct!" — same y-offset from story end as "Not quite" in the wrong branch
+      ny += 22;
+      ctx.fillStyle = C.mint;
+      ctx.font = `16px ${FB}`;
+      ny = wrapText(ctx, 'Correct!', PAD, ny, W - PAD * 2, 24);
+
+      // "Next story" button rendered directly into the panel canvas — centred horizontally
+      ny += 8;
+      const NBW = 220, NBH = 44;
+      const NBX = (W - NBW) / 2;
+      const nbFilled = _nextBtnHovered;
+      ctx.fillStyle = nbFilled ? '#00d4ff' : '#0a0f1a';
+      rrect(ctx, NBX, ny, NBW, NBH, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#00d4ff';
+      ctx.lineWidth = 2;
+      rrect(ctx, NBX, ny, NBW, NBH, 4);
+      ctx.stroke();
+      ctx.fillStyle = nbFilled ? '#0a0f1a' : '#00d4ff';
+      ctx.font = '13px Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Next story', W / 2, ny + NBH / 2);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      _nextBtnBounds = { x: NBX, y: ny, w: NBW, h: NBH };
 
     } else {
       ctx.fillStyle = C.cyan;
@@ -497,11 +538,11 @@ function drawTextPanel() {
       y += 22;
       if (_guessResult === 'wrong') {
         ctx.fillStyle = C.coral;
-        ctx.font = `13px ${FH}`;
-        wrapText(ctx, '✗  Not quite — try another country.', PAD, y, W - PAD * 2, 20);
+        ctx.font = `16px ${FB}`;
+        wrapText(ctx, '✗  Not quite — try another country.', PAD, y, W - PAD * 2, 24);
       } else {
-        ctx.fillStyle = 'rgba(255,255,255,0.38)';
-        ctx.font = `12px ${FB}`;
+        ctx.fillStyle = C.cyan;
+        ctx.font = `16px ${FB}`;
         wrapText(ctx, 'Hover a country to highlight it, then click to submit your guess.', PAD, y, W - PAD * 2, 19);
       }
     }
@@ -513,21 +554,25 @@ function drawTextPanel() {
 
 // ── Button drawing ────────────────────────────────────────────────────────────
 
-const BTN_LABELS = ['Explore the map', 'Story-guesser', 'Step back'];
-const BTN_MODES  = ['explore', 'guesser', 'back'];
+const BTN_LABELS = ['Explore the map', 'Story-guesser'];
+const BTN_MODES  = ['explore', 'guesser'];
 
-function drawBtn(canvas, ctx, label, active) {
+// Matches the "Reset view" DOM button style exactly:
+// normal → dark bg + cyan border + cyan text
+// active/hovered → filled cyan + dark text
+function drawBtn(canvas, ctx, label, active, hovered) {
   ctx.clearRect(0, 0, BTN_W, BTN_H);
-  const b = 2, r = 9;
-  ctx.fillStyle = active ? 'rgba(0,229,255,0.16)' : 'rgba(0,229,255,0.04)';
+  const b = 2, r = 4;
+  const filled = active || hovered;
+  ctx.fillStyle = filled ? '#00d4ff' : '#0a0f1a';
   rrect(ctx, b, b, BTN_W - b * 2, BTN_H - b * 2, r);
   ctx.fill();
-  ctx.strokeStyle = active ? C.cyan : 'rgba(0,229,255,0.5)';
+  ctx.strokeStyle = '#00d4ff';
   ctx.lineWidth = b;
   rrect(ctx, b, b, BTN_W - b * 2, BTN_H - b * 2, r);
   ctx.stroke();
-  ctx.fillStyle = active ? C.cyan : 'rgba(255,255,255,0.82)';
-  ctx.font = `${active ? 'bold ' : ''}13px Roboto, sans-serif`;
+  ctx.fillStyle = filled ? '#0a0f1a' : '#00d4ff';
+  ctx.font = '13px Roboto, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(label, BTN_W / 2, BTN_H / 2);
@@ -538,7 +583,7 @@ function drawBtn(canvas, ctx, label, active) {
 function redrawButtons() {
   for (let i = 0; i < _btnMeshes.length; i++) {
     const { bCanvas, bCtx, bTex } = _btnMeshes[i].userData;
-    drawBtn(bCanvas, bCtx, BTN_LABELS[i], BTN_MODES[i] === _mode);
+    drawBtn(bCanvas, bCtx, BTN_LABELS[i], BTN_MODES[i] === _mode, i === _hoveredBtn);
     bTex.needsUpdate = true;
   }
 }
@@ -559,13 +604,11 @@ export function handleKartetMapClick(uv) {
       drawTextPanel();
     }
   } else if (_mode === 'guesser' && _guessResult !== 'correct') {
+    _lastGuessed = key; // track which country was clicked for fill/border colour
     if (key === _guessTarget) {
-      _guessResult    = 'correct';
-      _nextRoundTimer = 4.0;
-      _lastCountdown  = Math.ceil(_nextRoundTimer);
+      _guessResult = 'correct';
     } else {
       _guessResult = 'wrong';
-      _flashTimer  = 1.4;
     }
     drawMap();
     drawTextPanel();
@@ -573,28 +616,40 @@ export function handleKartetMapClick(uv) {
 }
 
 export function handleKartetBtnClick(modeKey) {
-  if (modeKey === 'back') {
+  if (modeKey === 'next') {
+    // Advance to a new random story without leaving guesser mode
+    const keys = Object.keys(storiesData);
+    let next;
+    do { next = keys[Math.floor(Math.random() * keys.length)]; }
+    while (next === _guessTarget && keys.length > 1);
+    _nextBtnHovered = false;
     fadeAndSwitch(() => {
-      _mode = 'explore'; _selected = null; _hovered = null;
-      _guessTarget = null; _guessResult = null;
-      _flashTimer = 0; _nextRoundTimer = 0;
-      drawMap(); redrawButtons();
+      _guessTarget = next; _guessResult = null; _lastGuessed = null; _hovered = null;
+      drawMap();
     });
   } else if (modeKey === 'guesser') {
+    _nextBtnHovered = false;
     fadeAndSwitch(() => {
       _mode = 'guesser'; _selected = null; _hovered = null;
       const keys = Object.keys(storiesData);
       _guessTarget = keys[Math.floor(Math.random() * keys.length)];
-      _guessResult = null; _flashTimer = 0; _nextRoundTimer = 0;
+      _guessResult = null; _lastGuessed = null;
       drawMap(); redrawButtons();
     });
   } else {
+    _nextBtnHovered = false;
     fadeAndSwitch(() => {
       _mode = 'explore'; _hovered = null;
-      _guessResult = null; _flashTimer = 0; _nextRoundTimer = 0;
+      _guessResult = null; _lastGuessed = null;
       drawMap(); redrawButtons();
     });
   }
+}
+
+export function updateKartetBtnHover(idx) {
+  const prev = _hoveredBtn;
+  _hoveredBtn = (idx === 0 || idx === 1) ? idx : -1;
+  if (_hoveredBtn !== prev) redrawButtons();
 }
 
 export function updateKartetHover(uv) {
@@ -606,32 +661,17 @@ export function updateKartetHover(uv) {
   }
 }
 
+export function updateKartetTextHover(uv) {
+  const prev = _nextBtnHovered;
+  _nextBtnHovered = uv ? getNextBtnAtUV(uv.x, uv.y) : false;
+  if (_nextBtnHovered !== prev) drawTextPanel();
+}
+
+export function handleKartetTextClick(uv) {
+  if (getNextBtnAtUV(uv.x, uv.y)) handleKartetBtnClick('next');
+}
+
 export function tickKartet(delta) {
-  if (_flashTimer > 0) {
-    _flashTimer -= delta;
-    if (_flashTimer <= 0) {
-      _flashTimer = 0; _guessResult = null;
-      drawMap(); drawTextPanel();
-    }
-  }
-
-  if (_nextRoundTimer > 0) {
-    _nextRoundTimer -= delta;
-    const curr = Math.ceil(Math.max(0, _nextRoundTimer));
-    if (curr !== _lastCountdown) { _lastCountdown = curr; drawTextPanel(); }
-    if (_nextRoundTimer <= 0) {
-      _nextRoundTimer = 0;
-      const keys = Object.keys(storiesData);
-      let next;
-      do { next = keys[Math.floor(Math.random() * keys.length)]; }
-      while (next === _guessTarget && keys.length > 1);
-      fadeAndSwitch(() => {
-        _guessTarget = next; _guessResult = null; _hovered = null;
-        drawMap();
-      });
-    }
-  }
-
   // Neon flicker — discrete keyframe steps matching the CSS animation intent
   _neonFlTimer = (_neonFlTimer + delta) % 6.0;
   const _fl = _neonFlTimer / 6.0;
@@ -644,10 +684,10 @@ export function tickKartet(delta) {
 export function createKulturKartet(scene) {
   // Reset all state (safe for hot-reload)
   _mode = 'explore'; _selected = null; _hovered = null;
-  _guessTarget = null; _guessResult = null;
-  _flashTimer = 0; _nextRoundTimer = 0; _lastCountdown = 0;
+  _guessTarget = null; _guessResult = null; _lastGuessed = null;
   _textAlpha = 1.0; _activeFade = null;
   _neonAlpha = 1.0; _neonFlTimer = 0;
+  _hoveredBtn = -1; _nextBtnBounds = null; _nextBtnHovered = false;
   _titleCanvas = null; _titleCtx = null; _titleTex = null;
   _pathGen = null; _features = {}; _paths = {}; _centroids = {};
   _hitCanvas = null; _hitCtx = null;
@@ -692,19 +732,37 @@ export function createKulturKartet(scene) {
   );
   textMesh.position.set(WALL_X, 2.3, 6.3);
   textMesh.rotation.y = Math.PI / 2;
+  textMesh.userData = { clickable: true, action: 'kulturKartetText', hotspot: 'kultur-kartet' };
   scene.add(textMesh);
 
-  // Title label
+  // ── Neon sign (Fin du Monde pattern, wall-mounted) ──────────────────────
+  const SIGN_W = 3.4;
+  const SIGN_H = SIGN_W * (140 / 1024); // preserve canvas aspect ratio ≈ 0.465
+  const SIGN_Y = 3.65, SIGN_Z = 5.3;
+
+  // Dark navy backing board — thin box sits flush on the wall, protrudes slightly
+  const backingMat = new THREE.MeshStandardMaterial({
+    color: 0x0a0f1a, metalness: 0.0, roughness: 0.9,
+  });
+  const backingBoard = new THREE.Mesh(
+    new THREE.BoxGeometry(SIGN_W + 0.22, SIGN_H + 0.14, 0.02),
+    backingMat
+  );
+  backingBoard.position.set(WALL_X + 0.01, SIGN_Y, SIGN_Z);
+  backingBoard.rotation.y = Math.PI / 2;
+  scene.add(backingBoard);
+
+  // Neon text canvas — transparent, rendered in front of the backing board
   _titleCanvas = document.createElement('canvas');
-  _titleCanvas.width = 640; _titleCanvas.height = 60;
+  _titleCanvas.width = 1024; _titleCanvas.height = 140;
   _titleCtx = _titleCanvas.getContext('2d');
   _titleTex = new THREE.CanvasTexture(_titleCanvas);
   drawTitle();
   const titleMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(3.4, 0.36),
-    new THREE.MeshBasicMaterial({ map: _titleTex, transparent: true, side: THREE.DoubleSide })
+    new THREE.PlaneGeometry(SIGN_W, SIGN_H),
+    new THREE.MeshBasicMaterial({ map: _titleTex, transparent: true, depthWrite: false, side: THREE.DoubleSide })
   );
-  titleMesh.position.set(WALL_X, 3.65, 5.3);
+  titleMesh.position.set(WALL_X + 0.025, SIGN_Y, SIGN_Z);
   titleMesh.rotation.y = Math.PI / 2;
   scene.add(titleMesh);
 
@@ -717,11 +775,11 @@ export function createKulturKartet(scene) {
   sep.rotation.y = Math.PI / 2;
   scene.add(sep);
 
-  // ── Buttons (3 × Button 1 style)
+  // ── Buttons (2 × Button 1 style, centred across the panel span)
   const BTN_SW = 1.1, BTN_SH = 0.28;
-  const BTN_ZS = [3.85, 5.25, 6.65];
+  const BTN_ZS = [4.6, 6.0]; // centred at z=5.3 with 0.3-unit gap
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < BTN_LABELS.length; i++) {
     const bCanvas = document.createElement('canvas');
     bCanvas.width = BTN_W; bCanvas.height = BTN_H;
     const bCtx = bCanvas.getContext('2d');
@@ -737,12 +795,12 @@ export function createKulturKartet(scene) {
     bMesh.rotation.y = Math.PI / 2;
     bMesh.userData = {
       clickable: true, action: 'kulturKartetBtn',
-      btnMode: BTN_MODES[i], hotspot: 'kultur-kartet',
+      btnMode: BTN_MODES[i], btnIdx: i, hotspot: 'kultur-kartet',
       bCanvas, bCtx, bTex,
     };
     scene.add(bMesh);
     _btnMeshes.push(bMesh);
   }
 
-  return { clickables: [mapMesh, ..._btnMeshes], mapMesh };
+  return { clickables: [mapMesh, textMesh, ..._btnMeshes], mapMesh, textMesh };
 }
