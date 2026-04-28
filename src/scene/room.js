@@ -89,15 +89,15 @@ export function createRoom(scene) {
   dirLight.shadow.mapSize.set(1024, 1024);
   scene.add(dirLight);
 
-  // Ceiling point lights — 3×4 grid, soft falloff.
-  const rows = 4, cols = 3;
+  // Ceiling point lights — reduced from 12 to 4, higher intensity to maintain brightness.
+  const rows = 2, cols = 2;
   const xStep = ROOM_WIDTH / (cols + 1);
   const zStep = ROOM_DEPTH / (rows + 1);
   for (let r = 1; r <= rows; r++) {
     for (let c = 1; c <= cols; c++) {
       const px = -ROOM_WIDTH / 2 + c * xStep;
       const pz = -ROOM_DEPTH / 2 + r * zStep;
-      const lamp = new THREE.PointLight(0xffffff, 0.25, ROOM_HEIGHT * 2.2);
+      const lamp = new THREE.PointLight(0xffffff, 0.7, ROOM_HEIGHT * 3.5);
       lamp.position.set(px, ROOM_HEIGHT - 0.3, pz);
       scene.add(lamp);
     }
