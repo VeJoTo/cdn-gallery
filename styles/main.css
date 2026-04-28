@@ -1280,12 +1280,29 @@ body:has(
   flex-shrink: 0;
   margin-bottom: 12px;
 }
+.bk-audio-play,
+.bk-audio-vol {
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+.bk-audio-play:hover,
+.bk-audio-vol:hover { opacity: 0.5; }
 .bk-audio-bar {
+  position: relative;
   display: inline-block;
   width: 110px;
   height: 1.5px;
   background: rgba(26,26,26,0.2);
   vertical-align: middle;
+}
+.bk-audio-bar-fill {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  width: 0%;
+  background: #0a1628;
+  transition: width 0.2s linear;
 }
 .bk-spacer { flex: 1; }
 

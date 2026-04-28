@@ -479,11 +479,134 @@ export function createUI(camera, renderer, controls, scene) {
 
   function bkImg(name) { return `${BASE}book/${name}`; }
 
+  // ── Book audio (Web Speech API) ──────────────────
+  let bkAudioUtterance  = null;
+  let bkAudioPlaying    = false;
+  let bkAudioPaused     = false;
+  let bkAudioMuted      = false;
+  let bkAudioTimer      = null;
+  let bkAudioElapsed    = 0;
+  let bkAudioEstTotal   = 0;
+  let bkAudioFullText   = '';   // full text of the current spread
+  let bkAudioCharOffset = 0;    // char offset into fullText where current utterance started
+  let bkAudioCharIndex  = 0;    // latest char index reported by onboundary
+
+  function bkAudioGetText() {
+    const sel = '.bk-content-l p, .bk-content-l h1, .bk-content-l h2, .bk-content-l li,'
+              + '.bk-content-r p, .bk-content-r h2, .bk-content-r li';
+    return Array.from(bookOverlay.querySelectorAll(sel))
+      .map(n => n.innerText.trim()).filter(Boolean).join(' ');
+  }
+
+  function bkAudioUpdateUI() {
+    const play = bookOverlay.querySelector('.bk-audio-play');
+    const time = bookOverlay.querySelector('.bk-audio-time');
+    const fill = bookOverlay.querySelector('.bk-audio-bar-fill');
+    const vol  = bookOverlay.querySelector('.bk-audio-vol');
+    if (play) play.textContent = (bkAudioPlaying && !bkAudioPaused) ? '⏸' : '▶';
+    if (vol)  vol.textContent  = bkAudioMuted ? '◄' : '◄))';
+    if (time) {
+      const s = Math.floor(bkAudioElapsed);
+      time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+    if (fill && bkAudioEstTotal > 0)
+      fill.style.width = Math.min(100, (bkAudioElapsed / bkAudioEstTotal) * 100) + '%';
+  }
+
+  function bkAudioStartTimer() {
+    const t0 = Date.now() - bkAudioElapsed * 1000;
+    bkAudioTimer = setInterval(() => {
+      bkAudioElapsed = (Date.now() - t0) / 1000;
+      bkAudioUpdateUI();
+    }, 200);
+  }
+
+  function bkAudioSpeak(text, charOffset) {
+    bkAudioUtterance  = new SpeechSynthesisUtterance(text);
+    bkAudioCharOffset = charOffset;
+    bkAudioCharIndex  = 0;
+    bkAudioUtterance.rate   = 1;
+    bkAudioUtterance.volume = bkAudioMuted ? 0 : 1;
+    bkAudioUtterance.onboundary = e => { if (e.name === 'word') bkAudioCharIndex = e.charIndex; };
+    bkAudioUtterance.onend  = () => {
+      clearInterval(bkAudioTimer);
+      bkAudioTimer   = null;
+      bkAudioPlaying = false;
+      bkAudioPaused  = false;
+      bkAudioElapsed = bkAudioEstTotal;
+      bkAudioUpdateUI();
+    };
+    bkAudioUtterance.onerror = () => {
+      clearInterval(bkAudioTimer);
+      bkAudioPlaying = false;
+      bkAudioPaused  = false;
+    };
+    window.speechSynthesis.speak(bkAudioUtterance);
+  }
+
+  function bkAudioStop() {
+    window.speechSynthesis.cancel();
+    clearInterval(bkAudioTimer);
+    bkAudioTimer      = null;
+    bkAudioPlaying    = false;
+    bkAudioPaused     = false;
+    bkAudioElapsed    = 0;
+    bkAudioEstTotal   = 0;
+    bkAudioFullText   = '';
+    bkAudioCharOffset = 0;
+    bkAudioCharIndex  = 0;
+    bkAudioUtterance  = null;
+    bkAudioUpdateUI();
+  }
+
+  function bkAudioTogglePlay() {
+    if (bkAudioPlaying && !bkAudioPaused) {
+      window.speechSynthesis.pause();
+      clearInterval(bkAudioTimer);
+      bkAudioPaused = true;
+      bkAudioUpdateUI();
+      return;
+    }
+    if (bkAudioPaused) {
+      window.speechSynthesis.resume();
+      bkAudioPaused = false;
+      bkAudioStartTimer();
+      bkAudioUpdateUI();
+      return;
+    }
+    bkAudioFullText = bkAudioGetText();
+    if (!bkAudioFullText) return;
+    bkAudioElapsed  = 0;
+    bkAudioEstTotal = bkAudioFullText.split(/\s+/).length / 2.5;
+    bkAudioSpeak(bkAudioFullText, 0);
+    bkAudioPlaying = true;
+    bkAudioPaused  = false;
+    bkAudioStartTimer();
+    bkAudioUpdateUI();
+  }
+
+  function bkAudioToggleMute() {
+    bkAudioMuted = !bkAudioMuted;
+    // Volume can't be changed on a live utterance — cancel and resume from
+    // the last reported word boundary so the change takes effect immediately.
+    if (bkAudioPlaying && !bkAudioPaused) {
+      window.speechSynthesis.cancel();
+      clearInterval(bkAudioTimer);
+      const absPos      = bkAudioCharOffset + bkAudioCharIndex;
+      const remaining   = bkAudioFullText.substring(absPos);
+      const savedElapsed = bkAudioElapsed;
+      bkAudioSpeak(remaining, absPos);
+      bkAudioElapsed = savedElapsed;
+      bkAudioStartTimer();
+    }
+    bkAudioUpdateUI();
+  }
+
   function bkAudio() {
     return `<div class="bk-audio">
       <span class="bk-audio-play">▶</span>
       <span class="bk-audio-time">0:00</span>
-      <span class="bk-audio-bar"></span>
+      <span class="bk-audio-bar"><span class="bk-audio-bar-fill"></span></span>
       <span class="bk-audio-vol">◄))</span>
     </div>`;
   }
@@ -981,6 +1104,11 @@ export function createUI(camera, renderer, controls, scene) {
   bookPageL.addEventListener('click', handleBookPageClick);
   bookPageR.addEventListener('click', handleBookPageClick);
 
+  bookOverlay.addEventListener('click', e => {
+    if (e.target.classList.contains('bk-audio-play')) { bkAudioTogglePlay(); return; }
+    if (e.target.classList.contains('bk-audio-vol'))  { bkAudioToggleMute(); return; }
+  });
+
   function openBook() {
     bookOverlay.classList.remove('hidden');
     unlockForOverlay();
@@ -989,6 +1117,7 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function closeBook() {
+    bkAudioStop();
     const wasOpen = !bookOverlay.classList.contains('hidden');
     clearBookParticles();
     bookOverlay.classList.add('hidden');
@@ -1011,6 +1140,7 @@ export function createUI(camera, renderer, controls, scene) {
   function animatePageFlip(direction, onMidpoint) {
     if (isFlipping) return;
     isFlipping = true;
+    bkAudioStop();
 
     const PHASE_MS = 320;
     const outEl    = direction === 'next' ? bookPageR : bookPageL;
