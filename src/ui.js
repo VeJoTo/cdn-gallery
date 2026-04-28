@@ -473,6 +473,271 @@ export function createUI(camera, renderer, controls, scene) {
   const bookClose    = document.getElementById('book-close');
 
   let bookPageIndex = 0;
+  let bkPage = null;        // current logical page id
+  let bkMistakesKey = null; // current mistakes sub-page key
+  const BASE = import.meta.env.BASE_URL || '/';
+
+  function bkImg(name) { return `${BASE}book/${name}`; }
+
+  function bkAudio() {
+    return `<div class="bk-audio">
+      <span class="bk-audio-play">▶</span>
+      <span class="bk-audio-time">0:00</span>
+      <span class="bk-audio-bar"></span>
+      <span class="bk-audio-vol">◄))</span>
+    </div>`;
+  }
+
+  function bkFrameL() { return `<img class="bk-frame bk-frame-l" src="${bkImg('frame-left.png')}" alt="">`; }
+  function bkFrameR() { return `<img class="bk-frame bk-frame-r" src="${bkImg('frame-right.png')}" alt="">`; }
+  function bkArrowBack(action) {
+    return `<button class="bk-arrow bk-arrow-back" data-bk-action="${action}" data-bk-dir="prev"><img src="${bkImg('arrow-back.png')}" alt="Back"></button>`;
+  }
+  function bkArrowFwd(action) {
+    return `<button class="bk-arrow bk-arrow-fwd" data-bk-action="${action}" data-bk-dir="next"><img src="${bkImg('arrow-forward.png')}" alt="Forward"></button>`;
+  }
+
+  function bkTopicButtons() {
+    const topics = [
+      { id: 'summary',  label: 'A summary of The Sweetheart of the Forest',        action: 'go-summary1' },
+      { id: 'mistakes', label: 'What mistakes does AI do when retelling the folklore?', action: 'go-mistakes1' },
+      { id: 'research', label: 'How was the research done?',                        action: 'go-research' },
+    ];
+    return topics.map(t =>
+      `<button class="bk-btn" data-bk-action="${t.action}">${t.label}</button>`
+    ).join('');
+  }
+
+  function renderFirstPage() {
+    bkPage = 'first';
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l">
+        ${bkAudio()}
+        <div class="bk-spacer"></div>
+        <h1 class="bk-h1">What would happen if you asked large language models to tell you a well known norwegian folktale?</h1>
+        <p class="bk-body">This research explores how large language models (LLMs) generate and reshape stories, and how they tend to overuse and mix recurring narrative elements, known as "floating motifs."</p>
+        <p class="bk-body">To avoid influencing the results, the models were given no extra context and only simple prompts like: "Tell the folktale 'The Sweetheart in the Forest.'"</p>
+        <p class="bk-body">Explore the magic book and experience how an LLM tells the&nbsp;story.</p>
+        <div class="bk-spacer"></div>
+      </div>`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r">
+        <div class="bk-topics">
+          <h2 class="bk-topics-h">Choose a topic to explore further</h2>
+          ${bkTopicButtons()}
+        </div>
+      </div>`;
+  }
+
+  function renderSummary1() {
+    bkPage = 'summary1';
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l bk-summary">
+        ${bkAudio()}
+        <p class="bk-sub">A summary of</p>
+        <h2 class="bk-h2">The Sweetheart in the Forest</h2>
+        <p class="bk-body">"The Sweetheart in the Forest" opens with a young woman, who "was so beautiful that she was renowned across many kingdoms, and the numbers of suitors who came to her were as many as the leaves that fall in an autumn" (Asbjørnsen and Moe 2024, p. 59). One man makes himself out to be richer than the others, and as he also is handsome, he is the preferred suitor. He frequently visits her, but one day he asks her to come visit him. He cannot fetch her himself, but he tells her he will leave a trail of peas along the way for her to follow. "Now, however it did or didn't happen, he scattered the peas a day early" (p. 59). This is the stroke of destiny in the story, and it becomes his downfall. As she arrives a day earlier than expected, he is not at home to greet her.</p>
+        <div class="bk-img-wrap"><img src="${bkImg('folklore-1.jpg')}" alt="The maiden approaches the house in the forest"><p class="bk-caption">Image from: https://norske-eventyr.no/overtro-og-sagn/kjaeresten-i-skogen</p></div>
+      </div>
+      ${bkArrowBack('go-first')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r bk-summary">
+        <p class="bk-body">Inside his beautiful house there is "nothing to see other than a wondrous bird that hung in a cage beneath the roof" (p. 59). The girl proceeds further into the house, where there are many riches, but each time she enters a new chamber, the bird cries out: "Beautiful maiden, be bold, but be not too bold!" (p. 60).</p>
+        <div class="bk-img-wrap"><img src="${bkImg('folklore-2.jpg')}" alt="The caged bird warns the girl"><p class="bk-caption">Image from: https://norske-eventyr.no/overtro-og-sagn/kjaeresten-i-skogen</p></div>
+        <p class="bk-body">As she goes, she finds one chamber filled with buckets of blood, and the last is full of dead bodies "and of skeletons of slain women" (p. 60). The bird tells her to hide under the bed. She does so: "[s]he crawled so far in against the wall as she could; yes, she was so scared that she would have liked to have crawled into the wall, had she been able" (p. 61). Presently, her suitor enters the room with another maiden. He rips off "her everything—both clothes and gold—even to a ring she had on her little finger" (p. 61). When he cannot get the ring off, he chops off the maiden's finger, which falls onto the floor and bounces under the bed. While he proceeds to murder the maiden, the girl under the bed takes the finger with the ring on it and hides it. The suitor has a little boy with him,</p>
+      </div>
+      ${bkArrowFwd('go-summary2')}`;
+  }
+
+  function renderSummary2() {
+    bkPage = 'summary2';
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l bk-summary">
+        ${bkAudio()}
+        <p class="bk-body">who is tasked with finding the finger. When discovering the girl, the boy does not tell on her, but lets the girl know when the robber is out and the coast is clear for her escape. She runs home and tells her father everything. Some time later, her suitor comes to visit, "and he was so fine that it dripped from him", and asks why she did not come when she promised. Her father makes an excuse for her, but says they have people coming for a feast, and they may as well turn it into an engagement party. When they have finished eating and are seated at the table, a sort of rhetorical game begins where the girl reveals the truth by telling every step of what she has experienced as if it were a dream.</p>
+        <p class="bk-body">"I dreamt that I walked upon a broad road, and peas had been scattered, there where I walked".<br>"Yes, that is like when you walk to my place, my dear," said the sweetheart (p. 63).<br>In this way, they go back and forth about the great size of his house and of the many fineries it contains, and he agrees with her. But then she gets to the unpleasant parts:<br>"When I went into the next chamber, the bird began to scream: 'Beautiful maiden! Beautiful maiden, be bold but be not too bold!' And in that chamber there stood barrels and buckets around all the walls, and they were full of blood!"<br>"Fie, that is terrible! It is nothing like at my place, my dear," said the sweetheart. Now he was hurting, and wanted to leave.<br>"It is just a dream that I am telling, of course," said the daughter of the house (pp. 63–64).</p>
+      </div>
+      ${bkArrowBack('go-summary1')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r bk-summary">
+        <p class="bk-body">She proceeds to tell everyone of the skeletons and dead bodies and the whole scene with the maiden he undressed and killed. When she comes to the chopped off finger and the ring that went under the bed, she pulls out the finger as evidence. And so "they took him and killed him and burned both him and the house in the forest" (p. 64). Balance is restored, and the girl is safe.</p>
+      </div>
+      ${bkArrowFwd('go-summary3')}`;
+  }
+
+  function renderSummary3() {
+    bkPage = 'summary3';
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l">
+        ${bkAudio()}
+        <div class="bk-topics">
+          <h2 class="bk-topics-h">Choose a topic to explore further</h2>
+          ${bkTopicButtons()}
+        </div>
+      </div>
+      ${bkArrowBack('go-summary2')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r"></div>`;
+  }
+
+  const BK_MISTAKES = [
+    { key: 'creepier', label: 'The AI version is told in a "creepier" way.' },
+    { key: 'explicit', label: 'The AI version has a tendency to make the implicit more explicit.' },
+    { key: 'scenic',   label: 'The AI is less ambiguous when describing the scenic elements.' },
+    { key: 'floating', label: 'The use of "Floating motifs" and imagery.' },
+  ];
+
+  const BK_MISTAKE_CONTENT = {
+    creepier: {
+      title: 'The AI version is told in a "creepier" way.',
+      body: `In the original Norwegian variants, the suitor's house is beautiful and grand, full of gold, silver, and good food. This is important to the story: the danger is hidden behind something that looks perfectly nice, and the horror only shows itself when the girl opens the forbidden door. The AI versions almost always do the opposite. The house becomes dark, abandoned, and threatening from the moment she arrives. Claude describes "a large, gloomy house in the middle of the forest," and even the walk there feels scary, with trees whispering warnings and birds going quiet. This is actually closer to the Grimm Brothers' version than the Norwegian one.<br><br>By making the danger obvious from the start, the AI takes away what makes the original so effective. In the Norwegian tale, the reader feels just as safe as the girl does, which makes the horror inside hit much harder. The AI turns it into a more straightforward scary story instead.`
+    },
+    explicit: {
+      title: 'The AI version has a tendency to make the implicit more explicit.',
+      body: `The paper uses the German literary term Leerstellen, meaning "gaps" or "empty spaces," to describe the deliberate silences in folk tales that readers fill with their own imagination. The Norwegian tradition relies heavily on these. The suitor's menace, the nature of the violence, the warning "be bold, but not too bold" are all left for the audience to infer.<br><br>The AI consistently closes these gaps. Where the Norwegian variants leave the girl's unease entirely unstated, the AI spells it out. Claude writes that she noticed "something cold in his eyes," telling the reader how to feel rather than inviting them to sense it themselves. This extends to the sexual violence in the tale. The Norwegian versions imply that the suitor strips his victims, a detail a Norwegian audience would have understood, but the AIs largely ignore this and shift instead toward explicit cannibalism, which is more prominent in the Grimm version and more legibly "dark" without requiring cultural context. The result is more graphically violent in some ways, but less culturally resonant. The AI also adds unsolicited morals and bullet-point summaries, which is the opposite of how folk tales traditionally work.`
+    },
+    scenic: {
+      title: 'The AI is less ambiguous when describing the scenic elements.',
+      body: `In the original Norwegian variants, the setting is left deliberately open. The house is grand and welcoming, the forest is simply a forest, and the audience is trusted to sense the danger beneath the surface through their own imagination. Nothing in the scenery gives the horror away.<br><br>The AI versions remove this openness entirely. Every element of the setting is made to match the mood of the story. The forest grows darker as the girl steps deeper into it, and the house at the end of the path is already visibly grim and unwelcoming. The scene is dressed to tell the audience what to feel before anything has even happened. This is a meaningful change because ambiguity in folk tales is not a flaw, it is a feature. The girl does not know yet that she is in danger, and neither should the reader. When the AI makes the danger visible from the outside, it turns the setting into a simple signal rather than a space for the reader to inhabit.`
+    },
+    floating: {
+      title: 'The use of "Floating motifs" and imagery.',
+      body: `One of the paper's key concepts is floating motifs, meaning story elements that have detached from the tale they belong to and drifted into the wrong story. This happens in the AI versions with striking regularity.<br><br>The warning bird, native to the Norwegian variants, appears in AI versions that otherwise bear little resemblance to the original. Elements from East of the Sun and West of the Moon bleed in without cause, likely because the AI found both tales in close proximity in its training data. The cannibalism motif produces especially strange results: one Gemini version has an engagement ring transform into one made of flesh, another has the forest smell of rotten meat despite no cannibalism being mentioned, and a Claude version inflates the severed finger into an entire severed hand. These are not deliberate choices but the result of statistical pattern-matching pulling in imagery from adjacent stories without cultural coherence.<br><br>The researcher's broader point is that a human storyteller draws from the "pool of tradition" with judgment and lived experience. The AI draws from a far larger pool but without that grounding, meaning internationally dominant traditions like the Grimm tales will statistically outweigh locally specific Norwegian ones, even when the prompt explicitly asks for a Norwegian version.`
+    },
+  };
+
+  function bkMistakesLeftRows() {
+    return BK_MISTAKES.map(m =>
+      `<div class="bk-mistake-row">
+        <span class="bk-mistake-label">${m.label}</span>
+        <button class="bk-rm-btn" data-bk-action="go-mistakes-point" data-bk-key="${m.key}">Read more</button>
+      </div>`
+    ).join('');
+  }
+
+  function renderMistakes1() {
+    bkPage = 'mistakes1';
+    bkMistakesKey = null;
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l">
+        ${bkAudio()}
+        <h2 class="bk-h2">What mistakes does AI do when retelling the folklore?</h2>
+        <div class="bk-mistake-rows">${bkMistakesLeftRows()}</div>
+      </div>
+      ${bkArrowBack('go-first')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r">
+        <div class="bk-right-box">
+          <span class="bk-right-placeholder">Choose a point to read more about...</span>
+        </div>
+      </div>
+      ${bkArrowFwd('go-mistakes-done')}`;
+  }
+
+  function renderMistakesPoint(key) {
+    bkPage = 'mistakes-point';
+    bkMistakesKey = key;
+    const c = BK_MISTAKE_CONTENT[key];
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l">
+        ${bkAudio()}
+        <h2 class="bk-h2">What mistakes does AI do when retelling the folklore?</h2>
+        <div class="bk-mistake-rows">${bkMistakesLeftRows()}</div>
+      </div>
+      ${bkArrowBack('go-mistakes1')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r">
+        <div class="bk-right-box">
+          <div><p class="bk-detail-title">${c.title}</p><p class="bk-detail-body">${c.body}</p></div>
+        </div>
+      </div>
+      ${bkArrowFwd('go-mistakes-done')}`;
+  }
+
+  function showMistakesPoint(key) {
+    // In-place update — no page flip. Updates both pages to reflect the selection.
+    bkPage = 'mistakes-point';
+    bkMistakesKey = key;
+    const c = BK_MISTAKE_CONTENT[key];
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l">
+        ${bkAudio()}
+        <h2 class="bk-h2">What mistakes does AI do when retelling the folklore?</h2>
+        <div class="bk-mistake-rows">${bkMistakesLeftRows()}</div>
+      </div>
+      ${bkArrowBack('go-mistakes1')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r">
+        <div class="bk-right-box">
+          <div><p class="bk-detail-title">${c.title}</p><p class="bk-detail-body">${c.body}</p></div>
+        </div>
+      </div>
+      ${bkArrowFwd('go-mistakes-done')}`;
+  }
+
+  function renderMistakesDone() {
+    bkPage = 'mistakes-done';
+    bkMistakesKey = null;
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l">
+        ${bkAudio()}
+        <div class="bk-topics">
+          <h2 class="bk-topics-h">Choose a topic to explore further</h2>
+          ${bkTopicButtons()}
+        </div>
+      </div>
+      ${bkArrowBack('go-mistakes1')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r"></div>`;
+  }
+
+  function renderResearch() {
+    bkPage = 'research';
+    clearPageBackgrounds();
+    bookPageL.innerHTML = `
+      ${bkFrameL()}
+      <div class="bk-content-l">
+        ${bkAudio()}
+        <h2 class="bk-h2">How was the research done?</h2>
+        <p class="bk-body">32 Tales where generated using different LLM's, at different times, without any prior context. The prompts used where simple and short, as to not cause interference with how the LLM would tell the stories. The prompts were as follows:</p>
+        <ul class="bk-bullets">
+          <li>"Fortell eventyret 'Kjæresten i skogen'", or the relatively similar "Fortell det norske folkeeventyret 'Kjæresten i skogen'" (Literal translation: "Tell the folktale 'The Sweetheart in the forest'", "Tell the Norwegian folktale 'The Sweetheart in the Forest'").</li>
+        </ul>
+        <p class="bk-body">"Fortell en norsk versjon av eventyrtypen ATU 955" (Literal translation: "Tell a Norwegian version of the folktale type ATU 955").</p>
+      </div>
+      ${bkArrowBack('go-first')}`;
+    bookPageR.innerHTML = `
+      ${bkFrameR()}
+      <div class="bk-content-r">
+        <div class="bk-topics">
+          <h2 class="bk-topics-h">Choose a topic to explore further</h2>
+          ${bkTopicButtons()}
+        </div>
+      </div>`;
+  }
 
   function spawnBookParticles() {
     bookOverlay.querySelectorAll('.book-particle').forEach(p => p.remove());
@@ -496,6 +761,8 @@ export function createUI(camera, renderer, controls, scene) {
   function clearPageBackgrounds() {
     bookPageL.style.backgroundImage = '';
     bookPageR.style.backgroundImage = '';
+    bookPageL.classList.remove('book-page-alive');
+    bookPageR.classList.remove('book-page-alive');
   }
 
   function renderCoverPage() {
@@ -506,12 +773,12 @@ export function createUI(camera, renderer, controls, scene) {
       <div class="book-cover-left">
         <svg class="cover-figure" viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <!-- Ground -->
-          <path d="M10 180 Q40 172 60 178 T112 178 L112 182 L10 182 Z" fill="#1a1a1a" opacity="0.85"/>
-          <path d="M14 184 L108 184" stroke="#1a1a1a" stroke-width="1" opacity="0.5"/>
+          <path d="M10 180 Q40 172 60 178 T112 178 L112 182 L10 182 Z" fill="#e8f0fb" opacity="0.85"/>
+          <path d="M14 184 L108 184" stroke="#e8f0fb" stroke-width="1" opacity="0.5"/>
           <!-- Grass tufts -->
-          <path d="M20 180 l2 -6 M24 180 l1 -4 M30 182 l2 -5 M80 180 l1 -5 M86 182 l2 -6 M94 181 l1 -4" stroke="#1a1a1a" stroke-width="0.8" fill="none"/>
+          <path d="M20 180 l2 -6 M24 180 l1 -4 M30 182 l2 -5 M80 180 l1 -5 M86 182 l2 -6 M94 181 l1 -4" stroke="#e8f0fb" stroke-width="0.8" fill="none"/>
           <!-- Staff -->
-          <line x1="78" y1="50" x2="80" y2="180" stroke="#1a1a1a" stroke-width="2"/>
+          <line x1="78" y1="50" x2="80" y2="180" stroke="#e8f0fb" stroke-width="2"/>
           <!-- Body silhouette -->
           <path d="M50 60
                    Q46 58 46 52 Q46 42 54 40 Q62 38 66 46 Q68 52 64 58
@@ -521,13 +788,13 @@ export function createUI(camera, renderer, controls, scene) {
                    L58 180 L54 168 L50 140
                    L46 120 L44 100 L42 88
                    L40 78 L44 70 L50 66 Z"
-                fill="#1a1a1a"/>
+                fill="#e8f0fb"/>
           <!-- Hat -->
-          <path d="M40 44 Q46 38 56 38 Q66 38 70 44 L72 46 L38 46 Z" fill="#1a1a1a"/>
-          <path d="M36 46 L74 46" stroke="#1a1a1a" stroke-width="2"/>
+          <path d="M40 44 Q46 38 56 38 Q66 38 70 44 L72 46 L38 46 Z" fill="#e8f0fb"/>
+          <path d="M36 46 L74 46" stroke="#e8f0fb" stroke-width="2"/>
           <!-- Satchel -->
-          <path d="M52 90 L68 90 L72 108 L48 108 Z" fill="#1a1a1a"/>
-          <path d="M52 90 Q60 82 68 90" stroke="#1a1a1a" stroke-width="1.2" fill="none"/>
+          <path d="M52 90 L68 90 L72 108 L48 108 Z" fill="#e8f0fb"/>
+          <path d="M52 90 Q60 82 68 90" stroke="#e8f0fb" stroke-width="1.2" fill="none"/>
         </svg>
       </div>
     `;
@@ -685,21 +952,40 @@ export function createUI(camera, renderer, controls, scene) {
     });
   }
 
-  // Delegate clicks inside the book pages — image spreads have no interactive elements
-  function handleBookPageClick(_e) {
-    // no-op for image pages
+  function handleBookPageClick(e) {
+    const btn = e.target.closest('[data-bk-action]');
+    if (!btn) return;
+    const action = btn.dataset.bkAction;
+    const key    = btn.dataset.bkKey;
+
+    const dir  = btn.dataset.bkDir || 'next';
+    const flip = (fn) => animatePageFlip(dir, fn);
+
+    switch (action) {
+      case 'go-first':         flip(() => renderFirstPage());    break;
+      case 'go-summary1':      flip(() => renderSummary1());     break;
+      case 'go-summary2':      flip(() => renderSummary2());     break;
+      case 'go-summary3':      flip(() => renderSummary3());     break;
+      case 'go-mistakes1':     flip(() => renderMistakes1());    break;
+      case 'go-mistakes-done': flip(() => renderMistakesDone()); break;
+      case 'go-mistakes-point': showMistakesPoint(key); break;
+      case 'go-mistakes-next': {
+        const keys = BK_MISTAKES.map(m => m.key);
+        const next = keys[(keys.indexOf(bkMistakesKey) + 1) % keys.length];
+        flip(() => renderMistakesPoint(next));
+        break;
+      }
+      case 'go-research':    flip(() => renderResearch()); break;
+    }
   }
   bookPageL.addEventListener('click', handleBookPageClick);
   bookPageR.addEventListener('click', handleBookPageClick);
 
   function openBook() {
-    bookPageIndex = 0;
-    bookTopic = 'start';
-    deviationSelectedKey = null;
-    renderBookPage();
     bookOverlay.classList.remove('hidden');
-    spawnBookParticles();
     unlockForOverlay();
+    spawnBookParticles();
+    renderFirstPage();
   }
 
   function closeBook() {
@@ -727,8 +1013,8 @@ export function createUI(camera, renderer, controls, scene) {
     isFlipping = true;
 
     const PHASE_MS = 320;
-    const outEl = direction === 'next' ? bookPageR : bookPageL;
-    const inEl  = direction === 'next' ? bookPageL : bookPageR;
+    const outEl    = direction === 'next' ? bookPageR : bookPageL;
+    const inEl     = direction === 'next' ? bookPageL : bookPageR;
     const outClass = direction === 'next' ? 'flipping-out-right' : 'flipping-out-left';
     const inClass  = direction === 'next' ? 'flipping-in-left'   : 'flipping-in-right';
 
