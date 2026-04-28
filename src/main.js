@@ -253,7 +253,7 @@ let globeScreen;
 let kulturKartet;
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   createRoom(scene);
-  globeScreen = createGlobeScreenInstallation(scene, camera);
+  globeScreen = createGlobeScreenInstallation(scene, camera, cssScene);
   kulturKartet = createKulturKartet(scene);
   return createObjects(scene);
 });
@@ -952,6 +952,26 @@ window.__openVideoMoreInfo = () => {
   window.__currentVideoMoreInfo = { title: video.title, body: video.moreInfo };
   ui.openPanelDrawer('video-more-info', video.title);
 };
+
+// ── Country video overlay ──────────────────────────────────────────────────────
+const countryVideoOverlay = document.getElementById('country-video-overlay');
+const countryVideoIframe  = document.getElementById('country-video-iframe');
+const countryVideoTitle   = document.getElementById('country-video-title');
+const countryVideoClose   = document.getElementById('country-video-close');
+
+window.__showCountryVideo = (country, vimeoId) => {
+  countryVideoTitle.textContent = country;
+  countryVideoIframe.src = `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
+  countryVideoOverlay.classList.remove('hidden');
+  suppressFPOverlay = true;
+  controls.unlock();
+};
+
+countryVideoClose.addEventListener('click', () => {
+  countryVideoOverlay.classList.add('hidden');
+  countryVideoIframe.src = '';
+  controls.lock();
+});
 
 // ── TV cursor mode helpers ─────────────────────────────────────────────────────
 const tvMouse     = new THREE.Vector2();

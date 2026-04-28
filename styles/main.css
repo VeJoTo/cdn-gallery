@@ -46,7 +46,8 @@ body:has(
   #rabbit-hole-overlay:not(.hidden),
   #report-overlay:not(.hidden),
   #findumonde-overlay:not(.hidden),
-  #globe-videos-overlay:not(.hidden)
+  #globe-videos-overlay:not(.hidden),
+  #country-video-overlay:not(.hidden)
 ) #fp-overlay {
   display: none;
 }
@@ -1636,6 +1637,49 @@ body:has(
 #findumonde-desc {
   font-size: 13px;
   color: rgba(224,232,240,0.5);
+}
+
+/* ── Country video overlay ──────────────────────── */
+#country-video-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5,10,20,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+}
+#country-video-overlay.hidden { display: none; }
+
+#country-video-content {
+  position: relative;
+  width: min(1100px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#country-video-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #7dd4f8;
+  text-shadow: 0 0 16px rgba(0,212,255,0.6);
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+#country-video-iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 8px;
+  background: #000;
+}
+
+#country-video-content .report-close-btn {
+  position: absolute;
+  top: -16px;
+  right: -16px;
 }
 
 /* ── Globe videos overlay ───────────────────────── */
