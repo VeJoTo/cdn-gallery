@@ -665,14 +665,20 @@ export function createUI(camera, renderer, controls, scene) {
         <p class="bk-sub">A summary of</p>
         <h2 class="bk-h2">The Sweetheart in the Forest</h2>
         <p class="bk-body">"The Sweetheart in the Forest" opens with a young woman, who "was so beautiful that she was renowned across many kingdoms, and the numbers of suitors who came to her were as many as the leaves that fall in an autumn" (Asbjørnsen and Moe 2024, p. 59). One man makes himself out to be richer than the others, and as he also is handsome, he is the preferred suitor. He frequently visits her, but one day he asks her to come visit him. He cannot fetch her himself, but he tells her he will leave a trail of peas along the way for her to follow. "Now, however it did or didn't happen, he scattered the peas a day early" (p. 59). This is the stroke of destiny in the story, and it becomes his downfall. As she arrives a day earlier than expected, he is not at home to greet her.</p>
-        <div class="bk-img-wrap"><img src="${bkImg('folklore-1.jpg')}" alt="The maiden approaches the house in the forest"><p class="bk-caption">Image from: https://norske-eventyr.no/overtro-og-sagn/kjaeresten-i-skogen</p></div>
+        <div class="bk-img-wrap bk-img-illustration">
+          <img src="${bkImg('folklore-1.jpg')}" alt="The maiden approaches the house in the forest">
+          <p class="bk-caption">Image from: https://norske-eventyr.no/overtro-og-sagn/kjaeresten-i-skogen</p>
+        </div>
       </div>
       ${bkArrowBack('go-first')}`;
     bookPageR.innerHTML = `
       ${bkFrameR()}
       <div class="bk-content-r bk-summary">
         <p class="bk-body">Inside his beautiful house there is "nothing to see other than a wondrous bird that hung in a cage beneath the roof" (p. 59). The girl proceeds further into the house, where there are many riches, but each time she enters a new chamber, the bird cries out: "Beautiful maiden, be bold, but be not too bold!" (p. 60).</p>
-        <div class="bk-img-wrap"><img src="${bkImg('folklore-2.jpg')}" alt="The caged bird warns the girl"><p class="bk-caption">Image from: https://norske-eventyr.no/overtro-og-sagn/kjaeresten-i-skogen</p></div>
+        <div class="bk-img-wrap bk-img-illustration">
+          <img src="${bkImg('folklore-2.jpg')}" alt="The caged bird warns the girl">
+          <p class="bk-caption">Image from: https://norske-eventyr.no/overtro-og-sagn/kjaeresten-i-skogen</p>
+        </div>
         <p class="bk-body">As she goes, she finds one chamber filled with buckets of blood, and the last is full of dead bodies "and of skeletons of slain women" (p. 60). The bird tells her to hide under the bed. She does so: "[s]he crawled so far in against the wall as she could; yes, she was so scared that she would have liked to have crawled into the wall, had she been able" (p. 61). Presently, her suitor enters the room with another maiden. He rips off "her everything—both clothes and gold—even to a ring she had on her little finger" (p. 61). When he cannot get the ring off, he chops off the maiden's finger, which falls onto the floor and bounces under the bed. While he proceeds to murder the maiden, the girl under the bed takes the finger with the ring on it and hides it. The suitor has a little boy with him,</p>
       </div>
       ${bkArrowFwd('go-summary2')}`;
