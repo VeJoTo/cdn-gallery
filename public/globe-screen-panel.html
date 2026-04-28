@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 1024px;
+  height: 630px;
+  overflow: hidden;
+  background: #0d1f33;
+  font-family: 'Pixelify Sans', 'Segoe UI', sans-serif;
+  color: #e0e8f0;
+}
+
+#columns {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 1024px;
+  height: 630px;
+  padding: 20px;
+}
+
+#text-panel {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-right: 16px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1b7ab8;
+  text-shadow: 0 0 14px #1b7ab8;
+  margin: 0 0 8px;
+  flex-shrink: 0;
+}
+
+.divider-h {
+  height: 1px;
+  background: rgba(27,122,184,0.5);
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.body-text {
+  font-size: 12px;
+  color: #b8d8e8;
+  line-height: 1.65;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.cta {
+  margin-top: auto;
+  font-size: 12px;
+  font-weight: bold;
+  color: #3dd6c0;
+  text-shadow: 0 0 8px rgba(61,214,192,0.6);
+  line-height: 1.5;
+}
+
+.col-divider {
+  width: 1px;
+  background: rgba(0,212,255,0.2);
+  margin: 0 16px;
+  flex-shrink: 0;
+}
+
+#grid {
+  flex: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.cell {
+  flex-shrink: 0;
+  background: #081629;
+  border: 1px solid rgba(27,122,184,0.35);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cell-header {
+  padding: 5px 10px 3px;
+  flex-shrink: 0;
+}
+
+.broadcast-num {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(0,212,255,0.5);
+}
+
+.broadcast-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e8f4ff;
+}
+
+.thumb-wrap {
+  width: 70%;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  background: #030c18;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+</style>
+</head>
+<body>
+<div id="columns">
+  <div id="text-panel">
+    <h2>Fin du Monde</h2>
+    <div class="divider-h"></div>
+    <p class="body-text">"Fin du Monde" is an AI-generated dark comedy about the apocalypse. By clicking on different parts on the globe you will be shown dramatic, AI-generated images of meteor showers striking that country or city, set to matching music.</p>
+    <p class="body-text">To the right of this text you can see the aftermath: confused AI news anchors still broadcasting to an empty world, searching for human survivors who never respond. They're not villains or geniuses — just lost, doing the only job they ever knew.</p>
+    <p class="cta">Press one of the highlighted parts on the globe to begin exploring!</p>
+  </div>
+  <div class="col-divider"></div>
+  <div id="grid"></div>
+</div>
+
+<script>
+const BROADCASTS = [
+  { num: 1, title: 'Global Catastrophe',           id: 890586293 },
+  { num: 2, title: 'Tips for Staying Alive',        id: 890586362 },
+  { num: 3, title: 'All Alone?',                    id: 890586417 },
+  { num: 4, title: 'The AI',                        id: 890586558 },
+  { num: 5, title: 'Philosophies of Consciousness', id: 891807343 },
+  { num: 6, title: 'The Singularity',               id: 892423392 },
+  { num: 7, title: 'Anthropocene',                  id: 902520876 },
+  { num: 8, title: 'Mass Extinction',               id: 938510082 },
+  { num: 9, title: 'To Cease',                      id: 936985907 },
+];
+
+const grid = document.getElementById('grid');
+
+for (const b of BROADCASTS) {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.innerHTML = `
+    <div class="cell-header">
+      <div class="broadcast-num">Broadcast ${b.num}</div>
+      <div class="broadcast-title">${b.title}</div>
+    </div>
+    <div class="thumb-wrap"><img id="thumb-${b.id}" alt="" crossorigin="anonymous"></div>
+  `;
+  grid.appendChild(cell);
+
+  fetch(`https://vimeo.com/api/v2/video/${b.id}.json`)
+    .then(r => r.json())
+    .then(([data]) => {
+      const u = data.thumbnail_large || data.thumbnail_medium;
+      if (u) { const img = document.getElementById(`thumb-${b.id}`); if (img) img.src = u; }
+    })
+    .catch(() => {});
+}
+</script>
+</body>
+</html>

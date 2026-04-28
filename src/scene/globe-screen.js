@@ -1,8 +1,13 @@
 import * as THREE from 'three';
+import { CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 
-// Vimeo video IDs for the anchor grid
-const VIMEO_IDS = [890586293, 890586362, 890586558, 892423392];
-const VIMEO_THUMBS = new Array(4).fill(null); // filled as images load
+// Broadcast video IDs and titles — shown in the right panel of the default screen
+const VIMEO_IDS = [890586293, 890586362, 890586417, 890586558, 891807343, 892423392, 902520876, 938510082, 936985907];
+const BROADCAST_TITLES = [
+  'Global Catastrophe', 'Tips for Staying Alive', 'All Alone?', 'The AI',
+  'Philosophies of Consciousness', 'The Singularity', 'Anthropocene', 'Mass Extinction', 'To Cease',
+];
+const VIMEO_THUMBS = new Array(VIMEO_IDS.length).fill(null); // filled as images load
 
 async function loadVimeoThumbnails(onThumbReady) {
   for (let i = 0; i < VIMEO_IDS.length; i++) {
@@ -32,6 +37,13 @@ for (const [name, file] of Object.entries(IMAGE_SRCS)) {
   img.src = import.meta.env.BASE_URL + file;
   COUNTRY_IMAGES[name] = img;
 }
+
+// Countries that show a Vimeo video instead of a static image
+const COUNTRY_VIDEOS = {
+  'Hong Kong': '922545095',
+  'France':    '922521257',
+  'Greece':    '923100171',
+};
 
 // CDN design system colors
 const CDN = {
@@ -226,50 +238,116 @@ function drawDefaultScreen(canvas, locked = false) {
   ctx.moveTo(mid, 16); ctx.lineTo(mid, H - 16);
   ctx.stroke();
 
-  // ── Right panel: anchor thumbnails / placeholders ──
-  const rx   = mid + 12;
-  const rw   = W - rx - 12;
-  const cols = 2, rows = 2;
-  const tw   = (rw - 12) / cols;
-  const th   = (H - 32) / rows;
+  // ── Right panel: single-column broadcast list ──
+  const rx = mid + 16;
+  const rw = W - rx - 16;
+  const entryGap = 16;
+  const headerH  = 38;
+  const thumbH   = Math.round(rw * 9 / 16);
+  const entryH   = headerH + thumbH + entryGap;
 
-  for (let i = 0; i < 4; i++) {
-    const col  = i % cols;
-    const row  = Math.floor(i / cols);
-    const tx   = rx + col * (tw + 8);
-    const tyy  = 16 + row * (th + 8);
-    const cw   = tw - 4;
-    const ch   = th - 8;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rx, 0, rw, H);
+  ctx.clip();
+
+  for (let i = 0; i < VIMEO_IDS.length; i++) {
+    const ey = 12 + i * entryH;
+    if (ey > H) break;
+
+    // Broadcast number
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillStyle = 'rgba(0,212,255,0.5)';
+    ctx.textAlign = 'left';
+    ctx.fillText(`BROADCAST ${i + 1}`, rx, ey + 14);
+
+    // Title
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillStyle = '#e8f4ff';
+    ctx.fillText(BROADCAST_TITLES[i], rx, ey + 33);
+
+    // Thumbnail background
+    const ty = ey + headerH;
+    const th = Math.min(thumbH, H - ty - 4);
+    if (th <= 0) break;
+    ctx.fillStyle = '#081629';
+    ctx.beginPath();
+    ctx.roundRect(rx, ty, rw, th, 5);
+    ctx.fill();
 
     const thumb = VIMEO_THUMBS[i];
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(tx, tyy, cw, ch);
-    if (thumb) {
-      // Contain-fit: full thumbnail visible, black bars fill the rest
-      const scale = Math.min(cw / thumb.naturalWidth, ch / thumb.naturalHeight);
-      const iw = thumb.naturalWidth  * scale;
-      const ih = thumb.naturalHeight * scale;
-      ctx.drawImage(thumb, tx + (cw - iw) / 2, tyy + (ch - ih) / 2, iw, ih);
+    if (thumb && thumb.complete && thumb.naturalWidth > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(rx, ty, rw, th, 5);
+      ctx.clip();
+      const scale = Math.max(rw / thumb.naturalWidth, th / thumb.naturalHeight);
+      const iw = thumb.naturalWidth * scale, ih = thumb.naturalHeight * scale;
+      ctx.drawImage(thumb, rx + (rw - iw) / 2, ty + (th - ih) / 2, iw, ih);
+      ctx.restore();
     }
 
     // Border
-    ctx.strokeStyle = 'rgba(27,122,184,0.3)';
+    ctx.strokeStyle = 'rgba(27,122,184,0.4)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(tx, tyy, cw, ch, 4);
+    ctx.roundRect(rx, ty, rw, th, 5);
     ctx.stroke();
-
-    // Play icon
-    const cx = tx + cw / 2;
-    const cy = tyy + ch / 2;
-    ctx.fillStyle = 'rgba(0,212,255,0.75)';
-    ctx.beginPath();
-    ctx.moveTo(cx - 14, cy - 16);
-    ctx.lineTo(cx + 18, cy);
-    ctx.lineTo(cx - 14, cy + 16);
-    ctx.closePath();
-    ctx.fill();
   }
+
+  ctx.restore();
+}
+
+function drawVideoCountryScreen(canvas, country) {
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d');
+
+  // Dark background matching overlay
+  ctx.fillStyle = 'rgba(5,10,20,1)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Scan lines
+  for (let y = 0; y < H; y += 4) {
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillRect(0, y, W, 2);
+  }
+
+  // Country title
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 54px sans-serif';
+  ctx.fillStyle = '#7dd4f8';
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 28;
+  ctx.fillText(country, W / 2, 100);
+  ctx.shadowBlur = 0;
+
+  // Video frame border (16:9 ratio, centred)
+  const fw = W * 0.82, fh = fw * (9 / 16);
+  const fx = (W - fw) / 2, fy = (H - fh) / 2 + 30;
+  ctx.strokeStyle = 'rgba(0,212,255,0.45)';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.roundRect(fx, fy, fw, fh, 12);
+  ctx.stroke();
+
+  // Play icon in the centre of the frame
+  const cx = W / 2, cy = fy + fh / 2;
+  ctx.fillStyle = 'rgba(0,212,255,0.25)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#7dd4f8';
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.moveTo(cx - 20, cy - 30);
+  ctx.lineTo(cx - 20, cy + 30);
+  ctx.lineTo(cx + 36, cy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.textAlign = 'left';
 }
 
 function drawCountryScreen(canvas, country, onReady) {
@@ -677,7 +755,27 @@ function buildNeonSign(scene, leftX, rightX, z) {
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
-export function createGlobeScreenInstallation(scene, camera) {
+const BROADCASTS = [
+  { num: 1, title: 'Global Catastrophe',           id: 890586293 },
+  { num: 2, title: 'Tips for Staying Alive',        id: 890586362 },
+  { num: 3, title: 'All Alone?',                    id: 890586417 },
+  { num: 4, title: 'The AI',                        id: 890586558 },
+  { num: 5, title: 'Philosophies of Consciousness', id: 891807343 },
+  { num: 6, title: 'The Singularity',               id: 892423392 },
+  { num: 7, title: 'Anthropocene',                  id: 902520876 },
+  { num: 8, title: 'Mass Extinction',               id: 938510082 },
+  { num: 9, title: 'To Cease',                      id: 936985907 },
+];
+
+function buildScreenCSS3DDiv() {
+  const iframe = document.createElement('iframe');
+  iframe.src = import.meta.env.BASE_URL + 'globe-screen-panel.html';
+  iframe.style.cssText = 'width:1024px;height:630px;border:none;border-radius:8px;pointer-events:none;';
+  iframe.scrolling = 'no';
+  return iframe;
+}
+
+export function createGlobeScreenInstallation(scene, camera, cssScene) {
   const GLOBE_SCALE = 1.8;
 
   const Z = -9.5;
@@ -709,6 +807,16 @@ export function createGlobeScreenInstallation(scene, camera) {
 
   // Neon arch sign spanning both screen and globe
   buildNeonSign(scene, 0.0, 7.3, Z);
+
+  // ── CSS3D overlay — renders real HTML on the screen surface ──
+  let css3dObj = null;
+  if (cssScene) {
+    const div = buildScreenCSS3DDiv();
+    css3dObj = new CSS3DObject(div);
+    css3dObj.scale.setScalar(2.74 / 1024);
+    css3dObj.visible = false;
+    cssScene.add(css3dObj);
+  }
 
   // ── Locked state — markers dimmed and non-clickable until screen is read ──
   let unlocked = false;
@@ -747,20 +855,28 @@ export function createGlobeScreenInstallation(scene, camera) {
     screen.userData.state = 'default';
     screen.userData.screenMesh.userData.action = 'openGlobeVideos';
     screen.userData.screenMesh.userData.hotspot = 'screen';
+    if (css3dObj) css3dObj.visible = true;
     unlock();
   }
 
   function selectCountry(country) {
-    drawCountryScreen(screen.userData.canvas, country, () => {
+    const videoId = COUNTRY_VIDEOS[country];
+    if (videoId) {
+      window.__showCountryVideo?.(country, videoId);
+    } else {
+      if (css3dObj) css3dObj.visible = false;
+      drawCountryScreen(screen.userData.canvas, country, () => {
+        screen.userData.texture.needsUpdate = true;
+      });
       screen.userData.texture.needsUpdate = true;
-    });
-    screen.userData.texture.needsUpdate = true;
-    screen.userData.state = 'country';
-    screen.userData.screenMesh.userData.action = 'resetGlobeScreen';
+      screen.userData.state = 'country';
+      screen.userData.screenMesh.userData.action = 'resetGlobeScreen';
+    }
   }
 
   function reset() {
     if (screen.userData.state === 'default') return;
+    if (css3dObj) css3dObj.visible = true;
     drawDefaultScreen(screen.userData.canvas, false);
     screen.userData.texture.needsUpdate = true;
     screen.userData.state = 'default';
@@ -771,10 +887,20 @@ export function createGlobeScreenInstallation(scene, camera) {
   const _white  = new THREE.Color(0xffffff);
   const _tmpCol = new THREE.Color();
 
+  const _css3dPos  = new THREE.Vector3();
+  const _css3dQuat = new THREE.Quaternion();
+
   let elapsed = 0;
   function update(delta) {
     elapsed += delta;
     globe.rotation.y += delta * 0.06;
+
+    if (css3dObj && css3dObj.visible) {
+      screen.userData.screenMesh.getWorldPosition(_css3dPos);
+      screen.userData.screenMesh.getWorldQuaternion(_css3dQuat);
+      css3dObj.position.copy(_css3dPos);
+      css3dObj.quaternion.copy(_css3dQuat);
+    }
 
     // Unlock fade animation (0.5s)
     if (unlocked && unlockProgress < 1) {
