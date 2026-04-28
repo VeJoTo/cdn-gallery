@@ -92,14 +92,14 @@ function drawStartScreen(canvas) {
 
   // Heading
   ctx.font = 'bold 54px sans-serif';
-  ctx.fillStyle = '#1b7ab8';
-  ctx.shadowColor = '#1b7ab8';
-  ctx.shadowBlur = 20;
+  ctx.fillStyle = '#7dd4f8';
+  ctx.shadowColor = '#00d4ff';
+  ctx.shadowBlur = 32;
   ctx.fillText('Fin du Monde', W / 2, H / 2 - 80);
   ctx.shadowBlur = 0;
 
   // Start button — CDN Button 1 style
-  const BW = 320, BH = 80, BR = 20;
+  const BW = 461, BH = 115, BR = 29;
   const bx = (W - BW) / 2, by = H / 2 - 30;
 
   ctx.shadowColor = '#00d4ff';
@@ -125,16 +125,11 @@ function drawStartScreen(canvas) {
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  ctx.font = 'bold 36px sans-serif';
+  ctx.font = 'bold 52px sans-serif';
   ctx.fillStyle = '#ffffff';
   ctx.textBaseline = 'middle';
   ctx.fillText('Start', W / 2, by + BH / 2);
 
-  // Hint
-  ctx.font = '18px sans-serif';
-  ctx.fillStyle = 'rgba(0,212,255,0.45)';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('click to begin', W / 2, H / 2 + 80);
 
   ctx.textAlign = 'left';
 }
@@ -688,17 +683,17 @@ export function createGlobeScreenInstallation(scene, camera) {
   const Z = -9.5;
 
   const screen = buildScreen();
-  screen.position.set(3.5, 1.5, Z);
+  screen.position.set(2.0, 1.5, Z);
   scene.add(screen);
 
   const pedestal = buildPedestal();
-  pedestal.position.set(7.0, 0, Z);
+  pedestal.position.set(5.5, 0, Z);
   pedestal.scale.setScalar(GLOBE_SCALE);
   scene.add(pedestal);
 
   const globe = buildGlobe(screen);
   // Base top is ~0.08 * GLOBE_SCALE; globe radius is 0.5 * GLOBE_SCALE — sit just above base
-  globe.position.set(7.0, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, Z);
+  globe.position.set(5.5, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, Z);
   globe.scale.setScalar(GLOBE_SCALE);
   scene.add(globe);
 
@@ -709,11 +704,11 @@ export function createGlobeScreenInstallation(scene, camera) {
   }
 
   const areaLight = new THREE.PointLight(CDN.blue, 0.8, 10);
-  areaLight.position.set(5.2, 3.5, Z + 0.5);
+  areaLight.position.set(3.7, 3.5, Z + 0.5);
   scene.add(areaLight);
 
   // Neon arch sign spanning both screen and globe
-  buildNeonSign(scene, 1.5, 8.8, Z);
+  buildNeonSign(scene, 0.0, 7.3, Z);
 
   // ── Locked state — markers dimmed and non-clickable until screen is read ──
   let unlocked = false;
