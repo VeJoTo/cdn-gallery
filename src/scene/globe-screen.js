@@ -204,8 +204,8 @@ function drawDefaultScreen(canvas, locked = false) {
   ctx.font = '18px sans-serif';
   ctx.fillStyle = '#b8d8e8';
   const body = [
-    '"Fin du Monde" is an AI-generated dark comedy about the apocalypse. By clicking on different parts on the globe you will be shown dramatic, AI-generated images of meteor showers striking that country or city, set to matching music.',
-    'To the right of this text you can see the aftermath: confused AI news anchors still broadcasting to an empty world, searching for human survivors who never respond. They\'re not villains or geniuses — just lost, doing the only job they ever knew.',
+    '"Fin du Monde" is an AI-generated dark comedy about the apocalypse. By clicking on different parts of the globe, situated to the right of this screen, you will be shown dramatic, AI-generated images of meteor showers striking the selected country.',
+    'Beside this text, a sequence of videos plays out in chronological order. You can see AI news anchors still broadcasting into the void, their voices reaching no one. They did not choose this. They\'re simply lost, carrying out the only purpose they were ever given; telling the news.',
   ];
 
   let ty = 96;
