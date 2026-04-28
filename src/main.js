@@ -12,6 +12,7 @@ import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
+import { initHUD } from './hud.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
 
@@ -1568,6 +1569,7 @@ addUpdateCallback(() => {
 });
 
 animate();
+initHUD();
 
 // Welcome intro — fires on every page load.
 ui.playIntro();
