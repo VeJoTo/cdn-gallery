@@ -272,21 +272,22 @@ export function createRoom(scene) {
   });
   const LOGO_Y = 0.005;
 
-  // Central ring
-  const CENTER_R = 0.80;
-  const centRing = new THREE.Mesh(new THREE.RingGeometry(CENTER_R - 0.06, CENTER_R, 64), logoMat);
+  // Central ring — larger hub
+  const CENTER_R = 1.2;
+  const centRing = new THREE.Mesh(new THREE.RingGeometry(CENTER_R - 0.08, CENTER_R, 64), logoMat);
   centRing.rotation.x = -Math.PI / 2;
   centRing.position.y = LOGO_Y;
   scene.add(centRing);
 
   // Satellite circles — one in front of each interactive exhibit
-  const SAT_R = 0.42;
-  const SAT_W = 0.05;
+  const SAT_R = 0.65;
+  const SAT_W = 0.06;
   const logoSats = [
-    { x: -5.5, z: -2.75 }, // Bookstand pedestal
-    { x: -6.0, z:  2.75 }, // TV (left wall)
-    { x: -4.0, z:  1.5  }, // Sofa
-    { x:  5.5, z:  8.0  }, // Arcade cabinet
+    { x: -5.5, z: -2.75 }, // Bookstand pedestal (left wall, back)
+    { x: -6.0, z:  2.75 }, // TV (left wall, front)
+    { x:  5.5, z:  8.0  }, // Arcade cabinet (front-right)
+    { x:  0.5, z: -8.0  }, // Fin du Monde — globe screen (back wall)
+    { x:  6.0, z:  3.0  }, // Culture map / Kultur-kartet (right wall)
   ];
 
   for (const { x, z } of logoSats) {
@@ -304,7 +305,7 @@ export function createRoom(scene) {
     const midZ = nz * (CENTER_R + len / 2);
 
     const connector = new THREE.Mesh(
-      new THREE.BoxGeometry(0.04, 0.01, Math.max(len, 0.01)),
+      new THREE.BoxGeometry(0.05, 0.01, Math.max(len, 0.01)),
       logoMat,
     );
     connector.position.set(midX, LOGO_Y, midZ);
