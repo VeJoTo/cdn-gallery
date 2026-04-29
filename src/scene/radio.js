@@ -414,11 +414,12 @@ let _radioChannelDots = null; // { refresh() } — relights the active channel d
 
 export function createRadio(scene) {
   const root = new THREE.Group();
-  // Just outside the sofa's +Z armrest (the sitter's right when facing
-  // the TV), pulled clear so the table doesn't clip the sofa GLB. Rotate
-  // ~90° so the front face points into the room — anyone walking up to
-  // the sofa group sees the radio's display directly.
-  root.position.set(-2.4, 0, 4.7);
+  // Couch-side end-table: align with the sofa's X (so it sits flush
+  // against the sofa side, not floating in the room) and place it
+  // just past the +Z armrest so the radio reads as part of the sofa
+  // group. Rotate so the front face points into the room (+X), where
+  // the player is most likely to walk up from.
+  root.position.set(-4.2, 0, 4.4);
   root.rotation.y = Math.PI / 2;
   scene.add(root);
 
