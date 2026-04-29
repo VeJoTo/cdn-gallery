@@ -495,62 +495,111 @@ function buildGlobe(screenRef) {
     );
 
     // Button 1 style — will be added to scene, billboarded in update()
-    const BW = 420, BH = 110, R = 22;
+    const BW = 630, BH = 165, R = 33;
     const lc  = document.createElement('canvas');
     lc.width  = BW;
     lc.height = BH;
     const lx  = lc.getContext('2d');
 
-    lx.shadowColor = colorHex;
-    lx.shadowBlur  = 28;
-    lx.strokeStyle = colorHex;
-    lx.lineWidth   = 5;
-    lx.beginPath();
-    lx.roundRect(10, 10, BW - 20, BH - 20, R);
-    lx.stroke();
+    const cr = (c.color >> 16) & 0xff;
+    const cg = (c.color >> 8)  & 0xff;
+    const cb =  c.color        & 0xff;
 
+    // Background + border canvas (no text)
     lx.shadowBlur = 0;
-    lx.fillStyle  = 'rgba(10, 20, 38, 0.88)';
+    lx.fillStyle  = `rgba(${cr}, ${cg}, ${cb}, 0.12)`;
     lx.beginPath();
     lx.roundRect(10, 10, BW - 20, BH - 20, R);
     lx.fill();
 
     lx.strokeStyle = colorHex;
-    lx.lineWidth   = 2.5;
-    lx.shadowColor = colorHex;
-    lx.shadowBlur  = 10;
+    lx.lineWidth   = 6;
     lx.beginPath();
     lx.roundRect(10, 10, BW - 20, BH - 20, R);
     lx.stroke();
-    lx.shadowBlur = 0;
 
-    lx.font         = 'bold 44px "Octosquares", sans-serif';
-    lx.fillStyle    = '#ffffff';
-    lx.textAlign    = 'center';
-    lx.textBaseline = 'middle';
-    lx.fillText(c.name, BW / 2, BH / 2);
+    // Border emissive map — grey interior so hover brightens whole label, white border glow
+    const ec = document.createElement('canvas');
+    ec.width = BW; ec.height = BH;
+    const ex = ec.getContext('2d');
+    ex.fillStyle = 'rgba(60, 60, 60, 1)';
+    ex.fillRect(0, 0, BW, BH);
+    ex.beginPath();
+    ex.roundRect(10, 10, BW - 20, BH - 20, R);
+    ex.fill();
+    ex.shadowColor = 'white';
+    ex.shadowBlur  = 50;
+    ex.strokeStyle = 'white';
+    ex.lineWidth   = 8;
+    ex.beginPath();
+    ex.roundRect(10, 10, BW - 20, BH - 20, R);
+    ex.stroke();
 
-    // Button mesh — MeshStandardMaterial so the existing hover system can glow it
+    // Background + border mesh — accent emissive so border glows in country color
     const btnMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.46, 0.12),
+      new THREE.PlaneGeometry(1.05, 0.30),
       new THREE.MeshStandardMaterial({
-        map: new THREE.CanvasTexture(lc),
+        map:          new THREE.CanvasTexture(lc),
+        emissiveMap:  new THREE.CanvasTexture(ec),
+        emissive:     new THREE.Color(c.color),
+        emissiveIntensity: 2.0,
         transparent: true, depthWrite: false,
-        emissive: new THREE.Color(c.color), emissiveIntensity: 0.0,
         roughness: 1, metalness: 0,
       })
     );
 
+    // Text canvas — white text with canvas glow, transparent background
+    const tc = document.createElement('canvas');
+    tc.width = BW; tc.height = BH;
+    const tx = tc.getContext('2d');
+    tx.font         = 'bold 66px "Octosquares", sans-serif';
+    tx.shadowColor  = '#ffffff';
+    tx.shadowBlur   = 22;
+    tx.fillStyle    = '#ffffff';
+    tx.textAlign    = 'center';
+    tx.textBaseline = 'middle';
+    tx.fillText(c.name, BW / 2, BH / 2);
+    tx.shadowBlur   = 0;
+
+    // Text emissive map — white text so it glows in 3D (emissive = white → white glow)
+    const te = document.createElement('canvas');
+    te.width = BW; te.height = BH;
+    const tx2 = te.getContext('2d');
+    tx2.fillStyle = 'black';
+    tx2.fillRect(0, 0, BW, BH);
+    tx2.font         = 'bold 66px "Octosquares", sans-serif';
+    tx2.shadowColor  = 'white';
+    tx2.shadowBlur   = 30;
+    tx2.fillStyle    = 'white';
+    tx2.textAlign    = 'center';
+    tx2.textBaseline = 'middle';
+    tx2.fillText(c.name, BW / 2, BH / 2);
+
+    // Text mesh — white emissive so text glows white regardless of accent color
+    const textMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.05, 0.30),
+      new THREE.MeshStandardMaterial({
+        map:          new THREE.CanvasTexture(tc),
+        emissiveMap:  new THREE.CanvasTexture(te),
+        emissive:     new THREE.Color(0xffffff),
+        emissiveIntensity: 2.0,
+        transparent: true, depthWrite: false,
+        roughness: 1, metalness: 0,
+      })
+    );
+    textMesh.position.z = 0.002;
+
     // Invisible hit plane slightly in front of button
     const hitMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.50, 0.16),
+      new THREE.PlaneGeometry(1.13, 0.38),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
     );
-    hitMesh.position.z = 0.001;
+    hitMesh.position.z = 0.003;
 
-    // Group them so traverse in applyHoverGlow reaches btnMesh
+    // Group them so traverse in applyHoverGlow reaches all meshes
     const markerGroup = new THREE.Group();
     markerGroup.add(btnMesh);
+    markerGroup.add(textMesh);
     markerGroup.add(hitMesh);
     markerGroup.userData = {
       clickable: true,
