@@ -106,7 +106,7 @@ function buildPortal() {
   lctx.clearRect(0, 0, 256, 48);
   lctx.shadowColor = "#00d4ff";
   lctx.shadowBlur = 8;
-  lctx.font = "bold 24px sans-serif";
+  lctx.font = "bold 24px 'Octosquares', sans-serif";
   lctx.fillStyle = "#00d4ff";
   lctx.textAlign = "center";
   lctx.fillText("▸ ENTER PORTAL ◂", 128, 32);

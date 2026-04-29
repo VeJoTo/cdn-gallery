@@ -1,9 +1,19 @@
 /* styles/main.css */
+
+/* ── Type system ─────────────────────────────────────
+ * Two-font design system:
+ *   • Titles/headings → TT Octosquares (variable: any weight 100–900)
+ *   • Body / everything else → Roboto
+ * Note: TT Octosquares is a TRIAL font here. Replace with a licensed
+ * version before production deployment.
+ */
 @font-face {
   font-family: 'Octosquares';
-  src: url('/fonts/TT Octosquares Trial Regular.ttf') format('truetype');
-  font-weight: normal;
+  src: url('/fonts/TTOctosquaresTrial-Variable.ttf') format('truetype-variations'),
+       url('/fonts/TTOctosquaresTrial-Variable.ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -11,8 +21,14 @@
 body {
   background: #0a0f1a;
   overflow: hidden;
-  font-family: 'Pixelify Sans', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif;
   color: #00d4ff;
+}
+
+/* All headings default to Octosquares */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Octosquares', 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: 0.5px;
 }
 
 #gallery-canvas {
@@ -308,7 +324,7 @@ body:has(
   background: transparent;
   border: 1.5px solid rgba(0, 212, 255, 0.8);
   color: #00d4ff;
-  font-family: 'Courier New', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 14px;
   letter-spacing: 3px;
   padding: 12px 28px;
@@ -423,10 +439,10 @@ body:has(
   box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0,212,255,0.2);
 }
 .scrapbook, .scrapbook * {
-  font-family: 'Caveat', 'Georgia', cursive;
+  font-family: 'Roboto', sans-serif;
 }
 .scrapbook-tab {
-  font-family: 'Pixelify Sans', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Octosquares', sans-serif;
 }
 
 .scrapbook-page {
@@ -454,7 +470,7 @@ body:has(
 }
 
 .scrapbook-title {
-  font-family: 'Caveat', 'Georgia', cursive;
+  font-family: 'Octosquares', sans-serif;
   font-size: 22px;
   color: #3a2818;
   margin-bottom: 16px;
@@ -478,7 +494,7 @@ body:has(
 }
 
 .polaroid-caption {
-  font-family: 'Georgia', serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 12px;
   color: #5a4a3a;
   margin-top: 6px;
@@ -495,7 +511,7 @@ body:has(
 }
 
 .sticky-note h3 {
-  font-family: 'Georgia', serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 15px;
   color: #5a4a20;
   margin-bottom: 8px;
@@ -547,14 +563,14 @@ body:has(
 }
 
 .discovery-label {
-  font-family: 'Georgia', serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 12px;
   color: #5a4a3a;
 }
 
 .scrapbook-page-num {
   text-align: center;
-  font-family: 'Georgia', serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 12px;
   color: #a09070;
   margin-top: 16px;
@@ -574,7 +590,7 @@ body:has(
   border: none;
   border-radius: 0 8px 8px 0;
   padding: 10px 16px 10px 12px;
-  font-family: 'Caveat', cursive;
+  font-family: 'Roboto', sans-serif;
   font-size: 16px;
   color: #3a2818;
   cursor: pointer;
@@ -623,7 +639,7 @@ body:has(
   background: #fdfcf8;
   box-shadow: 0 0 30px rgba(224,232,240,0.4);
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-family: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
   color: #1a1a1a;
   line-height: 1.55;
   font-size: 15px;
@@ -734,7 +750,7 @@ body:has(
   padding: 56px 48px;
   height: 100%;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-family: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
   color: #1a1a1a;
 }
 
@@ -763,7 +779,7 @@ body:has(
   align-items: center;
   justify-content: center;
   gap: 22px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-family: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
 }
 
 .topics-heading {
@@ -862,7 +878,7 @@ body:has(
   border-radius: 10px;
   padding: 14px 22px;
   font-size: 14px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-family: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
   font-weight: 400;
   color: #1a1a1a;
   cursor: pointer;
@@ -906,7 +922,7 @@ body:has(
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-family: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
   color: #1a1a1a;
   cursor: pointer;
   white-space: nowrap;
@@ -930,7 +946,7 @@ body:has(
   border-radius: 8px;
   padding: 7px 18px;
   font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-family: 'Roboto', -apple-system, 'Helvetica Neue', sans-serif;
   color: #1a1a1a;
   cursor: pointer;
   transition: background 0.2s;
@@ -1003,7 +1019,7 @@ body:has(
 }
 
 .cover-title {
-  font-family: 'UnifrakturCook', 'UnifrakturMaguntia', 'Cinzel Decorative', 'Luminari', 'Papyrus', serif;
+  font-family: 'Octosquares', sans-serif;
   color: #c9a14a;
   text-align: center;
   line-height: 0.95;
@@ -1447,7 +1463,7 @@ body:has(
 .bk-right-box::-webkit-scrollbar-track { background: transparent; }
 .bk-right-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
 .bk-right-placeholder {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 15px;
   font-weight: 500;
   color: #9E9E9E;
@@ -1818,7 +1834,7 @@ body:has(
 }
 
 #report-header h2 {
-  font-family: 'Pixelify Sans', sans-serif;
+  font-family: 'Octosquares', sans-serif;
   font-size: 28px;
   color: #e0e8f0;
   margin-bottom: 4px;
@@ -2507,7 +2523,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 .achievement-toast__body { flex: 1; min-width: 0; position: relative; }
 
 .achievement-toast__header {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 1.5px;
@@ -2517,7 +2533,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 
 .achievement-toast__title {
-  font-family: 'Orbitron', 'Pixelify Sans', sans-serif;
+  font-family: 'Octosquares', sans-serif;
   font-weight: 700;
   font-size: 17px;
   letter-spacing: 0.5px;
@@ -2528,7 +2544,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 
 .achievement-toast__desc {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
   font-size: 11px;
   color: rgba(214, 244, 251, 0.65);
   line-height: 1.35;
@@ -2536,7 +2552,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 
 .achievement-toast__xp {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -2618,7 +2634,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 
 .ach-tab__title {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace !important;
+  font-family: 'Roboto', 'Segoe UI', sans-serif !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   letter-spacing: 2px;
@@ -2634,7 +2650,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   margin-bottom: 24px;
 }
 .achievement-rank__level {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Octosquares', sans-serif;
   font-size: 38px;
   font-weight: 900;
   letter-spacing: 2px;
@@ -2676,20 +2692,20 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 10px;
   font-weight: 700;
   color: #0a0e14;
   letter-spacing: 2px;
 }
 .achievement-rank__xp {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 12px;
   color: #00d4ff;
   letter-spacing: 1px;
 }
 .achievement-rank__subtitle {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 11px;
   color: rgba(214, 244, 251, 0.5);
   margin-top: 8px;
@@ -2710,7 +2726,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   text-align: center;
   cursor: default;
   transition: background 200ms, border-color 200ms, transform 200ms;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
 }
 .achievement-card__corner {
   position: absolute;
@@ -2753,7 +2769,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   color: rgba(214, 244, 251, 0.3);
 }
 .achievement-card__title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Octosquares', sans-serif;
   font-weight: 700;
   font-size: 11px;
   letter-spacing: 1.2px;
@@ -2766,7 +2782,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   color: rgba(214, 244, 251, 0.4);
 }
 .achievement-card__status {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 9px;
   letter-spacing: 1.5px;
   color: #00d4ff;
@@ -2786,7 +2802,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   background: rgba(10, 14, 20, 0.95);
   border: 1px solid rgba(0, 212, 255, 0.55);
   box-shadow: 0 0 18px rgba(0, 212, 255, 0.4);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 11px;
   color: rgba(214, 244, 251, 0.85);
   line-height: 1.4;
@@ -2807,7 +2823,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   border-top: 1px dashed rgba(0, 212, 255, 0.25);
 }
 .achievement-recent h4 {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 1.5px;
@@ -2819,7 +2835,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   padding: 0;
 }
 .achievement-recent li {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-size: 11px;
   color: rgba(214, 244, 251, 0.75);
   padding: 3px 0;
@@ -2905,11 +2921,11 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 /* All scrapbook text becomes mono telemetry */
 #inventory-overlay .scrapbook,
 #inventory-overlay .scrapbook * {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
 }
 
 #inventory-overlay .scrapbook-title {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   letter-spacing: 2px !important;
@@ -2957,7 +2973,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   border: 1px solid rgba(0, 212, 255, 0.3);
 }
 #inventory-overlay .polaroid-caption {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   font-size: 11px !important;
   letter-spacing: 1.2px;
   color: rgba(214, 244, 251, 0.7) !important;
@@ -2985,7 +3001,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   border-bottom: none;
 }
 #inventory-overlay .sticky-note h3 {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   font-size: 11px !important;
   font-weight: 700 !important;
   letter-spacing: 1.5px;
@@ -2998,7 +3014,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 #inventory-overlay .sticky-note ul { padding: 0; }
 #inventory-overlay .sticky-note li {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   font-size: 11px !important;
   color: rgba(214, 244, 251, 0.75) !important;
   border-bottom: 1px dashed rgba(0, 212, 255, 0.18) !important;
@@ -3013,7 +3029,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 /* Sky toggle (Settings) — tech-tinted */
 #inventory-overlay .sky-toggle-label {
   color: rgba(214, 244, 251, 0.85) !important;
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   letter-spacing: 1px;
   text-transform: uppercase;
   font-size: 11px;
@@ -3062,7 +3078,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   color: rgba(214, 244, 251, 0.35);
 }
 #inventory-overlay .discovery-label {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   font-size: 10px !important;
   letter-spacing: 1px;
   color: rgba(214, 244, 251, 0.85) !important;
@@ -3073,7 +3089,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 
 #inventory-overlay .scrapbook-page-num {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   font-size: 10px !important;
   color: rgba(0, 212, 255, 0.5) !important;
   letter-spacing: 1.5px;
@@ -3100,7 +3116,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   border: 1px solid rgba(0, 212, 255, 0.45);
   border-left: none;
   border-radius: 0 !important;
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   font-size: 11px !important;
   font-weight: 500;
   color: #d6f4fb !important;
@@ -3145,7 +3161,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   background: rgba(0, 212, 255, 0.08) !important;
   border: 1px solid rgba(0, 212, 255, 0.5) !important;
   color: #00d4ff !important;
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Roboto', sans-serif !important;
   border-radius: 0 !important;
   text-shadow: 0 0 6px rgba(0, 212, 255, 0.5);
 }
