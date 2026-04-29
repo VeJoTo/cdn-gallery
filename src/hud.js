@@ -73,12 +73,16 @@ function _showToast({ definition }) {
   const el = document.createElement('div');
   el.className = 'achievement-toast' + (reduceMotion ? ' reduce-motion' : '');
   el.innerHTML = `
+    <span class="achievement-toast__corner achievement-toast__corner--tl"></span>
+    <span class="achievement-toast__corner achievement-toast__corner--tr"></span>
+    <span class="achievement-toast__corner achievement-toast__corner--bl"></span>
+    <span class="achievement-toast__corner achievement-toast__corner--br"></span>
     <div class="achievement-toast__icon">${definition.icon}</div>
     <div class="achievement-toast__body">
-      <div class="achievement-toast__header">✦ Achievement</div>
+      <div class="achievement-toast__header">▸ ACHIEVEMENT UNLOCKED</div>
       <div class="achievement-toast__title">${definition.title}</div>
       <div class="achievement-toast__desc">${definition.description}</div>
-      <div class="achievement-toast__xp">+${definition.xp} XP</div>
+      <div class="achievement-toast__xp">[ + ${definition.xp} XP ]</div>
     </div>
   `;
   _container.appendChild(el);

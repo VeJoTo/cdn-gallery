@@ -19,43 +19,46 @@ export function renderAchievementsTab(state) {
   const fillPct = atMax ? 100 : Math.min(100, (xpInLevel / 100) * 100);
 
   const subtitle = atMax
-    ? 'All exhibits visited'
-    : `${_achievementsCountWord(state.unlockedIds.size)} of ${_achievementsCountWord(total)} exhibits visited`;
+    ? '// ALL EXHIBITS LOGGED'
+    : `// ${state.unlockedIds.size} of ${total} EXHIBITS LOGGED`;
 
-  const xpLabel = atMax ? `${state.xp} XP — MAX` : `${state.xp} / ${nextThreshold} XP`;
+  const xpLabel = atMax ? `${state.xp} XP // MAX` : `${state.xp} / ${nextThreshold} XP`;
 
   const polaroids = ACHIEVEMENTS.map((a, i) => {
     const unlocked = state.unlockedIds.has(a.id);
-    const tilt = i % 2 === 0 ? -2 : 2;
     return `
-      <div class="polaroid achievement-polaroid ${unlocked ? 'achievement-polaroid--unlocked' : 'achievement-polaroid--locked'}"
-           style="transform: rotate(${tilt}deg)">
-        <div class="polaroid-img" style="display:flex;align-items:center;justify-content:center;font-size:38px">${a.icon}</div>
-        <div class="polaroid-caption">${a.title}</div>
-        ${unlocked ? `<div class="achievement-polaroid__desc">${a.description}</div>` : ''}
+      <div class="achievement-card ${unlocked ? 'achievement-card--unlocked' : 'achievement-card--locked'}">
+        <span class="achievement-card__corner achievement-card__corner--tl"></span>
+        <span class="achievement-card__corner achievement-card__corner--tr"></span>
+        <span class="achievement-card__corner achievement-card__corner--bl"></span>
+        <span class="achievement-card__corner achievement-card__corner--br"></span>
+        <div class="achievement-card__icon">${unlocked ? a.icon : '▢'}</div>
+        <div class="achievement-card__title">${unlocked ? a.title : 'DATA NOT ACQUIRED'}</div>
+        <div class="achievement-card__status">${unlocked ? '▣ ACQUIRED' : '▢ LOCKED'}</div>
+        ${unlocked ? `<div class="achievement-card__desc">${a.description}</div>` : ''}
       </div>
     `;
   }).join('');
 
   const recentList = state.recent.length > 0 ? `
     <div class="achievement-recent">
-      <h4>Recent stamps</h4>
+      <h4>// RECENT TELEMETRY</h4>
       <ul>
         ${state.recent.map(r => {
           const def = ACHIEVEMENTS.find(a => a.id === r.id);
-          const time = new Date(r.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          return `<li>${def?.title ?? r.id} <span>${time}</span></li>`;
+          const time = new Date(r.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          return `<li><span class="achievement-recent__time">[${time}]</span> ${def?.title ?? r.id}</li>`;
         }).join('')}
       </ul>
     </div>
   ` : '';
 
   return `
-    <div class="scrapbook">
-      <div class="scrapbook-page scrapbook-left">
-        <h2 class="scrapbook-title">Curator's Notebook</h2>
+    <div class="scrapbook ach-tab">
+      <div class="scrapbook-page scrapbook-left ach-tab__page">
+        <h2 class="ach-tab__title">▸ EXPLORATION LOG</h2>
         <div class="achievement-rank">
-          <div class="achievement-rank__level">✦ Level ${state.level}</div>
+          <div class="achievement-rank__level">[ LV.${String(state.level).padStart(2,'0')} ]</div>
           <div class="achievement-rank__bar">
             <div class="achievement-rank__bar-fill" style="width:${fillPct}%"></div>
             ${atMax ? '<div class="achievement-rank__max">MAX</div>' : ''}
@@ -65,9 +68,9 @@ export function renderAchievementsTab(state) {
         </div>
         ${recentList}
       </div>
-      <div class="scrapbook-spine"></div>
-      <div class="scrapbook-page scrapbook-right">
-        <h2 class="scrapbook-title">Stamps &amp; Souvenirs</h2>
+      <div class="scrapbook-spine ach-tab__spine"></div>
+      <div class="scrapbook-page scrapbook-right ach-tab__page">
+        <h2 class="ach-tab__title">▸ DATA RECORDS</h2>
         <div class="achievement-grid">
           ${polaroids}
         </div>
@@ -530,10 +533,10 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function wireAchievementPolaroids() {
-    inventoryContent.querySelectorAll('.achievement-polaroid--unlocked').forEach(el => {
+    inventoryContent.querySelectorAll('.achievement-card--unlocked').forEach(el => {
       el.addEventListener('click', () => {
         const wasOpen = el.classList.contains('is-tapped');
-        inventoryContent.querySelectorAll('.achievement-polaroid--unlocked.is-tapped')
+        inventoryContent.querySelectorAll('.achievement-card--unlocked.is-tapped')
           .forEach(e => e.classList.remove('is-tapped'));
         if (!wasOpen) el.classList.add('is-tapped');
       });

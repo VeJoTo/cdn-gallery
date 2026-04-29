@@ -132,16 +132,16 @@ describe('Intro flag helpers', () => {
 });
 
 describe('renderAchievementsTab', () => {
-  it('renders 4 polaroid slots with correct unlocked/locked classes', () => {
+  it('renders 4 card slots with correct unlocked/locked classes', () => {
     const html = renderAchievementsTab({
       unlockedIds: new Set(['book']),
       xp: 100,
       level: 2,
       recent: [{ id: 'book', ts: Date.now() }],
     });
-    expect((html.match(/class="polaroid achievement-polaroid/g) || []).length).toBe(4);
-    expect((html.match(/achievement-polaroid--unlocked/g) || []).length).toBe(1);
-    expect((html.match(/achievement-polaroid--locked/g) || []).length).toBe(3);
+    expect((html.match(/class="achievement-card /g) || []).length).toBe(4);
+    expect((html.match(/achievement-card--unlocked/g) || []).length).toBe(1);
+    expect((html.match(/achievement-card--locked/g) || []).length).toBe(3);
   });
 
   it('shows level number and XP fraction below max', () => {
@@ -151,7 +151,7 @@ describe('renderAchievementsTab', () => {
       level: 3,
       recent: [],
     });
-    expect(html).toContain('Level 3');
+    expect(html).toContain('LV.03');
     expect(html).toContain('200 / 300 XP');
   });
 
@@ -182,7 +182,6 @@ describe('renderAchievementsTab', () => {
       unlockedIds: new Set(),
       xp: 0, level: 1, recent: [],
     });
-    expect(html).not.toContain('recent stamps');
-    expect(html).not.toContain('Recent stamps');
+    expect(html).not.toContain('RECENT TELEMETRY');
   });
 });
