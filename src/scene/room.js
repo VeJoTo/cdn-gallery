@@ -346,25 +346,30 @@ export function createRoom(scene) {
   centRing.position.y = LOGO_Y;
   scene.add(centRing);
 
-  // Satellite circles — one in front of each interactive exhibit
+  // Satellite circles — one per exhibit, each coloured from the CDN logo palette
   const SAT_R = 0.90;
   const SAT_W = 0.08;
   const logoSats = [
-    { x: -5.5, z: -2.75 }, // Bookstand pedestal (left wall, back)
-    { x: -6.0, z:  2.75 }, // TV (left wall, front)
-    { x:  5.5, z:  8.0  }, // Arcade cabinet (front-right)
-    { x:  0.0, z: -8.0  }, // Fin du Monde — midpoint between screen (-1.75) and globe (1.75)
-    { x:  6.0, z:  3.0  }, // Culture map / Kultur-kartet (right wall)
+    { x: -5.5, z: -2.75, hex: 0x7ab668 }, // Bookstand   — sage green
+    { x: -6.0, z:  2.75, hex: 0x1d7a8c }, // TV          — dark teal
+    { x:  5.5, z:  8.0,  hex: 0x8090c4 }, // Arcade      — blue-purple
+    { x:  0.0, z: -8.0,  hex: 0x3aabaa }, // Fin du Monde — teal
+    { x:  6.0, z:  3.0,  hex: 0x7ab668 }, // Culture map — sage green
   ];
 
-  for (const { x, z } of logoSats) {
+  for (const { x, z, hex } of logoSats) {
+    const satMat = new THREE.MeshStandardMaterial({
+      color: hex, emissive: hex, emissiveIntensity: 2.2,
+      roughness: 0.3, metalness: 0.2, side: THREE.DoubleSide,
+    });
+
     // Satellite ring
-    const ring = new THREE.Mesh(new THREE.RingGeometry(SAT_R - SAT_W, SAT_R, 48), logoMat);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(SAT_R - SAT_W, SAT_R, 48), satMat);
     ring.rotation.x = -Math.PI / 2;
     ring.position.set(x, LOGO_Y, z);
     scene.add(ring);
 
-    // Connector strip: runs from the edge of the central circle to the edge of the satellite
+    // Connector strip in the same colour
     const dist = Math.sqrt(x * x + z * z);
     const len  = dist - CENTER_R - SAT_R;
     const nx = x / dist, nz = z / dist;
@@ -373,7 +378,7 @@ export function createRoom(scene) {
 
     const connector = new THREE.Mesh(
       new THREE.BoxGeometry(0.06, 0.01, Math.max(len, 0.01)),
-      logoMat,
+      satMat,
     );
     connector.position.set(midX, LOGO_Y, midZ);
     connector.rotation.y = Math.atan2(nx, nz);
