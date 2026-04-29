@@ -533,21 +533,23 @@ export function createExteriorRoom(scene) {
 
   function drawSign() {
   const W = 512, H = 192;
-  const CYAN = '#00d4ff';
-  const CYAN_DIM = 'rgba(0, 212, 255, 0.55)';
-  const CYAN_FAINT = 'rgba(0, 212, 255, 0.18)';
-  const INK = '#0a0e14';
-  const TEXT = '#d6f4fb';
+  // Fresh dusk palette — cyan + mint + soft coral on a warm-tinged navy
+  const CYAN  = '#5ee0ff';        // brighter, fresher cyan
+  const MINT  = '#8df0c8';        // mint-green secondary
+  const CORAL = '#ff8d8d';        // soft coral CTA pop
+  const GRID  = 'rgba(141, 240, 200, 0.14)';
+  const TEXT  = '#e6f3fb';
 
-  // Background — near-black with subtle vertical gradient
+  // Background — twilight gradient (violet-blue → teal)
   const bg = sgnctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#0e1620');
-  bg.addColorStop(1, INK);
+  bg.addColorStop(0,    '#1a1a3a'); // dusk violet
+  bg.addColorStop(0.55, '#142538'); // mid-twilight blue
+  bg.addColorStop(1,    '#0d2230'); // deep teal
   sgnctx.fillStyle = bg;
   sgnctx.fillRect(0, 0, W, H);
 
-  // Subtle grid
-  sgnctx.strokeStyle = CYAN_FAINT;
+  // Subtle grid in mint
+  sgnctx.strokeStyle = GRID;
   sgnctx.lineWidth = 1;
   for (let x = 0; x <= W; x += 32) {
     sgnctx.beginPath(); sgnctx.moveTo(x, 0); sgnctx.lineTo(x, H); sgnctx.stroke();
@@ -556,52 +558,56 @@ export function createExteriorRoom(scene) {
     sgnctx.beginPath(); sgnctx.moveTo(0, y); sgnctx.lineTo(W, y); sgnctx.stroke();
   }
 
-  // Scanline overlay
-  sgnctx.fillStyle = 'rgba(0, 212, 255, 0.04)';
+  // Scanline overlay (very faint cyan)
+  sgnctx.fillStyle = 'rgba(94, 224, 255, 0.05)';
   for (let y = 0; y < H; y += 3) {
     sgnctx.fillRect(0, y, W, 1);
   }
 
-  // Outer cyan border + corner brackets
-  sgnctx.strokeStyle = CYAN_DIM;
+  // Outer border — cyan dim
+  sgnctx.strokeStyle = 'rgba(94, 224, 255, 0.45)';
   sgnctx.lineWidth = 2;
   sgnctx.strokeRect(4, 4, W - 8, H - 8);
 
-  // Corner brackets (cyan, slightly thicker)
-  sgnctx.strokeStyle = CYAN;
+  // Corner brackets — alternating cyan and mint for a fresh two-tone
   sgnctx.lineWidth = 3;
-  const bl = 18; // bracket length
-  // top-left
+  const bl = 18;
+  // top-left + bottom-right: cyan
+  sgnctx.strokeStyle = CYAN;
   sgnctx.beginPath(); sgnctx.moveTo(4, 4 + bl); sgnctx.lineTo(4, 4); sgnctx.lineTo(4 + bl, 4); sgnctx.stroke();
-  // top-right
-  sgnctx.beginPath(); sgnctx.moveTo(W - 4 - bl, 4); sgnctx.lineTo(W - 4, 4); sgnctx.lineTo(W - 4, 4 + bl); sgnctx.stroke();
-  // bottom-left
-  sgnctx.beginPath(); sgnctx.moveTo(4, H - 4 - bl); sgnctx.lineTo(4, H - 4); sgnctx.lineTo(4 + bl, H - 4); sgnctx.stroke();
-  // bottom-right
   sgnctx.beginPath(); sgnctx.moveTo(W - 4 - bl, H - 4); sgnctx.lineTo(W - 4, H - 4); sgnctx.lineTo(W - 4, H - 4 - bl); sgnctx.stroke();
+  // top-right + bottom-left: mint
+  sgnctx.strokeStyle = MINT;
+  sgnctx.beginPath(); sgnctx.moveTo(W - 4 - bl, 4); sgnctx.lineTo(W - 4, 4); sgnctx.lineTo(W - 4, 4 + bl); sgnctx.stroke();
+  sgnctx.beginPath(); sgnctx.moveTo(4, H - 4 - bl); sgnctx.lineTo(4, H - 4); sgnctx.lineTo(4 + bl, H - 4); sgnctx.stroke();
 
-  // Header microcopy (mono small caps)
+  // Header microcopy (cyan, left)
   sgnctx.fillStyle = CYAN;
   sgnctx.font = '600 12px "JetBrains Mono", "SF Mono", "Menlo", monospace';
   sgnctx.textAlign = 'left';
   sgnctx.fillText('▸ DIGITAL NARRATIVE LAB', 22, 28);
 
-  // Right-side status microcopy
+  // Right-side status microcopy (mint)
   sgnctx.textAlign = 'right';
-  sgnctx.fillStyle = CYAN_DIM;
+  sgnctx.fillStyle = MINT;
   sgnctx.fillText('[ EST. UIB ]', W - 22, 28);
 
-  // CDN — large monogram, cyan with glow
+  // CDN monogram — cyan glow, mint backlight, white surface
   sgnctx.textAlign = 'center';
   sgnctx.font = 'bold 64px "Orbitron", "Pixelify Sans", sans-serif';
+  // Mint backlight
+  sgnctx.fillStyle = MINT;
+  sgnctx.shadowColor = MINT;
+  sgnctx.shadowBlur = 32;
+  sgnctx.fillText('CDN', W / 2, 92);
+  // Cyan halo
   sgnctx.fillStyle = CYAN;
   sgnctx.shadowColor = CYAN;
-  sgnctx.shadowBlur = 24;
+  sgnctx.shadowBlur = 18;
   sgnctx.fillText('CDN', W / 2, 92);
-  // Sharper highlight pass
+  // Sharp white face
   sgnctx.shadowBlur = 0;
   sgnctx.fillStyle = '#ffffff';
-  sgnctx.font = 'bold 64px "Orbitron", "Pixelify Sans", sans-serif';
   sgnctx.fillText('CDN', W / 2, 92);
 
   // Main line — Centre for Digital Narrative
@@ -609,16 +615,16 @@ export function createExteriorRoom(scene) {
   sgnctx.fillStyle = TEXT;
   sgnctx.fillText('CENTRE FOR DIGITAL NARRATIVE', W / 2, 124);
 
-  // Sub line — University of Bergen
+  // Sub line — University of Bergen (mint)
   sgnctx.font = '12px "JetBrains Mono", "SF Mono", monospace';
-  sgnctx.fillStyle = 'rgba(214, 244, 251, 0.55)';
+  sgnctx.fillStyle = 'rgba(141, 240, 200, 0.7)';
   sgnctx.fillText('// UNIVERSITY OF BERGEN', W / 2, 144);
 
-  // Bottom prompt — pulsing-style cyan call to action
+  // Bottom CTA — coral, glowing — the warm pop
   sgnctx.font = '600 12px "JetBrains Mono", "SF Mono", monospace';
-  sgnctx.fillStyle = CYAN;
-  sgnctx.shadowColor = CYAN;
-  sgnctx.shadowBlur = 12;
+  sgnctx.fillStyle = CORAL;
+  sgnctx.shadowColor = CORAL;
+  sgnctx.shadowBlur = 14;
   sgnctx.fillText('▸ ENTER TO EXPLORE', W / 2, 172);
   sgnctx.shadowBlur = 0;
   }
