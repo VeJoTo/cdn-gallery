@@ -2079,7 +2079,8 @@ body:has(
 }
 
 .globe-videos-body {
-  font-size: 18px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
   color: #b8d8e8;
   line-height: 1.65;
   margin-bottom: 14px;
