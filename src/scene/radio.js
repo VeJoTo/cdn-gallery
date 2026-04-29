@@ -682,6 +682,51 @@ export function createRadio(scene) {
   // so wire the runtime hook to a no-op.
   _radioChannelDots = { refresh() { /* nothing — display handles it */ } };
 
+  // ── Floating neon "RADIO" label above the body ──
+  // Sprite-based so it always faces the camera, matching the
+  // "AI Storytelling" sign above the book pedestal.
+  const labelCanvas = document.createElement('canvas');
+  labelCanvas.width = 384;
+  labelCanvas.height = 128;
+  const lctx = labelCanvas.getContext('2d');
+  const labelTex = new THREE.CanvasTexture(labelCanvas);
+  labelTex.colorSpace = THREE.SRGBColorSpace;
+
+  function drawRadioLabel() {
+    const NEON = '#5ee0ff';
+    const cx = 192, cy = 72;
+    lctx.clearRect(0, 0, 384, 128);
+    lctx.font = "84px 'Octosquares', sans-serif";
+    lctx.textAlign = 'center';
+    lctx.textBaseline = 'middle';
+    lctx.shadowColor = NEON;
+    lctx.shadowBlur = 48; lctx.fillStyle = 'rgba(94, 224, 255, 0.18)'; lctx.fillText('RADIO', cx, cy);
+    lctx.shadowBlur = 28; lctx.fillStyle = 'rgba(94, 224, 255, 0.45)'; lctx.fillText('RADIO', cx, cy);
+    lctx.shadowBlur = 10; lctx.fillStyle = 'rgba(94, 224, 255, 0.85)'; lctx.fillText('RADIO', cx, cy);
+    lctx.shadowBlur =  4; lctx.fillStyle = '#eef9ff';                  lctx.fillText('RADIO', cx, cy);
+    labelTex.needsUpdate = true;
+  }
+  drawRadioLabel();
+  if (typeof document !== 'undefined' && document.fonts?.load) {
+    document.fonts.load("84px 'Octosquares'").then(() => drawRadioLabel());
+  }
+
+  const labelSprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: labelTex,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+    })
+  );
+  labelSprite.scale.set(0.45, 0.15, 1);
+  // Place above the antenna tip
+  labelSprite.position.set(0, PED_H + bodyH + ANT_H + 0.15, 0);
+  labelSprite.renderOrder = 999;
+  labelSprite.raycast = () => {};
+  root.add(labelSprite);
+
   return root;
 }
 
