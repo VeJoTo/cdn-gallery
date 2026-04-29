@@ -351,7 +351,7 @@ export function createExteriorRoom(scene) {
     // Cyan text with soft glow
     ectx.shadowColor = '#5ee0ff';
     ectx.shadowBlur = 10;
-    ectx.font = '700 28px "JetBrains Mono", "SF Mono", "Menlo", monospace';
+    ectx.font = '700 28px "Roboto", sans-serif';
     ectx.fillStyle = '#e8faff';
     ectx.textAlign = 'center';
     ectx.textBaseline = 'middle';
@@ -644,7 +644,7 @@ export function createExteriorRoom(scene) {
 
   // Header microcopy (cyan, left)
   sgnctx.fillStyle = CYAN;
-  sgnctx.font = '600 12px "JetBrains Mono", "SF Mono", "Menlo", monospace';
+  sgnctx.font = '600 12px "Roboto", sans-serif';
   sgnctx.textAlign = 'left';
   sgnctx.fillText('▸ DIGITAL NARRATIVE LAB', 22, 28);
 
@@ -655,7 +655,7 @@ export function createExteriorRoom(scene) {
 
   // CDN monogram — cyan glow, mint backlight, white surface
   sgnctx.textAlign = 'center';
-  sgnctx.font = 'bold 64px "Orbitron", "Pixelify Sans", sans-serif';
+  sgnctx.font = 'bold 64px "Octosquares", sans-serif';
   // Mint backlight
   sgnctx.fillStyle = MINT;
   sgnctx.shadowColor = MINT;
@@ -672,17 +672,17 @@ export function createExteriorRoom(scene) {
   sgnctx.fillText('CDN', W / 2, 92);
 
   // Main line — Centre for Digital Narrative
-  sgnctx.font = '600 16px "JetBrains Mono", "SF Mono", monospace';
+  sgnctx.font = '600 16px "Roboto", sans-serif';
   sgnctx.fillStyle = TEXT;
   sgnctx.fillText('CENTRE FOR DIGITAL NARRATIVE', W / 2, 124);
 
   // Sub line — University of Bergen (mint)
-  sgnctx.font = '12px "JetBrains Mono", "SF Mono", monospace';
+  sgnctx.font = '12px "Roboto", sans-serif';
   sgnctx.fillStyle = 'rgba(141, 240, 200, 0.7)';
   sgnctx.fillText('// UNIVERSITY OF BERGEN', W / 2, 144);
 
   // Bottom CTA — coral, glowing — the warm pop
-  sgnctx.font = '600 12px "JetBrains Mono", "SF Mono", monospace';
+  sgnctx.font = '600 12px "Roboto", sans-serif';
   sgnctx.fillStyle = CORAL;
   sgnctx.shadowColor = CORAL;
   sgnctx.shadowBlur = 14;

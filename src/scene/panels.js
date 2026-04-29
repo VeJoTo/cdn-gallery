@@ -16,7 +16,7 @@ function drawTextPanel(ctx, title) {
   ctx.fillRect(0, 0, PANEL_W, PANEL_H);
 
   ctx.fillStyle = '#ffd166';
-  ctx.font = 'bold 32px sans-serif';
+  ctx.font = 'bold 32px "Octosquares", sans-serif';
   ctx.fillText(title, 30, 52);
 
   ctx.strokeStyle = '#00e5ff';
@@ -33,7 +33,7 @@ function drawTextPanel(ctx, title) {
     'Aliqua enim ad minim veniam quis.',
     'Nostrud exercitation ullamco laboris.'
   ];
-  ctx.font = '22px sans-serif';
+  ctx.font = '22px "Roboto", sans-serif';
   ctx.fillStyle = '#90e0ef';
   lines.forEach((line, i) => ctx.fillText(line, 30, 104 + i * 34));
 }
@@ -43,7 +43,7 @@ function drawChartPanel(ctx, title) {
   ctx.fillRect(0, 0, PANEL_W, PANEL_H);
 
   ctx.fillStyle = '#ffd166';
-  ctx.font = 'bold 28px sans-serif';
+  ctx.font = 'bold 28px "Octosquares", sans-serif';
   ctx.fillText(title, 30, 44);
 
   const bars = [
@@ -67,10 +67,10 @@ function drawChartPanel(ctx, title) {
     ctx.fillRect(x, baseY - h, barW, h);
 
     ctx.fillStyle = '#90e0ef';
-    ctx.font = '18px sans-serif';
+    ctx.font = '18px "Roboto", sans-serif';
     ctx.fillText(label, x + 10, baseY + 22);
 
-    ctx.font = 'bold 18px sans-serif';
+    ctx.font = 'bold 18px "Roboto", sans-serif';
     ctx.fillText(Math.round(value * 100) + '%', x + 8, baseY - h - 8);
   });
 
@@ -87,7 +87,7 @@ function drawTimelinePanel(ctx, title) {
   ctx.fillRect(0, 0, PANEL_W, PANEL_H);
 
   ctx.fillStyle = '#ffd166';
-  ctx.font = 'bold 28px sans-serif';
+  ctx.font = 'bold 28px "Octosquares", sans-serif';
   ctx.fillText(title, 30, 44);
 
   const milestones = [
@@ -116,11 +116,11 @@ function drawTimelinePanel(ctx, title) {
     ctx.fill();
 
     ctx.fillStyle = '#90e0ef';
-    ctx.font = 'bold 20px sans-serif';
+    ctx.font = 'bold 20px "Octosquares", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(year, x, lineY - 22);
 
-    ctx.font = '16px sans-serif';
+    ctx.font = '16px "Roboto", sans-serif';
     ctx.fillStyle = '#90e0ef';
     const descY = i % 2 === 0 ? lineY + 36 : lineY + 72;
     ctx.fillText(label, x, descY);

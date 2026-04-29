@@ -647,7 +647,7 @@ hologramDiv.style.cssText = `
   border:1px solid rgba(255,255,255,0.35); border-top:2px solid rgba(0,212,255,0.9);
   border-bottom:2px solid rgba(255,255,255,0.5); border-radius:23px;
   box-shadow:inset 0 0 80px rgba(255,255,255,0.06),inset 0 0 160px rgba(0,212,255,0.06);
-  font-family:'Courier New',monospace; color:#fff; pointer-events:auto; cursor:pointer;
+  font-family:'Roboto',sans-serif; color:#fff; pointer-events:auto; cursor:pointer;
   display:flex; flex-direction:column;
   padding:60px 52px 260px 52px; backdrop-filter:blur(2px);
   opacity:0; transition:opacity 0.4s ease;
