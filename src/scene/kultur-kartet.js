@@ -65,6 +65,7 @@ let _neonFlTimer    = 0;
 let _hoveredBtn     = -1;
 let _nextBtnBounds  = null;   // { x, y, w, h } in canvas pixels when correct; null otherwise
 let _nextBtnHovered = false;
+let _domCleanup     = null;
 
 // Geo rendering state (populated after async data load)
 let _pathGen   = null;   // geoPath generator (no canvas context → returns SVG strings)
@@ -586,6 +587,9 @@ function redrawButtons() {
     drawBtn(bCanvas, bCtx, BTN_LABELS[i], BTN_MODES[i] === _mode, i === _hoveredBtn);
     bTex.needsUpdate = true;
   }
+  document.querySelectorAll('#kulturkartet-btns [data-kk-btn]').forEach(b => {
+    b.classList.toggle('active', b.dataset.kkBtn === _mode);
+  });
 }
 
 // ── Action handlers (called from main.js) ─────────────────────────────────────
@@ -672,6 +676,60 @@ export function handleKartetTextClick(uv) {
   if (getNextBtnAtUV(uv.x, uv.y)) handleKartetBtnClick('next');
 }
 
+export function mountKartetDOMOverlay(mapWrap, textWrap, btnsEl, onClose) {
+  mapWrap.appendChild(_mapCanvas);
+  textWrap.appendChild(_textCanvas);
+
+  function uvFromEvent(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) / rect.width, y: 1 - (e.clientY - rect.top) / rect.height };
+  }
+
+  function onMapMove(e)  { updateKartetHover(uvFromEvent(e, _mapCanvas)); }
+  function onMapLeave()  { updateKartetHover(null); }
+  function onMapClick(e) { handleKartetMapClick(uvFromEvent(e, _mapCanvas)); }
+  _mapCanvas.addEventListener('mousemove', onMapMove);
+  _mapCanvas.addEventListener('mouseleave', onMapLeave);
+  _mapCanvas.addEventListener('click', onMapClick);
+  _mapCanvas.style.cursor = 'crosshair';
+
+  function onTextMove(e)  { updateKartetTextHover(uvFromEvent(e, _textCanvas)); }
+  function onTextLeave()  { updateKartetTextHover(null); }
+  function onTextClick(e) { handleKartetTextClick(uvFromEvent(e, _textCanvas)); }
+  _textCanvas.addEventListener('mousemove', onTextMove);
+  _textCanvas.addEventListener('mouseleave', onTextLeave);
+  _textCanvas.addEventListener('click', onTextClick);
+
+  const domBtnEls = btnsEl.querySelectorAll('[data-kk-btn]');
+  function onBtnClick(e) { handleKartetBtnClick(e.currentTarget.dataset.kkBtn); }
+  domBtnEls.forEach(b => b.addEventListener('click', onBtnClick));
+  domBtnEls.forEach(b => b.classList.toggle('active', b.dataset.kkBtn === _mode));
+
+  function onEsc(e) { if (e.key === 'Escape') onClose(); }
+  document.addEventListener('keydown', onEsc);
+
+  _domCleanup = () => {
+    _mapCanvas.removeEventListener('mousemove', onMapMove);
+    _mapCanvas.removeEventListener('mouseleave', onMapLeave);
+    _mapCanvas.removeEventListener('click', onMapClick);
+    _mapCanvas.style.cursor = '';
+    _textCanvas.removeEventListener('mousemove', onTextMove);
+    _textCanvas.removeEventListener('mouseleave', onTextLeave);
+    _textCanvas.removeEventListener('click', onTextClick);
+    domBtnEls.forEach(b => b.removeEventListener('click', onBtnClick));
+    document.removeEventListener('keydown', onEsc);
+    if (_mapCanvas.parentNode)  _mapCanvas.parentNode.removeChild(_mapCanvas);
+    if (_textCanvas.parentNode) _textCanvas.parentNode.removeChild(_textCanvas);
+    updateKartetHover(null);
+    updateKartetTextHover(null);
+    _domCleanup = null;
+  };
+}
+
+export function unmountKartetDOMOverlay() {
+  if (_domCleanup) _domCleanup();
+}
+
 export function tickKartet(delta) {
   // Neon flicker — discrete keyframe steps matching the CSS animation intent
   _neonFlTimer = (_neonFlTimer + delta) % 6.0;
@@ -688,7 +746,7 @@ export function createKulturKartet(scene) {
   _guessTarget = null; _guessResult = null; _lastGuessed = null;
   _textAlpha = 1.0; _activeFade = null;
   _neonAlpha = 1.0; _neonFlTimer = 0;
-  _hoveredBtn = -1; _nextBtnBounds = null; _nextBtnHovered = false;
+  _hoveredBtn = -1; _nextBtnBounds = null; _nextBtnHovered = false; _domCleanup = null;
   _titleCanvas = null; _titleCtx = null; _titleTex = null;
   _pathGen = null; _features = {}; _paths = {}; _centroids = {};
   _hitCanvas = null; _hitCtx = null;
@@ -724,7 +782,7 @@ export function createKulturKartet(scene) {
   );
   mapMesh.position.set(WALL_X, 2.3, 4.3);
   mapMesh.rotation.y = -Math.PI / 2;
-  mapMesh.userData = { clickable: true, action: 'kulturKartetMap', hotspot: 'kultur-kartet' };
+  mapMesh.userData = { clickable: true, action: 'openKulturKartet' };
   scene.add(mapMesh);
 
   const textMesh = new THREE.Mesh(
@@ -733,7 +791,7 @@ export function createKulturKartet(scene) {
   );
   textMesh.position.set(WALL_X, 2.3, 6.3);
   textMesh.rotation.y = -Math.PI / 2;
-  textMesh.userData = { clickable: true, action: 'kulturKartetText', hotspot: 'kultur-kartet' };
+  textMesh.userData = { clickable: true, action: 'openKulturKartet' };
   scene.add(textMesh);
 
   // ── Neon sign (Fin du Monde pattern, wall-mounted) ──────────────────────
@@ -795,8 +853,7 @@ export function createKulturKartet(scene) {
     bMesh.position.set(WALL_X, 0.65, BTN_ZS[i]);
     bMesh.rotation.y = -Math.PI / 2;
     bMesh.userData = {
-      clickable: true, action: 'kulturKartetBtn',
-      btnMode: BTN_MODES[i], btnIdx: i, hotspot: 'kultur-kartet',
+      clickable: true, action: 'openKulturKartet',
       bCanvas, bCtx, bTex,
     };
     scene.add(bMesh);
