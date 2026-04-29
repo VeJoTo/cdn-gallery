@@ -165,6 +165,61 @@ const moveState = {
   right: false,
 };
 
+// ── Head-bob ────────────────────────────────────────
+// Subtle vertical sway while walking, plus a soft footstep sound on each
+// zero-crossing of the bob (≈ 2 steps/sec at the default frequency).
+const BOB_AMP = 0.035;        // ±3.5 cm vertical sway
+const BOB_FREQ = 1.0;         // Hz — one full sin cycle per second
+const BOB_RAMP = 6.0;         // exp ramp speed when starting/stopping
+const BOB_REDUCED_MOTION =
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+let _walkPhase = 0;
+let _bobAmpScale = 0; // 0..1, ramps with movement
+let _lastSinSign = 1; // for zero-crossing footstep detection
+const _footstepAudio =
+  typeof Audio !== "undefined"
+    ? new Audio(import.meta.env.BASE_URL + "sounds/footstep.wav")
+    : null;
+if (_footstepAudio) _footstepAudio.volume = 0.25;
+
+function playFootstep() {
+  if (!_footstepAudio) return;
+  try {
+    _footstepAudio.currentTime = 0;
+    _footstepAudio.play().catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+function updateHeadBob(delta, isMoving) {
+  // Ramp amplitude toward 1 when moving, toward 0 when stopped — keeps the
+  // camera from snapping when input changes.
+  const target = isMoving ? 1 : 0;
+  _bobAmpScale += (target - _bobAmpScale) * Math.min(1, delta * BOB_RAMP);
+
+  if (isMoving) {
+    _walkPhase += delta * BOB_FREQ * Math.PI * 2;
+  }
+
+  const sinVal = Math.sin(_walkPhase);
+
+  if (!BOB_REDUCED_MOTION) {
+    camera.position.y = EYE_HEIGHT + sinVal * BOB_AMP * _bobAmpScale;
+  } else {
+    camera.position.y = EYE_HEIGHT;
+  }
+
+  // Footstep on zero crossing (twice per cycle ≈ left+right foot landings)
+  if (isMoving && _bobAmpScale > 0.4) {
+    const sign = sinVal >= 0 ? 1 : -1;
+    if (sign !== _lastSinSign) playFootstep();
+    _lastSinSign = sign;
+  }
+}
+
 document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT") return;
   if (e.key === "Escape") {
@@ -242,25 +297,30 @@ function updateMovement(delta) {
   if (moveState.backward) fwd -= 1;
   if (moveState.right) strafe += 1;
   if (moveState.left) strafe -= 1;
-  if (fwd === 0 && strafe === 0) return;
 
-  // Diagonal movement should not be faster than axis-aligned.
-  const len = Math.hypot(fwd, strafe);
-  const step = (MOVE_SPEED * delta) / len;
-  if (fwd !== 0) controls.moveForward(fwd * step);
-  if (strafe !== 0) controls.moveRight(strafe * step);
+  const isMoving = fwd !== 0 || strafe !== 0;
 
-  // Clamp to current room bounds + pin eye height.
-  const b = ROOM_BOUNDS[currentRoom];
-  camera.position.x = Math.max(
-    b.cx - b.halfW,
-    Math.min(b.cx + b.halfW, camera.position.x),
-  );
-  camera.position.z = Math.max(
-    b.cz - b.halfD,
-    Math.min(b.cz + b.halfD, camera.position.z),
-  );
-  camera.position.y = EYE_HEIGHT;
+  if (isMoving) {
+    // Diagonal movement should not be faster than axis-aligned.
+    const len = Math.hypot(fwd, strafe);
+    const step = (MOVE_SPEED * delta) / len;
+    if (fwd !== 0) controls.moveForward(fwd * step);
+    if (strafe !== 0) controls.moveRight(strafe * step);
+
+    // Clamp to current room bounds.
+    const b = ROOM_BOUNDS[currentRoom];
+    camera.position.x = Math.max(
+      b.cx - b.halfW,
+      Math.min(b.cx + b.halfW, camera.position.x),
+    );
+    camera.position.z = Math.max(
+      b.cz - b.halfD,
+      Math.min(b.cz + b.halfD, camera.position.z),
+    );
+  }
+
+  // Always run the bob update so amplitude can decay smoothly when input stops.
+  updateHeadBob(delta, isMoving);
 }
 
 // ── Render loop ───────────────────────────────────
