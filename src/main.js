@@ -13,8 +13,11 @@ import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
 import { initHUD } from './hud.js';
+import { initAchievements } from './achievements.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
+
+initAchievements();
 
 const canvas = document.getElementById('gallery-canvas');
 
