@@ -11,6 +11,7 @@ import {
   createKulturKartet,
   mountKartetDOMOverlay,
   unmountKartetDOMOverlay,
+  updateKartetBtnHover,
   tickKartet,
 } from "./scene/kultur-kartet.js";
 import { createObjects } from "./scene/objects.js";
@@ -341,9 +342,9 @@ const kulturkartetMapWrap  = document.getElementById('kulturkartet-map-wrap');
 const kulturkartetTextWrap = document.getElementById('kulturkartet-text-wrap');
 const kulturkartetBtnsEl   = document.getElementById('kulturkartet-btns');
 
-function openKulturKartet() {
+function openKulturKartet(mode = 'explore') {
   kulturkartetOverlay.classList.remove('hidden');
-  mountKartetDOMOverlay(kulturkartetMapWrap, kulturkartetTextWrap, kulturkartetBtnsEl, closeKulturKartet);
+  mountKartetDOMOverlay(kulturkartetMapWrap, kulturkartetTextWrap, kulturkartetBtnsEl, closeKulturKartet, mode);
 }
 function closeKulturKartet() {
   unmountKartetDOMOverlay();
@@ -1631,6 +1632,10 @@ function updateHoverHighlight() {
   const hits = centerRaycaster.intersectObjects(clickableObjects, true);
   const hitObj = hits.length ? findClickable(hits[0]) : null;
 
+  // Wall button canvas hover state
+  const wallBtnHit = hitObj?.userData.action === "openKulturKartet" && hitObj.userData.btnIdx !== undefined ? hitObj : null;
+  updateKartetBtnHover(wallBtnHit ? wallBtnHit.userData.btnIdx : -1);
+
   if (lastHovered && lastHovered !== hitObj) {
     clearHoverGlow(lastHovered);
     lastHovered = null;
@@ -1790,7 +1795,7 @@ document.addEventListener("mousedown", () => {
   if (action === "selectCountry")
     globeScreen.selectCountry(obj.userData.country);
   if (action === "resetGlobeScreen") globeScreen.reset();
-  if (action === "openKulturKartet") openKulturKartet();
+  if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");
   if (action === "enterAIRoom") window.__transitionToRoom("ai");
