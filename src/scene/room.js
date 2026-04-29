@@ -93,8 +93,8 @@ export function createRoom(scene) {
     new THREE.MeshPhysicalMaterial({
       map: marbleTex,
       transparent: true,
-      opacity: 0.75,
-      roughness: 0.7,
+      opacity: 0.88,
+      roughness: 0.8,
       metalness: 0.0,
       clearcoat: 0.0,
       clearcoatRoughness: 1.0,
