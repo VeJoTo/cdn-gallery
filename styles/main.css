@@ -3383,3 +3383,92 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   padding: 20px 0;
   text-align: center;
 }
+
+/* ── Jason proximity hint (matches gatekeeper intro-mode) ─────────────────── */
+#proximity-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: auto;
+  animation: hint-fade-in 0.3s ease;
+}
+@keyframes hint-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+#proximity-hint.hidden { display: none; }
+
+#proximity-hint-portrait {
+  width: 420px;
+  height: auto;
+  max-height: 90vh;
+  object-fit: contain;
+  object-position: bottom;
+  align-self: flex-end;
+  flex-shrink: 0;
+  margin-left: -97px;
+  margin-right: -100px;
+  margin-bottom: -50px;
+}
+
+#proximity-hint-dialog {
+  flex: 1;
+  max-width: 720px;
+  background: rgba(10,15,26,0.97);
+  border: 1px solid #00d4ff;
+  box-shadow: 0 0 24px rgba(0,212,255,0.5);
+  border-radius: 14px;
+  padding: 32px 36px;
+  margin: 0 0 40px 0;
+  position: relative;
+}
+
+#proximity-hint-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #00d4ff;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+#proximity-hint-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0,212,255,0.3);
+}
+
+#proximity-hint-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #e0e8f0;
+}
+
+#proximity-hint-subtitle {
+  font-size: 11px;
+  color: rgba(0,212,255,0.6);
+}
+
+#proximity-hint-body {
+  font-size: 17px;
+  line-height: 1.55;
+  color: #00d4ff;
+  min-height: 96px;
+  margin-bottom: 8px;
+}
+
+#proximity-hint-footer {
+  font-size: 11px;
+  color: rgba(0,212,255,0.6);
+  letter-spacing: 0.05em;
+  text-align: right;
+  margin-top: 8px;
+}
