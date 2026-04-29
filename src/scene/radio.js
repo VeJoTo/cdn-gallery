@@ -419,7 +419,7 @@ export function createRadio(scene) {
   // face turned toward the sofa centre so a sitter can glance at the
   // display, while a player approaching from +Z still sees the side.
   root.position.set(-3.6, 0, 5.0);
-  root.rotation.y = Math.PI; // front faces -Z (toward the sofa)
+  root.rotation.y = 0; // front faces +Z
   scene.add(root);
 
   // ── Glass side table the radio sits on ────────────────────────────
