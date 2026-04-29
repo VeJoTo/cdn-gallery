@@ -210,13 +210,10 @@ export function renderAchievementsTab(state) {
 export const INTRO_FLAG_KEY = 'cdn-gallery:intro-seen';
 
 export const INTRO_SCRIPT = [
-  { text: 'Welcome kids! 🪄' },
-  { text: "You've just stepped into the home of CDN — the Centre for Digital Narrative at the University of Bergen. Everything you see here is a visualization of the research happening at the centre." },
-  { text: "CDN studies how stories work in the digital age — games, AI that writes fiction, virtual worlds, interactive art. I'll be your guide through it." },
-  {
-    html: true,
-    text: 'Go ahead and look around: <strong>WASD</strong> to walk, <strong>mouse</strong> to look. Press <strong>E</strong> to open your inventory, and call me back any time with the <strong>G</strong> key. Off you pop!'
-  }
+  { text: 'Hi! I am Jason. I work as a researcher at CDN, and will be your Guide through this interactive 3D room.' },
+  { text: 'CDN is the Centre for Digital Narrative at the University of Bergen. We research the intersection of technology and storytelling, from AI to interactive media to the future of narrative itself.' },
+  { text: "Right now you are outside the building of CDN at the University of Bergen. Once you step into the room you are free to explore some of CDN's research! I will guide you through this process." },
+  { text: 'Go ahead and explore!' }
 ];
 
 // Safe localStorage readers — browser private mode / quota issues never break the app.
