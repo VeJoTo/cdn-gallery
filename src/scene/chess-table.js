@@ -291,5 +291,12 @@ export function createChessTable(scene) {
   accentLight.position.y = TABLE_H + 0.18;
   root.add(accentLight);
 
+  // Make the whole assembly raycastable so a hover tooltip can surface.
+  // No `action` set — clicking does nothing; we only want the label.
+  root.userData = {
+    clickable: true,
+    hoverLabel: "CDN's entrance has a chess board too — fancy a game?",
+  };
+
   return root;
 }

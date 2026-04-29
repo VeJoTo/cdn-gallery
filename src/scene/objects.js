@@ -1099,7 +1099,7 @@ export function createObjects(scene) {
 
   // Easter egg: coffee table + chess board in mid-game
   // (CDN's actual building has a chess board in the entrance)
-  createChessTable(scene);
+  const chessTable = createChessTable(scene);
 
   // Pac-Man arcade cabinet — entry wall, user's left
   const arcade = createArcade(scene);
@@ -1131,6 +1131,6 @@ export function createObjects(scene) {
     pedestal,
     tv,
     sceneUpdate,
-    extras: [pedestal, portal, tv, sofa, arcade],
+    extras: [pedestal, portal, tv, sofa, arcade, chessTable],
   };
 }

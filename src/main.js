@@ -91,6 +91,7 @@ controls.maxPolarAngle = Math.PI - 0.05;
 
 const fpOverlay = document.getElementById("fp-overlay");
 const crosshair = document.getElementById("crosshair");
+const hoverLabelEl = document.getElementById("hover-label");
 fpOverlay.classList.remove("hidden");
 crosshair.classList.add("hidden");
 
@@ -1627,6 +1628,7 @@ function updateHoverHighlight() {
       clearHoverGlow(lastHovered);
       lastHovered = null;
     }
+    if (hoverLabelEl) hoverLabelEl.classList.add("hidden");
     return;
   }
 
@@ -1650,6 +1652,17 @@ function updateHoverHighlight() {
 
   crosshair.style.color = hitObj ? "rgba(0,212,255,1)" : "rgba(0,212,255,0.4)";
   crosshair.style.fontSize = hitObj ? "28px" : "24px";
+
+  // Show / hide tooltip when the hovered object has a hoverLabel.
+  if (hoverLabelEl) {
+    const label = hitObj?.userData?.hoverLabel;
+    if (label) {
+      hoverLabelEl.textContent = label;
+      hoverLabelEl.classList.remove("hidden");
+    } else {
+      hoverLabelEl.classList.add("hidden");
+    }
+  }
 }
 
 // Returns true if this mesh lives inside a child clickable sub-group (e.g. a TV button),
