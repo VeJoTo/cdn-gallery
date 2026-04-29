@@ -10,8 +10,22 @@ export function createRoom(scene) {
   const wallMat = new THREE.MeshStandardMaterial({
     color: 0xffffff, metalness: 0.0, roughness: 0.95, side: THREE.DoubleSide
   });
+  // Tiled floor — one tile per canvas, repeated across the floor
+  const TILE_SIZE = 4; // 4 m per tile
+  const tileCanvas = document.createElement('canvas');
+  tileCanvas.width = 512; tileCanvas.height = 512;
+  const tctx = tileCanvas.getContext('2d');
+  tctx.fillStyle = '#252830';           // dark grey tile
+  tctx.fillRect(0, 0, 512, 512);
+  tctx.strokeStyle = '#0e1018';         // near-black grout
+  tctx.lineWidth = 6;
+  tctx.strokeRect(3, 3, 506, 506);
+  const tileTex = new THREE.CanvasTexture(tileCanvas);
+  tileTex.wrapS = tileTex.wrapT = THREE.RepeatWrapping;
+  tileTex.repeat.set(ROOM_WIDTH / TILE_SIZE, ROOM_DEPTH / TILE_SIZE);
+  tileTex.anisotropy = 8;
   const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x080a0f, metalness: 0.15, roughness: 0.88
+    map: tileTex, metalness: 0.1, roughness: 0.9
   });
   const ceilMat = new THREE.MeshStandardMaterial({
     color: 0xffffff, metalness: 0.0, roughness: 0.9
