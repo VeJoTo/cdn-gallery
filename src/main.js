@@ -2080,7 +2080,7 @@ document.addEventListener('mouseup', (e) => {
     shown.add(hint.id);
     active = hint;
     activePage = 0;
-    if (hintPortrait) hintPortrait.src = BASE + 'guide-ai.png';
+    if (hintPortrait) hintPortrait.src = BASE + 'guide.png';
     showPage(hint, 0);
     if (hintEl) hintEl.classList.remove('hidden');
   }
