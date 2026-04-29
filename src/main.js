@@ -669,8 +669,8 @@ function renderHoloPage(video) {
           : ""
       }
       <div style="font-family:'Octosquares',sans-serif;padding-top:24px;padding-bottom:4px;font-size:22px;color:rgba(255,255,255,0.7);letter-spacing:2px;display:flex;justify-content:space-between;white-space:nowrap;border-top:1px solid rgba(255,255,255,0.1)">
-        <span>CDN &nbsp;/&nbsp; AI & ART ARCHIVE</span>
-        <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ""}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
+        <span>CDN &nbsp;/&nbsp; ART &amp; AI ARCHIVE</span>
+        <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ''}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
       </div>
     </div>
   `;
