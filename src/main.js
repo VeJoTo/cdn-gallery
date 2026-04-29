@@ -1602,6 +1602,16 @@ const fadeOverlay = document.getElementById("fade-overlay");
 let currentRoom = "exterior"; // 'exterior', 'ai', or 'nature'
 let isTransitioning = false;
 
+const GUIDE_PORTRAITS = {
+  exterior: import.meta.env.BASE_URL + 'guide.png',
+  ai:       import.meta.env.BASE_URL + 'guide-ai.png',
+  nature:   import.meta.env.BASE_URL + 'guide-nature.png',
+};
+function setGuidePortrait(room) {
+  const el = document.getElementById('guide-portrait');
+  if (el) el.src = GUIDE_PORTRAITS[room] ?? GUIDE_PORTRAITS.exterior;
+}
+
 // Expose current room for UI gating (e.g. inventory hides sky toggle in AI room)
 window.__getCurrentRoom = () => currentRoom;
 
@@ -1651,6 +1661,7 @@ function transitionToRoom(targetRoom) {
       if (currentRoom !== "ai") {
         applySkyMode(scene, getSkyMode());
       }
+      setGuidePortrait(currentRoom);
       isTransitioning = false;
 
       // Fade the new room in smoothly.
