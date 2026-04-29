@@ -669,7 +669,7 @@ function renderHoloPage(video) {
           : ""
       }
       <div style="font-family:'Octosquares',sans-serif;padding-top:24px;padding-bottom:4px;font-size:22px;color:rgba(255,255,255,0.7);letter-spacing:2px;display:flex;justify-content:space-between;white-space:nowrap;border-top:1px solid rgba(255,255,255,0.1)">
-        <span>CDN &nbsp;/&nbsp; AIART ARCHIVE</span>
+        <span>CDN &nbsp;/&nbsp; AI & ART ARCHIVE</span>
         <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ""}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
       </div>
     </div>
@@ -1842,17 +1842,21 @@ const _tvButtonActions = new Set([
 ]);
 document.addEventListener("mousedown", (e) => {
   if (atTV) return;
+  if (e.target.closest('[id$="-overlay"]:not(.hidden)')) return;
 
   // Both panels are CSS3DObjects — raycasting misses them. Use bounding rect instead.
-  // In pointer-lock mode clientX/Y are stale; use the screen centre (crosshair) instead.
-  const _cx = controls.isLocked ? window.innerWidth / 2 : e.clientX;
-  const _cy = controls.isLocked ? window.innerHeight / 2 : e.clientY;
-  for (const panel of [hologramDiv, playlistDiv]) {
-    if (panel.style.opacity === "0") continue;
-    const r = panel.getBoundingClientRect();
-    if (_cx >= r.left && _cx <= r.right && _cy >= r.top && _cy <= r.bottom) {
-      nav.goTo("tv");
-      return;
+  // Only do this in free-cursor mode: in pointer-lock mode the screen-centre coords
+  // (innerWidth/2, innerHeight/2) can land inside the panel rect even when the camera
+  // isn't aimed at the TV, causing spurious zoom-to-TV on unrelated clicks.
+  // The 3-D raycast below already handles pointer-lock correctly.
+  if (!controls.isLocked) {
+    for (const panel of [hologramDiv, playlistDiv]) {
+      if (panel.style.opacity === "0") continue;
+      const r = panel.getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+        nav.goTo("tv");
+        return;
+      }
     }
   }
 
