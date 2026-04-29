@@ -3292,3 +3292,94 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   color: #00d4ff;
   flex: 0 0 auto;
 }
+
+/* ── Events tab ────────────────────────────────────── */
+.events-meta {
+  font-family: 'Roboto', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: rgba(0, 212, 255, 0.55);
+  margin-top: 14px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.events-source {
+  display: inline-block;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  color: #00d4ff;
+  text-decoration: none;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  padding: 6px 10px;
+  margin-top: 8px;
+  transition: background 180ms, border-color 180ms;
+}
+.events-source:hover {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: #00d4ff;
+}
+.events-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.events-card {
+  position: relative;
+  padding: 12px 14px;
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  font-family: 'Roboto', sans-serif;
+  color: #d6f4fb;
+}
+.events-card__when {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #00d4ff;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.events-card__title {
+  font-family: 'Octosquares', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+.events-card__loc {
+  font-size: 11px;
+  color: rgba(214, 244, 251, 0.7);
+  margin-bottom: 6px;
+}
+.events-card__desc {
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(214, 244, 251, 0.65);
+  margin-bottom: 8px;
+}
+.events-card__link {
+  font-size: 11px;
+  font-weight: 500;
+  color: #00d4ff;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+.events-card__link:hover {
+  text-shadow: 0 0 6px rgba(0, 212, 255, 0.7);
+}
+.events-empty {
+  list-style: none;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  color: rgba(214, 244, 251, 0.6);
+  font-style: italic;
+  padding: 20px 0;
+  text-align: center;
+}
