@@ -1,9 +1,79 @@
 // src/ui.js
 import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
 import { playIntro as runIntroDialogue } from './intro.js';
+import { ACHIEVEMENTS } from './achievements.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function _achievementsCountWord(n) {
+  return ['Zero', 'One', 'Two', 'Three', 'Four'][n] ?? String(n);
+}
+
+export function renderAchievementsTab(state) {
+  const total = ACHIEVEMENTS.length;
+  const atMax = state.unlockedIds.size === total;
+  const nextThreshold = state.level * 100;
+  const xpInLevel = state.xp - (state.level - 1) * 100;
+  const fillPct = atMax ? 100 : Math.min(100, (xpInLevel / 100) * 100);
+
+  const subtitle = atMax
+    ? 'All exhibits visited'
+    : `${_achievementsCountWord(state.unlockedIds.size)} of ${_achievementsCountWord(total)} exhibits visited`;
+
+  const xpLabel = atMax ? `${state.xp} XP — MAX` : `${state.xp} / ${nextThreshold} XP`;
+
+  const polaroids = ACHIEVEMENTS.map((a, i) => {
+    const unlocked = state.unlockedIds.has(a.id);
+    const tilt = i % 2 === 0 ? -2 : 2;
+    return `
+      <div class="polaroid achievement-polaroid ${unlocked ? 'achievement-polaroid--unlocked' : 'achievement-polaroid--locked'}"
+           style="transform: rotate(${tilt}deg)">
+        <div class="polaroid-img" style="display:flex;align-items:center;justify-content:center;font-size:38px">${a.icon}</div>
+        <div class="polaroid-caption">${a.title}</div>
+        ${unlocked ? `<div class="achievement-polaroid__desc">${a.description}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const recentList = state.recent.length > 0 ? `
+    <div class="achievement-recent">
+      <h4>Recent stamps</h4>
+      <ul>
+        ${state.recent.map(r => {
+          const def = ACHIEVEMENTS.find(a => a.id === r.id);
+          const time = new Date(r.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return `<li>${def?.title ?? r.id} <span>${time}</span></li>`;
+        }).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  return `
+    <div class="scrapbook">
+      <div class="scrapbook-page scrapbook-left">
+        <h2 class="scrapbook-title">Curator's Notebook</h2>
+        <div class="achievement-rank">
+          <div class="achievement-rank__level">✦ Level ${state.level}</div>
+          <div class="achievement-rank__bar">
+            <div class="achievement-rank__bar-fill" style="width:${fillPct}%"></div>
+            ${atMax ? '<div class="achievement-rank__max">MAX</div>' : ''}
+          </div>
+          <div class="achievement-rank__xp">${xpLabel}</div>
+          <div class="achievement-rank__subtitle">${subtitle}</div>
+        </div>
+        ${recentList}
+      </div>
+      <div class="scrapbook-spine"></div>
+      <div class="scrapbook-page scrapbook-right">
+        <h2 class="scrapbook-title">Stamps &amp; Souvenirs</h2>
+        <div class="achievement-grid">
+          ${polaroids}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 export const INTRO_FLAG_KEY = 'cdn-gallery:intro-seen';
