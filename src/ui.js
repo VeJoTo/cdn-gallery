@@ -538,7 +538,7 @@ export function createUI(camera, renderer, controls, scene) {
         <button class="scrapbook-tab ${activeTab==='achievements'?'is-active':''}" data-tab="achievements">🏆 Achievements</button>
         <button class="scrapbook-tab ${activeTab==='profile'?'is-active':''}" data-tab="profile">👤 Profile</button>
         <button class="scrapbook-tab ${activeTab==='resources'?'is-active':''}" data-tab="resources">📚 Resources</button>
-        <button class="scrapbook-tab" data-tab="cdn">🌐 CDN Website</button>
+        <button class="scrapbook-tab" data-tab="events">🗓 CDN Events</button>
       </div>
     `;
   }
@@ -567,8 +567,10 @@ export function createUI(camera, renderer, controls, scene) {
         const tab = btn.dataset.tab;
         if (tab === 'achievements' || tab === 'profile' || tab === 'resources') {
           renderInventoryWithTab(tab);
+        } else if (tab === 'events') {
+          // External link — leaves the gallery, doesn't switch active tab.
+          window.open('https://www.uib.no/en/cdn/events', '_blank', 'noopener,noreferrer');
         }
-        // 'cdn' is handled separately (#72) — opens in a new browser tab.
       });
     });
   }
