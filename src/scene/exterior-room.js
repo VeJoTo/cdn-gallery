@@ -531,44 +531,120 @@ export function createExteriorRoom(scene) {
   signCanvas.height = 192;
   const sgnctx = signCanvas.getContext('2d');
 
-  // Background
-  sgnctx.fillStyle = '#1a2a3a';
-  sgnctx.fillRect(0, 0, 512, 192);
+  function drawSign() {
+  const W = 512, H = 192;
+  const CYAN = '#00d4ff';
+  const CYAN_DIM = 'rgba(0, 212, 255, 0.55)';
+  const CYAN_FAINT = 'rgba(0, 212, 255, 0.18)';
+  const INK = '#0a0e14';
+  const TEXT = '#d6f4fb';
 
-  // Border
-  sgnctx.strokeStyle = '#cccccc';
-  sgnctx.lineWidth = 4;
-  sgnctx.strokeRect(6, 6, 500, 180);
+  // Background — near-black with subtle vertical gradient
+  const bg = sgnctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0e1620');
+  bg.addColorStop(1, INK);
+  sgnctx.fillStyle = bg;
+  sgnctx.fillRect(0, 0, W, H);
 
-  // CDN logo-ish stripe
-  sgnctx.fillStyle = '#3366aa';
-  sgnctx.fillRect(6, 6, 500, 40);
+  // Subtle grid
+  sgnctx.strokeStyle = CYAN_FAINT;
+  sgnctx.lineWidth = 1;
+  for (let x = 0; x <= W; x += 32) {
+    sgnctx.beginPath(); sgnctx.moveTo(x, 0); sgnctx.lineTo(x, H); sgnctx.stroke();
+  }
+  for (let y = 0; y <= H; y += 32) {
+    sgnctx.beginPath(); sgnctx.moveTo(0, y); sgnctx.lineTo(W, y); sgnctx.stroke();
+  }
 
-  // Text: CDN abbreviation in stripe
-  sgnctx.fillStyle = '#ffffff';
-  sgnctx.font = 'bold 26px Arial, sans-serif';
+  // Scanline overlay
+  sgnctx.fillStyle = 'rgba(0, 212, 255, 0.04)';
+  for (let y = 0; y < H; y += 3) {
+    sgnctx.fillRect(0, y, W, 1);
+  }
+
+  // Outer cyan border + corner brackets
+  sgnctx.strokeStyle = CYAN_DIM;
+  sgnctx.lineWidth = 2;
+  sgnctx.strokeRect(4, 4, W - 8, H - 8);
+
+  // Corner brackets (cyan, slightly thicker)
+  sgnctx.strokeStyle = CYAN;
+  sgnctx.lineWidth = 3;
+  const bl = 18; // bracket length
+  // top-left
+  sgnctx.beginPath(); sgnctx.moveTo(4, 4 + bl); sgnctx.lineTo(4, 4); sgnctx.lineTo(4 + bl, 4); sgnctx.stroke();
+  // top-right
+  sgnctx.beginPath(); sgnctx.moveTo(W - 4 - bl, 4); sgnctx.lineTo(W - 4, 4); sgnctx.lineTo(W - 4, 4 + bl); sgnctx.stroke();
+  // bottom-left
+  sgnctx.beginPath(); sgnctx.moveTo(4, H - 4 - bl); sgnctx.lineTo(4, H - 4); sgnctx.lineTo(4 + bl, H - 4); sgnctx.stroke();
+  // bottom-right
+  sgnctx.beginPath(); sgnctx.moveTo(W - 4 - bl, H - 4); sgnctx.lineTo(W - 4, H - 4); sgnctx.lineTo(W - 4, H - 4 - bl); sgnctx.stroke();
+
+  // Header microcopy (mono small caps)
+  sgnctx.fillStyle = CYAN;
+  sgnctx.font = '600 12px "JetBrains Mono", "SF Mono", "Menlo", monospace';
+  sgnctx.textAlign = 'left';
+  sgnctx.fillText('▸ DIGITAL NARRATIVE LAB', 22, 28);
+
+  // Right-side status microcopy
+  sgnctx.textAlign = 'right';
+  sgnctx.fillStyle = CYAN_DIM;
+  sgnctx.fillText('[ EST. UIB ]', W - 22, 28);
+
+  // CDN — large monogram, cyan with glow
   sgnctx.textAlign = 'center';
-  sgnctx.fillText('CDN', 256, 34);
+  sgnctx.font = 'bold 64px "Orbitron", "Pixelify Sans", sans-serif';
+  sgnctx.fillStyle = CYAN;
+  sgnctx.shadowColor = CYAN;
+  sgnctx.shadowBlur = 24;
+  sgnctx.fillText('CDN', W / 2, 92);
+  // Sharper highlight pass
+  sgnctx.shadowBlur = 0;
+  sgnctx.fillStyle = '#ffffff';
+  sgnctx.font = 'bold 64px "Orbitron", "Pixelify Sans", sans-serif';
+  sgnctx.fillText('CDN', W / 2, 92);
 
-  // Main line
-  sgnctx.fillStyle = '#e8eef5';
-  sgnctx.font = 'bold 20px Arial, sans-serif';
-  sgnctx.fillText('Center for Digital Narrative', 256, 90);
+  // Main line — Centre for Digital Narrative
+  sgnctx.font = '600 16px "JetBrains Mono", "SF Mono", monospace';
+  sgnctx.fillStyle = TEXT;
+  sgnctx.fillText('CENTRE FOR DIGITAL NARRATIVE', W / 2, 124);
 
-  // Sub line
-  sgnctx.fillStyle = '#aabbcc';
-  sgnctx.font = '16px Arial, sans-serif';
-  sgnctx.fillText('University of Bergen', 256, 120);
+  // Sub line — University of Bergen
+  sgnctx.font = '12px "JetBrains Mono", "SF Mono", monospace';
+  sgnctx.fillStyle = 'rgba(214, 244, 251, 0.55)';
+  sgnctx.fillText('// UNIVERSITY OF BERGEN', W / 2, 144);
 
-  // Small arrow hint
-  sgnctx.fillStyle = '#7799bb';
-  sgnctx.font = '13px Arial, sans-serif';
-  sgnctx.fillText('▶  Enter to explore', 256, 158);
+  // Bottom prompt — pulsing-style cyan call to action
+  sgnctx.font = '600 12px "JetBrains Mono", "SF Mono", monospace';
+  sgnctx.fillStyle = CYAN;
+  sgnctx.shadowColor = CYAN;
+  sgnctx.shadowBlur = 12;
+  sgnctx.fillText('▸ ENTER TO EXPLORE', W / 2, 172);
+  sgnctx.shadowBlur = 0;
+  }
+
+  drawSign();
+  // Redraw once Google Fonts (Orbitron / JetBrains Mono) finish loading,
+  // so the sign reliably uses the intended typefaces instead of fallbacks.
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      drawSign();
+      signTex.needsUpdate = true;
+    });
+  }
 
   const signTex  = new THREE.CanvasTexture(signCanvas);
+  signTex.anisotropy = 4;
   const signPanel = new THREE.Mesh(
     new THREE.BoxGeometry(1.4, 0.52, 0.04),
-    new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.5 })
+    new THREE.MeshStandardMaterial({
+      map: signTex,
+      emissiveMap: signTex,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.35,
+      roughness: 0.4,
+      metalness: 0.2,
+    })
   );
   signPanel.position.set(0.75, 1.9, 0);
   signGroup.add(signPanel);
