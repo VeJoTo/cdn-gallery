@@ -422,169 +422,180 @@ export function createRadio(scene) {
   root.rotation.y = (3 * Math.PI) / 4; // front faces diagonally into the room
   scene.add(root);
 
-  // ── Alien tractor beam: octagonal landing pad + flared light beam ──
-  // The radio sits at the top of the beam as if abducted / hovering.
-  const PED_H = 0.85;
+  // ── Glass side table the radio sits on ────────────────────────────
+  const PED_H = 0.55; // table height — coffee-table scale
 
-  // Landing pad — octagonal flat disc on the floor, glowing rim
-  const padMat = new THREE.MeshStandardMaterial({
-    color: 0x0d2230,
-    emissive: 0x00d4ff,
-    emissiveIntensity: 0.6,
-    metalness: 0.55,
-    roughness: 0.35,
-  });
-  const pad = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.42, 0.46, 0.04, 8),
-    padMat
-  );
-  pad.position.y = 0.02;
-  root.add(pad);
-
-  // Cyan ring of light around the pad rim — alien landing-strip vibe
-  const padRimMat = new THREE.MeshBasicMaterial({
-    color: 0x5ee0ff,
+  // Top — round glass plate with a thin cyan rim
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    color: 0xb8e0ec,
+    metalness: 0.0,
+    roughness: 0.05,
     transparent: true,
-    opacity: 0.85,
-  });
-  const padRim = new THREE.Mesh(
-    new THREE.RingGeometry(0.42, 0.48, 32),
-    padRimMat
-  );
-  padRim.rotation.x = -Math.PI / 2;
-  padRim.position.y = 0.041;
-  root.add(padRim);
-
-  // Inner concentric ring on the pad — more "runway markings"
-  const padInner = new THREE.Mesh(
-    new THREE.RingGeometry(0.27, 0.30, 24),
-    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.55 })
-  );
-  padInner.rotation.x = -Math.PI / 2;
-  padInner.position.y = 0.042;
-  root.add(padInner);
-
-  // Tractor beam — tapered cylinder, wider at the bottom, translucent
-  // cyan with additive blending so it reads as light, not solid glass.
-  const beamMat = new THREE.MeshBasicMaterial({
-    color: 0x5ee0ff,
-    transparent: true,
-    opacity: 0.18,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-  const beamH = PED_H - 0.08;
-  const beam = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.12, 0.32, beamH, 32, 1, true),
-    beamMat
-  );
-  beam.position.y = 0.04 + beamH / 2;
-  root.add(beam);
-
-  // Inner "core" beam — denser, narrower, brighter
-  const beamCore = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.18, beamH, 24, 1, true),
-    new THREE.MeshBasicMaterial({
-      color: 0x5ee0ff,
-      transparent: true,
-      opacity: 0.32,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    })
-  );
-  beamCore.position.y = 0.04 + beamH / 2;
-  root.add(beamCore);
-
-  // Anti-grav disc — thin disc the radio appears to float on top of
-  const antigrav = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.16, 0.025, 16),
-    new THREE.MeshStandardMaterial({
-      color: 0x0d2230,
-      emissive: 0x00d4ff,
-      emissiveIntensity: 1.4,
-      metalness: 0.7,
-      roughness: 0.25,
-    })
-  );
-  antigrav.position.y = PED_H - 0.012;
-  root.add(antigrav);
-
-  // Cyan halo just under the antigrav disc — the "lift force" glow
-  const liftHalo = new THREE.Mesh(
-    new THREE.RingGeometry(0.16, 0.22, 32),
-    new THREE.MeshBasicMaterial({
-      color: 0x5ee0ff,
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    })
-  );
-  liftHalo.rotation.x = -Math.PI / 2;
-  liftHalo.position.y = PED_H - 0.001;
-  root.add(liftHalo);
-
-  // ──────────────────────────────────────────────────────────────────
-  // Clean, futuristic monolith: a thin glass tablet floating on the
-  // alien stand. The face display fills the front; three glowing
-  // hex pads at the bottom are the only controls. No speaker grille,
-  // no antenna, no knobs — let the surface itself communicate state.
-  // ──────────────────────────────────────────────────────────────────
-
-  const bodyW = 0.7, bodyH = 0.45, bodyD = 0.06; // slim slab
-
-  // Glass body — translucent cyan with strong emissive glow
-  const bodyMat = new THREE.MeshPhysicalMaterial({
-    color: 0x102228,
-    emissive: 0x0a1a22,
-    emissiveIntensity: 0.6,
-    metalness: 0.2,
-    roughness: 0.18,
-    transparent: true,
-    opacity: 0.92,
+    opacity: 0.25,
+    transmission: 0.85,
+    thickness: 0.4,
     clearcoat: 1.0,
     clearcoatRoughness: 0.05,
   });
+  const tableTop = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.36, 0.36, 0.03, 48),
+    glassMat
+  );
+  tableTop.position.y = PED_H - 0.015;
+  root.add(tableTop);
+
+  // Cyan rim around the top edge — single accent line
+  const topRim = new THREE.Mesh(
+    new THREE.TorusGeometry(0.36, 0.005, 8, 48),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.75 })
+  );
+  topRim.rotation.x = Math.PI / 2;
+  topRim.position.y = PED_H - 0.015;
+  root.add(topRim);
+
+  // Slim metallic legs — three angled supports for a tripod look
+  const legMat = new THREE.MeshStandardMaterial({
+    color: 0xc8d4dc,
+    metalness: 0.85,
+    roughness: 0.2,
+  });
+  for (let i = 0; i < 3; i++) {
+    const angle = (i / 3) * Math.PI * 2 + Math.PI / 6;
+    const leg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.012, 0.018, PED_H - 0.04, 10),
+      legMat
+    );
+    leg.position.set(
+      Math.cos(angle) * 0.3,
+      (PED_H - 0.04) / 2,
+      Math.sin(angle) * 0.3
+    );
+    // Splay each leg outward by tilting slightly
+    leg.rotation.z = -Math.cos(angle) * 0.08;
+    leg.rotation.x = Math.sin(angle) * 0.08;
+    root.add(leg);
+  }
+
+  // Small foot disc on the floor where the legs converge
+  const baseRing = new THREE.Mesh(
+    new THREE.RingGeometry(0.27, 0.31, 32),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.45 })
+  );
+  baseRing.rotation.x = -Math.PI / 2;
+  baseRing.position.y = 0.001;
+  root.add(baseRing);
+
+  // ──────────────────────────────────────────────────────────────────
+  // Radio body — landscape silhouette, glass-like with cyan accents.
+  // Wider than tall + with depth so it reads as a radio, not a screen.
+  // ──────────────────────────────────────────────────────────────────
+
+  const bodyW = 0.7, bodyH = 0.34, bodyD = 0.22;
+
+  // Glass body — slightly translucent dark with cyan inner glow
+  const bodyMat = new THREE.MeshPhysicalMaterial({
+    color: 0x142028,
+    emissive: 0x0a1a24,
+    emissiveIntensity: 0.55,
+    metalness: 0.35,
+    roughness: 0.25,
+    transparent: true,
+    opacity: 0.95,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.08,
+  });
   const body = new THREE.Mesh(
-    new RoundedBoxGeometry(bodyW, bodyH, bodyD, 8, 0.04),
+    new RoundedBoxGeometry(bodyW, bodyH, bodyD, 6, 0.05),
     bodyMat
   );
   body.position.y = PED_H + bodyH / 2;
   body.castShadow = true;
   root.add(body);
 
-  // Thin cyan edge halo — single ring around the front silhouette
-  const edgeMat = new THREE.MeshBasicMaterial({
-    color: 0x5ee0ff,
-    transparent: true,
-    opacity: 0.7,
-  });
-  // Bottom edge strip
-  const bottomEdge = new THREE.Mesh(
-    new THREE.BoxGeometry(bodyW - 0.04, 0.003, 0.005),
-    edgeMat
-  );
-  bottomEdge.position.set(0, PED_H + 0.002, bodyD / 2 + 0.001);
-  root.add(bottomEdge);
-  // Top edge strip
-  const topEdge = new THREE.Mesh(
-    new THREE.BoxGeometry(bodyW - 0.04, 0.003, 0.005),
-    edgeMat
-  );
-  topEdge.position.set(0, PED_H + bodyH - 0.002, bodyD / 2 + 0.001);
-  root.add(topEdge);
+  // Thin cyan top + bottom edge accents on the front face
+  const edgeMat = new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.7 });
+  for (const yOff of [bodyH - 0.003, 0.003]) {
+    const e = new THREE.Mesh(
+      new THREE.BoxGeometry(bodyW - 0.04, 0.003, 0.005),
+      edgeMat
+    );
+    e.position.set(0, PED_H + yOff, bodyD / 2 + 0.001);
+    root.add(e);
+  }
 
-  // ── Display — fills the upper portion of the front ──
-  const dispW = bodyW * 0.85, dispH = bodyH * 0.62;
+  // ── Minimal speaker on the LEFT of the front face ──
+  // Concentric cyan rings — clean futuristic interpretation of a
+  // speaker, no perforated grille pattern.
+  const speakerR = bodyH * 0.36;
+  const speakerX = -bodyW * 0.28;
+  const speakerY = PED_H + bodyH * 0.55;
+  // Dark recessed disc
+  const speakerWell = new THREE.Mesh(
+    new THREE.CircleGeometry(speakerR, 40),
+    new THREE.MeshStandardMaterial({ color: 0x05101a, roughness: 0.7, metalness: 0.4 })
+  );
+  speakerWell.position.set(speakerX, speakerY, bodyD / 2 + 0.001);
+  root.add(speakerWell);
+  // Outer cyan rim
+  const speakerRimOuter = new THREE.Mesh(
+    new THREE.RingGeometry(speakerR + 0.003, speakerR + 0.011, 40),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.85 })
+  );
+  speakerRimOuter.position.set(speakerX, speakerY, bodyD / 2 + 0.002);
+  root.add(speakerRimOuter);
+  // Inner concentric ring
+  const speakerRimInner = new THREE.Mesh(
+    new THREE.RingGeometry(speakerR * 0.55, speakerR * 0.6, 32),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.5 })
+  );
+  speakerRimInner.position.set(speakerX, speakerY, bodyD / 2 + 0.0025);
+  root.add(speakerRimInner);
+  // Small centre dot
+  const speakerDot = new THREE.Mesh(
+    new THREE.CircleGeometry(speakerR * 0.18, 24),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.85 })
+  );
+  speakerDot.position.set(speakerX, speakerY, bodyD / 2 + 0.003);
+  root.add(speakerDot);
+
+  // ── Display panel — RIGHT half of front face ──
+  const dispW = bodyW * 0.42, dispH = bodyH * 0.55;
   const display = new THREE.Mesh(
     new THREE.PlaneGeometry(dispW, dispH),
     new THREE.MeshBasicMaterial({ map: _displayTex })
   );
-  display.position.set(0, PED_H + bodyH * 0.65, bodyD / 2 + 0.001);
+  display.position.set(bodyW * 0.22, PED_H + bodyH * 0.62, bodyD / 2 + 0.002);
   root.add(display);
+
+  // ── Slim glowing antenna — sticks up from the back-left top ──
+  // Iconic radio cue, kept very minimal so it doesn't dominate.
+  const antennaMat = new THREE.MeshStandardMaterial({
+    color: 0xaaffff,
+    emissive: 0x5ee0ff,
+    emissiveIntensity: 2.5,
+    transparent: true,
+    opacity: 0.75,
+    roughness: 0.05,
+  });
+  const ANT_H = 0.42;
+  const antenna = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.005, 0.009, ANT_H, 8),
+    antennaMat
+  );
+  antenna.position.set(-bodyW / 2 + 0.05, PED_H + bodyH + ANT_H / 2, -bodyD / 2 + 0.05);
+  // Slight angle for a friendly silhouette
+  antenna.rotation.z = 0.18;
+  root.add(antenna);
+  const antennaTip = new THREE.Mesh(
+    new THREE.SphereGeometry(0.012, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff })
+  );
+  antennaTip.position.set(
+    -bodyW / 2 + 0.05 + Math.sin(0.18) * ANT_H,
+    PED_H + bodyH + Math.cos(0.18) * ANT_H + 0.005,
+    -bodyD / 2 + 0.05
+  );
+  root.add(antennaTip);
 
   // ── Three hex control pads in a clean row at the bottom ──
   // Pads are flat hexagons (CylinderGeometry with 6 sides) sitting
