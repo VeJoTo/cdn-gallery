@@ -356,12 +356,13 @@ function trackChildren(builder) {
 // ── AI room ──
 let globeScreen;
 let kulturKartet;
+let doNotPress;
 let roomClickables = [];
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   ({ clickables: roomClickables } = createRoom(scene));
   globeScreen = createGlobeScreenInstallation(scene, camera, cssScene);
   kulturKartet = createKulturKartet(scene);
-  const doNotPress = createDoNotPressButton(scene);
+  doNotPress = createDoNotPressButton(scene);
   return createObjects(scene);
 });
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
@@ -1849,6 +1850,7 @@ document.addEventListener("mousedown", () => {
     globeScreen.selectCountry(obj.userData.country);
   if (action === "resetGlobeScreen") globeScreen.reset();
   if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
+  if (action === "rickRoll") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
   if (action === "exitToExterior")  window.__transitionToRoom("exterior");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");
