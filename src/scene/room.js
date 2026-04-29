@@ -263,5 +263,54 @@ export function createRoom(scene) {
     scene.add(el);
   }
 
+  // ── CDN Logo floor decal ─────────────────────────────────────────────────
+  // Central hub circle with lines connecting to satellite circles placed in
+  // front of each interactive exhibit (door and portal excluded).
+  const logoMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 2.5,
+    roughness: 0.3, metalness: 0.2, side: THREE.DoubleSide,
+  });
+  const LOGO_Y = 0.005;
+
+  // Central ring
+  const CENTER_R = 0.80;
+  const centRing = new THREE.Mesh(new THREE.RingGeometry(CENTER_R - 0.06, CENTER_R, 64), logoMat);
+  centRing.rotation.x = -Math.PI / 2;
+  centRing.position.y = LOGO_Y;
+  scene.add(centRing);
+
+  // Satellite circles — one in front of each interactive exhibit
+  const SAT_R = 0.42;
+  const SAT_W = 0.05;
+  const logoSats = [
+    { x: -5.5, z: -2.75 }, // Bookstand pedestal
+    { x: -6.0, z:  2.75 }, // TV (left wall)
+    { x: -4.0, z:  1.5  }, // Sofa
+    { x:  5.5, z:  8.0  }, // Arcade cabinet
+  ];
+
+  for (const { x, z } of logoSats) {
+    // Satellite ring
+    const ring = new THREE.Mesh(new THREE.RingGeometry(SAT_R - SAT_W, SAT_R, 48), logoMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(x, LOGO_Y, z);
+    scene.add(ring);
+
+    // Connector strip: runs from the edge of the central circle to the edge of the satellite
+    const dist = Math.sqrt(x * x + z * z);
+    const len  = dist - CENTER_R - SAT_R;
+    const nx = x / dist, nz = z / dist;
+    const midX = nx * (CENTER_R + len / 2);
+    const midZ = nz * (CENTER_R + len / 2);
+
+    const connector = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.01, Math.max(len, 0.01)),
+      logoMat,
+    );
+    connector.position.set(midX, LOGO_Y, midZ);
+    connector.rotation.y = Math.atan2(nx, nz);
+    scene.add(connector);
+  }
+
   return { clickables: [doorClickTarget] };
 }
