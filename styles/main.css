@@ -2529,3 +2529,142 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
     transform: none;
   }
 }
+
+/* ── Achievements tab ─────────────────────────────── */
+.achievement-rank {
+  margin-bottom: 16px;
+}
+.achievement-rank__level {
+  font-family: 'Caveat', cursive;
+  font-size: 32px;
+  color: #3a2818;
+  line-height: 1;
+}
+.achievement-rank__bar {
+  position: relative;
+  height: 8px;
+  background: rgba(0,0,0,0.05);
+  border: 2px dashed #c0b090;
+  border-radius: 4px;
+  margin: 8px 0 4px;
+  overflow: hidden;
+}
+.achievement-rank__bar-fill {
+  height: 100%;
+  background: #00d4ff;
+  transition: width 250ms ease-out;
+}
+.achievement-rank__max {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Pixelify Sans', system-ui, sans-serif;
+  font-size: 9px;
+  color: #3a2818;
+  letter-spacing: 1px;
+}
+.achievement-rank__xp {
+  font-family: 'Pixelify Sans', system-ui, sans-serif;
+  font-size: 12px;
+  color: #5a4a3a;
+}
+.achievement-rank__subtitle {
+  font-family: 'Caveat', cursive;
+  font-style: italic;
+  font-size: 16px;
+  color: #5a4a3a;
+  margin-top: 8px;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.achievement-polaroid {
+  position: relative;
+  margin: 0;
+  cursor: default;
+  transition: transform 0.2s, filter 0.2s;
+}
+.achievement-polaroid--unlocked::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 8px;
+  width: 28px;
+  height: 10px;
+  background: rgba(0, 212, 255, 0.55);
+  transform: rotate(-3deg);
+}
+.achievement-polaroid--unlocked:hover {
+  transform: translateY(-3px) rotate(0deg) !important;
+}
+.achievement-polaroid--locked {
+  filter: grayscale(1) opacity(.55);
+}
+.achievement-polaroid--locked .polaroid-caption {
+  color: #8a7a60;
+}
+
+.achievement-polaroid__desc {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  padding: 8px;
+  background: #fef3a0;
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  color: #3a2818;
+  z-index: 5;
+  box-shadow: 1px 2px 4px rgba(0,0,0,0.15);
+}
+.achievement-polaroid--unlocked:hover .achievement-polaroid__desc {
+  display: block;
+}
+@media (hover: none) {
+  .achievement-polaroid--unlocked:hover .achievement-polaroid__desc {
+    display: none;
+  }
+  .achievement-polaroid--unlocked.is-tapped .achievement-polaroid__desc {
+    display: block;
+  }
+}
+
+.achievement-recent {
+  margin-top: 16px;
+  font-family: 'Caveat', cursive;
+}
+.achievement-recent h4 {
+  font-size: 16px;
+  color: #5a4a3a;
+  margin-bottom: 4px;
+}
+.achievement-recent ul {
+  list-style: none;
+  padding: 0;
+}
+.achievement-recent li {
+  font-size: 14px;
+  color: #3a2818;
+  padding: 2px 0;
+}
+.achievement-recent li span {
+  font-family: 'Pixelify Sans', system-ui, sans-serif;
+  font-size: 11px;
+  color: #8a7a60;
+  margin-left: 8px;
+}
+
+/* Active tab styling */
+.scrapbook-tab.is-active {
+  transform: translateX(8px);
+  box-shadow: 4px 4px 6px rgba(0,0,0,0.2);
+  font-weight: bold;
+}
