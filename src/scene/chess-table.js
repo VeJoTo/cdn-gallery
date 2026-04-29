@@ -295,7 +295,7 @@ export function createChessTable(scene) {
   // No `action` set — clicking does nothing; we only want the label.
   root.userData = {
     clickable: true,
-    hoverLabel: "CDN's entrance has a chess board too — fancy a game?",
+    hoverLabel: "A nod to the real chess board in CDN's entrance.",
   };
 
   return root;
