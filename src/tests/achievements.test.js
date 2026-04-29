@@ -90,3 +90,73 @@ describe('initAchievements — persistence', () => {
     expect(getState().unlockedIds.size).toBe(0);
   });
 });
+
+describe('unlock', () => {
+  it('emits "unlocked" event with definition + newXp + newLevel on first call', async () => {
+    const { initAchievements, unlock, achievementEvents } = await import('../achievements.js');
+    initAchievements();
+    const handler = vi.fn();
+    achievementEvents.addEventListener('unlocked', handler);
+    unlock('book');
+    expect(handler).toHaveBeenCalledTimes(1);
+    const evt = handler.mock.calls[0][0];
+    expect(evt.detail.id).toBe('book');
+    expect(evt.detail.definition.title).toBe('Folklorist');
+    expect(evt.detail.newXp).toBe(100);
+    expect(evt.detail.newLevel).toBe(2);
+    achievementEvents.removeEventListener('unlocked', handler);
+  });
+
+  it('is a no-op on second call for same id (idempotent)', async () => {
+    const { initAchievements, unlock, achievementEvents, getState } = await import('../achievements.js');
+    initAchievements();
+    const handler = vi.fn();
+    achievementEvents.addEventListener('unlocked', handler);
+    unlock('book');
+    unlock('book');
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(getState().xp).toBe(100);
+    achievementEvents.removeEventListener('unlocked', handler);
+  });
+
+  it('writes to localStorage on unlock', async () => {
+    const { initAchievements, unlock } = await import('../achievements.js');
+    initAchievements();
+    unlock('tv');
+    const raw = localStorage.getItem('cdn-gallery:achievements');
+    const parsed = JSON.parse(raw);
+    expect(parsed.unlocked.tv).toBeTypeOf('number');
+    expect(parsed.schemaVersion).toBe(1);
+  });
+
+  it('warns and no-ops for unknown id', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { initAchievements, unlock, getState } = await import('../achievements.js');
+    initAchievements();
+    unlock('not-a-real-id');
+    expect(warnSpy).toHaveBeenCalled();
+    expect(getState().unlockedIds.size).toBe(0);
+    warnSpy.mockRestore();
+  });
+
+  it('isUnlocked reflects current state', async () => {
+    const { initAchievements, unlock, isUnlocked } = await import('../achievements.js');
+    initAchievements();
+    expect(isUnlocked('book')).toBe(false);
+    unlock('book');
+    expect(isUnlocked('book')).toBe(true);
+  });
+
+  it('getState.recent returns top-3 unlocks ordered desc by timestamp', async () => {
+    const { initAchievements, unlock, getState } = await import('../achievements.js');
+    initAchievements();
+    const nowSpy = vi.spyOn(Date, 'now');
+    nowSpy.mockReturnValue(1000); unlock('globe');
+    nowSpy.mockReturnValue(2000); unlock('cultureMap');
+    nowSpy.mockReturnValue(3000); unlock('book');
+    nowSpy.mockReturnValue(4000); unlock('tv');
+    const recent = getState().recent;
+    expect(recent.map(r => r.id)).toEqual(['tv', 'book', 'cultureMap']);
+    nowSpy.mockRestore();
+  });
+});

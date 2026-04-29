@@ -62,6 +62,25 @@ function _writeToStorage() {
   }
 }
 
+export const achievementEvents = new EventTarget();
+
+export function unlock(id) {
+  const definition = ACHIEVEMENTS.find(a => a.id === id);
+  if (!definition) {
+    console.warn(`[achievements] unknown id: ${id}`);
+    return;
+  }
+  if (isUnlocked(id)) return; // idempotent
+
+  _state.unlocked[id] = Date.now();
+  _writeToStorage();
+
+  const { xp: newXp, level: newLevel } = getState();
+  achievementEvents.dispatchEvent(new CustomEvent('unlocked', {
+    detail: { id, definition, newXp, newLevel },
+  }));
+}
+
 // Test-only — do not call from production code.
 export function _resetForTests() {
   _state = { unlocked: {} };
