@@ -393,10 +393,6 @@ function drawTextPanel() {
   ctx.globalAlpha = 1.0;
   ctx.fillStyle = C.navy;
   ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = C.teal;
-  ctx.fillRect(0, 0, W, 4);
-  ctx.fillStyle = C.cyan;
-  ctx.fillRect(0, 4, 3, H - 4);
 
   // Reset next-button hit area; only set when the correct state is drawn
   _nextBtnBounds = null;
@@ -442,7 +438,7 @@ function drawTextPanel() {
 
     ctx.fillStyle = C.cyan;
     ctx.font = `16px ${FB}`;
-    wrapText(ctx, '→  Use "Story-guesser" to test how well you can identify a country from an AI-generated excerpt.', PAD, y, W - PAD * 2, 19);
+    wrapText(ctx, '→  Use "Quiz mode" to test how well you can identify a country from an AI-generated excerpt.', PAD, y, W - PAD * 2, 19);
 
   } else if (_mode === 'explore' && _selected) {
     // ── Country selected ──
@@ -555,7 +551,7 @@ function drawTextPanel() {
 
 // ── Button drawing ────────────────────────────────────────────────────────────
 
-const BTN_LABELS = ['Explore the map', 'Story-guesser'];
+const BTN_LABELS = ['Explore the map', 'Quiz mode'];
 const BTN_MODES  = ['explore', 'guesser'];
 
 // Matches the "Reset view" DOM button style exactly:
