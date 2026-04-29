@@ -3266,15 +3266,15 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 #proximity-hint.hidden { display: none; }
 
 #proximity-hint-portrait {
-  width: 900px;
+  width: 420px;
   height: auto;
   max-height: 90vh;
   object-fit: contain;
   object-position: bottom;
   align-self: flex-end;
   flex-shrink: 0;
-  margin-left: -180px;
-  margin-right: -180px;
+  margin-left: -97px;
+  margin-right: -100px;
   margin-bottom: -50px;
 }
 

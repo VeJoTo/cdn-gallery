@@ -2063,27 +2063,6 @@ document.addEventListener('mouseup', (e) => {
   let active = null;
   let activePage = 0;
 
-  function loadPortraitNoWhite(url) {
-    if (!hintPortrait) return;
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < data.data.length; i += 4) {
-        if (data.data[i] > 230 && data.data[i + 1] > 230 && data.data[i + 2] > 230) {
-          data.data[i + 3] = 0;
-        }
-      }
-      ctx.putImageData(data, 0, 0);
-      hintPortrait.src = canvas.toDataURL();
-    };
-    img.src = url;
-  }
 
   function dismiss() {
     active = null;
@@ -2101,7 +2080,7 @@ document.addEventListener('mouseup', (e) => {
     shown.add(hint.id);
     active = hint;
     activePage = 0;
-    loadPortraitNoWhite(BASE + 'guide-ai.png');
+    if (hintPortrait) hintPortrait.src = BASE + 'guide-ai.png';
     showPage(hint, 0);
     if (hintEl) hintEl.classList.remove('hidden');
   }
