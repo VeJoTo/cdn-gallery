@@ -1997,6 +1997,7 @@ body:has(
 #globe-videos-start-screen.hidden { display: none; }
 
 #globe-videos-start-title {
+  font-family: 'Octosquares', sans-serif;
   font-size: 48px;
   color: #1b7ab8;
   text-shadow: 0 0 20px rgba(27,122,184,0.8);
@@ -2065,6 +2066,7 @@ body:has(
 }
 
 #globe-videos-title {
+  font-family: 'Octosquares', sans-serif;
   font-size: 36px;
   font-weight: bold;
   color: #1b7ab8;
@@ -2079,7 +2081,8 @@ body:has(
 }
 
 .globe-videos-body {
-  font-size: 18px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
   color: #b8d8e8;
   line-height: 1.65;
   margin-bottom: 14px;
@@ -2087,7 +2090,8 @@ body:has(
 
 .globe-videos-cta {
   margin-top: auto;
-  font-size: 17px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
   font-weight: bold;
   color: #3dd6c0;
   text-shadow: 0 0 8px rgba(61,214,192,0.6);
@@ -2152,6 +2156,7 @@ body:has(
 }
 
 .globe-video-title {
+  font-family: 'Octosquares', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: #e8f4ff;
