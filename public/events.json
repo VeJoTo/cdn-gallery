@@ -1,0 +1,23 @@
+{
+  "fetchedAt": "2026-04-29T19:11:08.292Z",
+  "sourceUrl": "https://www.uib.no/en/cdn/calendar",
+  "icsUrl": "https://www.uib.no/en/node/138219/eventlist.ics",
+  "events": [
+    {
+      "start": "2026-04-30T09:30:00.000Z",
+      "end": "2026-04-30T10:00:00.000Z",
+      "title": "DH Lunch: Why Use Vision Language Models for HandwritingRecognition – A Holistic Approach",
+      "description": "This DH lunch will be about fine-tuning or \"training\" of Vision Language Models (VL-models), or image-to-text language models",
+      "location": "Zoom",
+      "url": "https://www.uib.no/en/digitallab/181662/dh-lunch-why-use-vision-language-models-handwriting-recognition-%E2%80%93-holistic"
+    },
+    {
+      "start": "2026-05-29T06:30:00.000Z",
+      "end": "2026-05-29T14:00:00.000Z",
+      "title": "Daemons, Myths, and Monsters: Narratives of technology in theage of artificial intelligence",
+      "description": "One-day conference on grappling with the mysterious andunpredictable in our interrelations with digital technologies.",
+      "location": "CDN Lounge, Langes gate 1-3",
+      "url": "https://www.uib.no/en/cdn/182437/daemons-myths-and-monsters-narratives-technology-age-artificial-intelligence"
+    }
+  ]
+}
