@@ -167,6 +167,9 @@ const POSITION = [
 export function createChessTable(scene) {
   const root = new THREE.Group();
   root.position.copy(TABLE_POS);
+  // Rotate 90° so the table's long axis runs parallel to the sofa
+  // (sofa cushions run along Z; the table should follow that).
+  root.rotation.y = Math.PI / 2;
   scene.add(root);
 
   // ── Coffee table — glassy neon material that matches the sofa ──────
