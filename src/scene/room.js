@@ -16,15 +16,15 @@ export function createRoom(scene) {
   marbleCanvas.width = 1024; marbleCanvas.height = 1024;
   const mctx = marbleCanvas.getContext('2d');
 
-  // Base: brighter warm-gray marble
-  mctx.fillStyle = '#cdd2d8';
+  // Base: bright light-gray marble
+  mctx.fillStyle = '#e0e4e8';
   mctx.fillRect(0, 0, 1024, 1024);
 
   // Subtle tonal gradient for depth
   const mgrad = mctx.createLinearGradient(0, 0, 1024, 1024);
-  mgrad.addColorStop(0,   'rgba(230, 234, 240, 0.45)');
-  mgrad.addColorStop(0.4, 'rgba(175, 182, 192, 0.30)');
-  mgrad.addColorStop(1,   'rgba(210, 215, 222, 0.40)');
+  mgrad.addColorStop(0,   'rgba(245, 247, 250, 0.45)');
+  mgrad.addColorStop(0.4, 'rgba(200, 206, 214, 0.30)');
+  mgrad.addColorStop(1,   'rgba(228, 232, 237, 0.40)');
   mctx.fillStyle = mgrad;
   mctx.fillRect(0, 0, 1024, 1024);
 
@@ -93,11 +93,11 @@ export function createRoom(scene) {
     new THREE.MeshPhysicalMaterial({
       map: marbleTex,
       transparent: true,
-      opacity: 0.65,
-      roughness: 0.35,
+      opacity: 0.75,
+      roughness: 0.7,
       metalness: 0.0,
-      clearcoat: 0.3,
-      clearcoatRoughness: 0.4,
+      clearcoat: 0.0,
+      clearcoatRoughness: 1.0,
       depthWrite: false,
     })
   );
