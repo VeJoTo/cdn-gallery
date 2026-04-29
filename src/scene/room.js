@@ -77,14 +77,43 @@ export function createRoom(scene) {
 
   const floorGeo = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
 
-  // Layer 1: Reflector — renders the scene mirrored so neon strips appear in the floor
+  // Layer 1: Reflector with custom shader — reflections fade and blur based on the height
+  // of the reflected object. Low UV-y = floor-level content (clear); high UV-y = ceiling
+  // content (blurry and dark), because the mirror camera sees ceiling objects "high up".
   const floorReflector = new Reflector(floorGeo, {
     clipBias: 0.003,
     textureWidth:  512,
     textureHeight: 512,
-    color: new THREE.Color(0x6a7d90), // gray-blue tint keeps it from looking like a mirror
+    color: new THREE.Color(0x6a7d90),
   });
   floorReflector.rotation.x = -Math.PI / 2;
+
+  floorReflector.material.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      'gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );',
+      `
+      // Normalised UV inside the reflection render target.
+      // High y = ceiling (far from floor) → faded & blurry.
+      // Low y  = floor-level content → clear.
+      vec2 reflUV = clamp( vUv.xy / vUv.w, 0.0, 1.0 );
+      float fade = 1.0 - smoothstep( 0.30, 0.92, reflUV.y );
+
+      // Box blur that grows as fade drops (ceiling content gets blurrier).
+      vec2 texel = vec2( 1.0 / 512.0 );
+      float blurR = ( 1.0 - fade ) * 14.0;
+      vec4 b0 = texture2D( tDiffuse, reflUV );
+      vec4 b1 = texture2D( tDiffuse, clamp( reflUV + vec2(  blurR,  0.0 ) * texel, 0.0, 1.0 ) );
+      vec4 b2 = texture2D( tDiffuse, clamp( reflUV + vec2( -blurR,  0.0 ) * texel, 0.0, 1.0 ) );
+      vec4 b3 = texture2D( tDiffuse, clamp( reflUV + vec2(  0.0,  blurR ) * texel, 0.0, 1.0 ) );
+      vec4 b4 = texture2D( tDiffuse, clamp( reflUV + vec2(  0.0, -blurR ) * texel, 0.0, 1.0 ) );
+      vec4 blurredBase = b0 * 0.36 + b1 * 0.16 + b2 * 0.16 + b3 * 0.16 + b4 * 0.16;
+
+      vec3 result = blendOverlay( blurredBase.rgb, color ) * fade;
+      gl_FragColor = vec4( result, 1.0 );
+      `
+    );
+  };
+
   scene.add(floorReflector);
 
   // Layer 2: marble texture overlay — blends over the reflection so the floor still looks like stone
@@ -105,37 +134,6 @@ export function createRoom(scene) {
   marbleOverlay.position.y = 0.001;
   marbleOverlay.receiveShadow = true;
   scene.add(marbleOverlay);
-
-  // Layer 3: depth vignette — dark near the camera, fading to transparent at the back wall.
-  // PlaneGeometry UV: V=0 → world z=+ROOM_DEPTH/2 (front/camera side),
-  //                  V=1 → world z=-ROOM_DEPTH/2 (back wall).
-  // With CanvasTexture flipY=true: canvas y=0 (top) → UV V=1 (back), canvas y=H (bottom) → UV V=0 (front).
-  const vigCanvas = document.createElement('canvas');
-  vigCanvas.width = 1; vigCanvas.height = 128;
-  const vctx = vigCanvas.getContext('2d');
-  // alphaMap reads luminance: white = opaque (vignette visible), black = transparent (no effect).
-  // flipY=true: canvas top (y=0) → UV V=1 → back wall; canvas bottom (y=128) → UV V=0 → near camera.
-  const vgrad = vctx.createLinearGradient(0, 0, 0, 128);
-  vgrad.addColorStop(0,    '#000000'); // back wall → transparent → no vignette
-  vgrad.addColorStop(0.35, '#1a1a1a');
-  vgrad.addColorStop(0.65, '#707070');
-  vgrad.addColorStop(1,    '#d4d4d4'); // near camera → opaque black → dark
-  vctx.fillStyle = vgrad;
-  vctx.fillRect(0, 0, 1, 128);
-  const vigTex = new THREE.CanvasTexture(vigCanvas);
-
-  const floorVignette = new THREE.Mesh(
-    floorGeo.clone(),
-    new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      alphaMap: vigTex,
-      transparent: true,
-      depthWrite: false,
-    })
-  );
-  floorVignette.rotation.x = -Math.PI / 2;
-  floorVignette.position.y = 0.002;
-  scene.add(floorVignette);
 
   const ceil = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
