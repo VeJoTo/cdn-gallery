@@ -595,6 +595,7 @@ function redrawButtons() {
 // ── Action handlers (called from main.js) ─────────────────────────────────────
 
 export function handleKartetMapClick(uv) {
+  import('../achievements.js').then(m => m.unlock('cultureMap'));
   if (!_pathGen) return; // geo data not yet loaded
   const key = getCountryAtUV(uv.x, uv.y);
   if (!key) return;

@@ -2419,6 +2419,736 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   paint-order: stroke fill;
 }
 
+
+/* ── Achievement toast — AI Telemetry / System Log ── */
+#achievement-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1500;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.achievement-toast {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  width: 340px;
+  padding: 14px 16px;
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.04), transparent 60%),
+    rgba(10, 14, 20, 0.92);
+  border: 1px solid rgba(0, 212, 255, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 255, 0.12),
+    0 0 24px rgba(0, 212, 255, 0.35),
+    0 0 60px rgba(0, 212, 255, 0.12),
+    inset 0 0 40px rgba(0, 212, 255, 0.04);
+  color: #d6f4fb;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transform: translateX(40px);
+  opacity: 0;
+  animation: ach-toast-enter 350ms cubic-bezier(.2,.8,.2,1) forwards,
+             ach-toast-scan 2.6s linear 350ms infinite,
+             ach-toast-exit 500ms ease-in 3850ms forwards;
+}
+
+/* Scanline overlay */
+.achievement-toast::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 212, 255, 0.04) 0px,
+    rgba(0, 212, 255, 0.04) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Corner brackets */
+.achievement-toast__corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #00d4ff;
+}
+.achievement-toast__corner--tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.achievement-toast__corner--tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+.achievement-toast__corner--bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+.achievement-toast__corner--br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+.achievement-toast__icon {
+  position: relative;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+}
+
+.achievement-toast__body { flex: 1; min-width: 0; position: relative; }
+
+.achievement-toast__header {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: #00d4ff;
+  margin-bottom: 4px;
+  text-shadow: 0 0 4px rgba(0, 212, 255, 0.6);
+}
+
+.achievement-toast__title {
+  font-family: 'Orbitron', 'Pixelify Sans', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.achievement-toast__desc {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  font-size: 11px;
+  color: rgba(214, 244, 251, 0.65);
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.achievement-toast__xp {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #00d4ff;
+  text-shadow: 0 0 6px rgba(0, 212, 255, 0.7);
+}
+
+@keyframes ach-toast-enter {
+  0%   { transform: translateX(40px); opacity: 0; clip-path: inset(0 100% 0 0); }
+  60%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { transform: translateX(0); opacity: 1; clip-path: inset(0 0 0 0); }
+}
+@keyframes ach-toast-scan {
+  0%   { box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.12), 0 0 24px rgba(0, 212, 255, 0.35), 0 0 60px rgba(0, 212, 255, 0.12), inset 0 0 40px rgba(0, 212, 255, 0.04); }
+  50%  { box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.2),  0 0 32px rgba(0, 212, 255, 0.5),  0 0 80px rgba(0, 212, 255, 0.18), inset 0 0 50px rgba(0, 212, 255, 0.07); }
+  100% { box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.12), 0 0 24px rgba(0, 212, 255, 0.35), 0 0 60px rgba(0, 212, 255, 0.12), inset 0 0 40px rgba(0, 212, 255, 0.04); }
+}
+@keyframes ach-toast-exit {
+  to { transform: translateX(40px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast {
+    animation: ach-toast-fade-in 200ms ease-out forwards,
+               ach-toast-fade-out 200ms ease-in 3800ms forwards;
+    transform: none;
+  }
+  @keyframes ach-toast-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes ach-toast-fade-out { from { opacity: 1; } to { opacity: 0; } }
+}
+
+/* ── Achievements tab — AI Telemetry inside scrapbook ── */
+.scrapbook.ach-tab {
+  border-radius: 0;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7), 0 0 60px rgba(0, 212, 255, 0.25);
+}
+.ach-tab__page {
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.03), transparent 70%),
+    radial-gradient(ellipse at top, rgba(0, 212, 255, 0.08), transparent 50%),
+    #0a0e14 !important;
+  color: #d6f4fb !important;
+  padding: 32px 28px !important;
+  position: relative;
+}
+/* Subtle grid */
+.ach-tab__page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Scanlines */
+.ach-tab__page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 212, 255, 0.03) 0px,
+    rgba(0, 212, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.ach-tab__page > * { position: relative; z-index: 1; }
+
+.ach-tab__spine {
+  background: linear-gradient(90deg, #062a36, #00131a, #062a36) !important;
+  border-left: 1px solid rgba(0, 212, 255, 0.3);
+  border-right: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.ach-tab__title {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px;
+  color: #00d4ff !important;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.3) !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 20px !important;
+  text-shadow: 0 0 6px rgba(0, 212, 255, 0.5);
+}
+
+.achievement-rank {
+  margin-bottom: 24px;
+}
+.achievement-rank__level {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.55);
+  line-height: 1;
+}
+.achievement-rank__bar {
+  position: relative;
+  height: 12px;
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  margin: 14px 0 6px;
+  overflow: hidden;
+}
+.achievement-rank__bar::before {
+  /* Tick marks */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0, 212, 255, 0.18) 0,
+    rgba(0, 212, 255, 0.18) 1px,
+    transparent 1px,
+    transparent 25%
+  );
+  pointer-events: none;
+}
+.achievement-rank__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00d4ff, #6ef0ff);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.7);
+  transition: width 350ms cubic-bezier(.2,.8,.2,1);
+}
+.achievement-rank__max {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #0a0e14;
+  letter-spacing: 2px;
+}
+.achievement-rank__xp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #00d4ff;
+  letter-spacing: 1px;
+}
+.achievement-rank__subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(214, 244, 251, 0.5);
+  margin-top: 8px;
+  letter-spacing: 0.5px;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.achievement-card {
+  position: relative;
+  padding: 16px 12px 12px;
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  text-align: center;
+  cursor: default;
+  transition: background 200ms, border-color 200ms, transform 200ms;
+  font-family: 'JetBrains Mono', monospace;
+}
+.achievement-card__corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #00d4ff;
+}
+.achievement-card__corner--tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.achievement-card__corner--tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+.achievement-card__corner--bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+.achievement-card__corner--br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+.achievement-card--unlocked {
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.1), transparent 60%),
+    rgba(0, 212, 255, 0.04);
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.25), inset 0 0 30px rgba(0, 212, 255, 0.05);
+}
+.achievement-card--unlocked:hover {
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.18), transparent 60%),
+    rgba(0, 212, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 0 28px rgba(0, 212, 255, 0.5), inset 0 0 40px rgba(0, 212, 255, 0.1);
+}
+.achievement-card--locked {
+  opacity: 0.45;
+}
+.achievement-card--locked .achievement-card__corner {
+  border-color: rgba(214, 244, 251, 0.35);
+}
+
+.achievement-card__icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.4));
+}
+.achievement-card--locked .achievement-card__icon {
+  filter: none;
+  color: rgba(214, 244, 251, 0.3);
+}
+.achievement-card__title {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  color: #ffffff;
+  text-transform: uppercase;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.achievement-card--locked .achievement-card__title {
+  color: rgba(214, 244, 251, 0.4);
+}
+.achievement-card__status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #00d4ff;
+}
+.achievement-card--locked .achievement-card__status {
+  color: rgba(214, 244, 251, 0.35);
+}
+
+.achievement-card__desc {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: -1px;
+  right: -1px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: rgba(10, 14, 20, 0.95);
+  border: 1px solid rgba(0, 212, 255, 0.55);
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.4);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(214, 244, 251, 0.85);
+  line-height: 1.4;
+  z-index: 5;
+  text-align: left;
+}
+.achievement-card--unlocked:hover .achievement-card__desc {
+  display: block;
+}
+@media (hover: none) {
+  .achievement-card--unlocked:hover .achievement-card__desc { display: none; }
+  .achievement-card--unlocked.is-tapped .achievement-card__desc { display: block; }
+}
+
+.achievement-recent {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(0, 212, 255, 0.25);
+}
+.achievement-recent h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: rgba(0, 212, 255, 0.85);
+  margin-bottom: 10px;
+}
+.achievement-recent ul {
+  list-style: none;
+  padding: 0;
+}
+.achievement-recent li {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(214, 244, 251, 0.75);
+  padding: 3px 0;
+  letter-spacing: 0.5px;
+}
+.achievement-recent__time {
+  color: #00d4ff;
+  margin-right: 8px;
+}
+
+/* Active tab styling */
+.scrapbook-tab.is-active {
+  transform: translateX(8px);
+  box-shadow: 4px 4px 6px rgba(0,0,0,0.2);
+  font-weight: bold;
+}
+
+/* ────────────────────────────────────────────────── */
+/* INVENTORY — global tech reskin (overrides) */
+/* ────────────────────────────────────────────────── */
+
+/* Inventory shell — darker frame with cyan ambient glow */
+#inventory-overlay {
+  background: rgba(2, 6, 12, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#inventory-overlay .scrapbook {
+  border-radius: 0;
+  box-shadow:
+    0 0 0 1px rgba(0, 212, 255, 0.45),
+    0 12px 60px rgba(0, 0, 0, 0.8),
+    0 0 80px rgba(0, 212, 255, 0.25);
+  overflow: visible;
+}
+
+/* Scrapbook pages → dark telemetry panels */
+#inventory-overlay .scrapbook-page {
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.03), transparent 70%),
+    radial-gradient(ellipse at top, rgba(0, 212, 255, 0.08), transparent 50%),
+    #0a0e14 !important;
+  color: #d6f4fb !important;
+  padding: 32px 28px !important;
+  position: relative;
+  border: none;
+}
+#inventory-overlay .scrapbook-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+#inventory-overlay .scrapbook-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 212, 255, 0.03) 0px,
+    rgba(0, 212, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+#inventory-overlay .scrapbook-page > * { position: relative; z-index: 1; }
+
+#inventory-overlay .scrapbook-spine {
+  background: linear-gradient(90deg, #062a36, #00131a, #062a36) !important;
+  border-left: 1px solid rgba(0, 212, 255, 0.3);
+  border-right: 1px solid rgba(0, 212, 255, 0.3);
+  box-shadow: none;
+}
+
+/* All scrapbook text becomes mono telemetry */
+#inventory-overlay .scrapbook,
+#inventory-overlay .scrapbook * {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+}
+
+#inventory-overlay .scrapbook-title {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  color: #00d4ff !important;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.3) !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 20px !important;
+  text-shadow: 0 0 6px rgba(0, 212, 255, 0.5);
+}
+#inventory-overlay .scrapbook-title::before {
+  content: '▸ ';
+  color: #00d4ff;
+}
+
+/* Profile tab — polaroid → tech card */
+#inventory-overlay .polaroid {
+  position: relative;
+  background: rgba(0, 212, 255, 0.04) !important;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  padding: 8px 8px 12px !important;
+  transform: none !important;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.18), inset 0 0 24px rgba(0, 212, 255, 0.04);
+  margin-bottom: 18px;
+}
+#inventory-overlay .polaroid::before,
+#inventory-overlay .polaroid::after {
+  /* Corner brackets (top-left + bottom-right via two pseudos) */
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #00d4ff;
+}
+#inventory-overlay .polaroid::before {
+  top: -1px; left: -1px;
+  border-right: none; border-bottom: none;
+}
+#inventory-overlay .polaroid::after {
+  bottom: -1px; right: -1px;
+  border-left: none; border-top: none;
+}
+#inventory-overlay .polaroid-img {
+  background: rgba(0, 212, 255, 0.06) !important;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+#inventory-overlay .polaroid-caption {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  letter-spacing: 1.2px;
+  color: rgba(214, 244, 251, 0.7) !important;
+  text-transform: uppercase;
+  margin-top: 8px !important;
+}
+
+/* Profile tab — sticky-note → tech panel */
+#inventory-overlay .sticky-note {
+  position: relative;
+  background: rgba(0, 212, 255, 0.04) !important;
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  padding: 14px 16px !important;
+  transform: none !important;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.15), inset 0 0 22px rgba(0, 212, 255, 0.03);
+  margin-top: 14px;
+}
+#inventory-overlay .sticky-note::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 8px; height: 8px;
+  border: 1px solid #00d4ff;
+  border-right: none;
+  border-bottom: none;
+}
+#inventory-overlay .sticky-note h3 {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px;
+  color: #00d4ff !important;
+  text-transform: uppercase;
+  margin-bottom: 10px !important;
+}
+#inventory-overlay .sticky-note h3::before {
+  content: '// ';
+}
+#inventory-overlay .sticky-note ul { padding: 0; }
+#inventory-overlay .sticky-note li {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  color: rgba(214, 244, 251, 0.75) !important;
+  border-bottom: 1px dashed rgba(0, 212, 255, 0.18) !important;
+  padding: 4px 0 !important;
+  letter-spacing: 0.4px;
+}
+#inventory-overlay .sticky-note li::before {
+  content: '▸ ' !important;
+  color: #00d4ff !important;
+}
+
+/* Sky toggle (Settings) — tech-tinted */
+#inventory-overlay .sky-toggle-label {
+  color: rgba(214, 244, 251, 0.85) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+#inventory-overlay .sky-toggle-pill {
+  background: rgba(0, 212, 255, 0.08) !important;
+  border: 1px solid rgba(0, 212, 255, 0.4) !important;
+}
+#inventory-overlay .sky-toggle-knob {
+  background: #00d4ff !important;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.6) !important;
+}
+
+/* Doodle — turn into faint cyan glyph */
+#inventory-overlay .scrapbook-doodle {
+  color: rgba(0, 212, 255, 0.35) !important;
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+  opacity: 0.7 !important;
+}
+
+/* Discoveries grid — tech card style */
+#inventory-overlay .discovery-grid {
+  gap: 14px !important;
+}
+#inventory-overlay .discovery-item {
+  position: relative;
+  background: rgba(0, 212, 255, 0.04) !important;
+  border: 1px solid rgba(0, 212, 255, 0.3) !important;
+  border-radius: 0 !important;
+  padding: 14px 10px !important;
+  opacity: 0.5;
+}
+#inventory-overlay .discovery-item.found {
+  opacity: 1;
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.1), transparent 60%),
+    rgba(0, 212, 255, 0.04) !important;
+  border-color: rgba(0, 212, 255, 0.55) !important;
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.3), inset 0 0 28px rgba(0, 212, 255, 0.05);
+}
+#inventory-overlay .discovery-thumb {
+  filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.4));
+}
+#inventory-overlay .discovery-item:not(.found) .discovery-thumb {
+  filter: none;
+  color: rgba(214, 244, 251, 0.35);
+}
+#inventory-overlay .discovery-label {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 1px;
+  color: rgba(214, 244, 251, 0.85) !important;
+  text-transform: uppercase;
+}
+#inventory-overlay .discovery-item:not(.found) .discovery-label {
+  color: rgba(214, 244, 251, 0.4) !important;
+}
+
+#inventory-overlay .scrapbook-page-num {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  color: rgba(0, 212, 255, 0.5) !important;
+  letter-spacing: 1.5px;
+  margin-top: 18px !important;
+}
+#inventory-overlay .scrapbook-page-num::before { content: '// '; }
+
+/* ── Side tabs — high-tech panels ───────────────── */
+#inventory-overlay .scrapbook-tabs {
+  top: 60px !important;
+  right: -148px !important;
+  gap: 10px !important;
+}
+/* Override the pastel rainbow nth-child colors with a single tech palette */
+#inventory-overlay .scrapbook-tab,
+#inventory-overlay .scrapbook-tab:nth-child(1),
+#inventory-overlay .scrapbook-tab:nth-child(2),
+#inventory-overlay .scrapbook-tab:nth-child(3),
+#inventory-overlay .scrapbook-tab:nth-child(4) {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.05), transparent 60%),
+    rgba(10, 14, 20, 0.92) !important;
+  border: 1px solid rgba(0, 212, 255, 0.45);
+  border-left: none;
+  border-radius: 0 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 500;
+  color: #d6f4fb !important;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  padding: 12px 16px 12px 14px !important;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.15);
+  transition: transform 200ms, box-shadow 200ms, background 200ms, color 200ms;
+  min-width: 148px !important;
+}
+/* Cyan top-left bracket on every tab */
+#inventory-overlay .scrapbook-tab::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0;
+  width: 8px; height: 8px;
+  border: 1px solid #00d4ff;
+  border-right: none;
+  border-bottom: none;
+}
+#inventory-overlay .scrapbook-tab:hover {
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.12), transparent 60%),
+    rgba(10, 14, 20, 0.96) !important;
+  box-shadow: 0 0 18px rgba(0, 212, 255, 0.4);
+  transform: translateX(4px);
+  color: #ffffff !important;
+}
+#inventory-overlay .scrapbook-tab.is-active {
+  background:
+    linear-gradient(180deg, rgba(0, 212, 255, 0.18), rgba(0, 212, 255, 0.04) 70%),
+    rgba(10, 14, 20, 0.96) !important;
+  border-color: #00d4ff;
+  box-shadow: 0 0 22px rgba(0, 212, 255, 0.6), inset 0 0 30px rgba(0, 212, 255, 0.08);
+  transform: translateX(8px);
+  color: #ffffff !important;
+  text-shadow: 0 0 6px rgba(0, 212, 255, 0.6);
+}
+
+/* Inventory close button — tech bracket */
+#inventory-close {
+  background: rgba(0, 212, 255, 0.08) !important;
+  border: 1px solid rgba(0, 212, 255, 0.5) !important;
+  color: #00d4ff !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  border-radius: 0 !important;
+  text-shadow: 0 0 6px rgba(0, 212, 255, 0.5);
+}
+#inventory-close:hover {
+  background: rgba(0, 212, 255, 0.18) !important;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.5);
+}
+
 /* ── Kulturkartet fullscreen overlay ────────────────── */
 #kulturkartet-overlay {
   position: fixed;
