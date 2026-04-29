@@ -22,12 +22,12 @@ import * as THREE from 'three';
 
 const MUSIC_CHANNELS = [
   { name: 'Channel 1', videoId: '7rgG3sboipg' },
+  { name: 'Channel 2', videoId: 'UnCeRajvwps' },
   // TODO: add more music channels — e.g. lo-fi, ambient, classical
 ];
 
 const PODCAST_CHANNELS = [
-  // TODO: add CDN podcast episodes when the team confirms the source.
-  { name: 'Coming soon', videoId: null },
+  { name: 'CDN Podcast', spotifyShowId: '0wu2LStxmC2rT8xTSC5ld4' },
 ];
 
 // ── Persistence ─────────────────────────────────────
@@ -67,14 +67,19 @@ state.on = false;
 
 // ── Audio iframe ────────────────────────────────────
 
+// CSS for the two iframe states (set inline so the file is self-contained)
+const HIDDEN_FRAME_CSS =
+  'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden;';
+const VISIBLE_FRAME_CSS =
+  'position:fixed;bottom:16px;right:16px;width:340px;height:160px;border:0;visibility:visible;z-index:60;border-radius:12px;box-shadow:0 0 18px rgba(0,212,255,0.45),0 0 0 1px rgba(0,212,255,0.6);background:#0a1419;';
+
 let _audioIframe = null;
 function ensureAudioIframe() {
   if (_audioIframe) return _audioIframe;
   _audioIframe = document.createElement('iframe');
   _audioIframe.id = 'radio-audio';
-  _audioIframe.allow = 'autoplay; encrypted-media';
-  _audioIframe.style.cssText =
-    'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden;';
+  _audioIframe.allow = 'autoplay; encrypted-media; clipboard-write';
+  _audioIframe.style.cssText = HIDDEN_FRAME_CSS;
   document.body.appendChild(_audioIframe);
   return _audioIframe;
 }
@@ -83,16 +88,32 @@ function applyAudio() {
   const frame = ensureAudioIframe();
   if (!state.on) {
     frame.src = '';
+    frame.style.cssText = HIDDEN_FRAME_CSS;
     return;
   }
   const list = state.mode === 'music' ? MUSIC_CHANNELS : PODCAST_CHANNELS;
   const idx = state.mode === 'music' ? state.musicChannel : state.podcastChannel;
-  const id = list[idx]?.videoId;
-  if (!id) {
-    frame.src = ''; // placeholder slot — silent
+  const ch = list[idx];
+  if (!ch) {
+    frame.src = '';
+    frame.style.cssText = HIDDEN_FRAME_CSS;
     return;
   }
-  frame.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+  if (ch.videoId) {
+    // YouTube — autoplay works after the user-gesture click on the power
+    // button. Keep the iframe hidden off-screen; audio still plays.
+    frame.src = `https://www.youtube.com/embed/${ch.videoId}?autoplay=1`;
+    frame.style.cssText = HIDDEN_FRAME_CSS;
+  } else if (ch.spotifyShowId) {
+    // Spotify embeds don't autoplay (Spotify policy). Show the player as
+    // a small visible widget in the bottom-right so the user can pick an
+    // episode and hit play.
+    frame.src = `https://open.spotify.com/embed/show/${ch.spotifyShowId}?utm_source=generator&theme=0`;
+    frame.style.cssText = VISIBLE_FRAME_CSS;
+  } else {
+    frame.src = '';
+    frame.style.cssText = HIDDEN_FRAME_CSS;
+  }
 }
 
 // ── Display canvas (rendered to a mesh on the radio front) ──
@@ -168,7 +189,7 @@ export function createRadio(scene) {
   // X ∈ [-8, +8], Z ∈ [-11, +11]; place the radio in the back-left
   // corner (sofa-side, opposite the TV) and face it diagonally inward.
   root.position.set(-7.2, 0, 9.5);
-  root.rotation.y = -Math.PI / 4 - Math.PI / 2; // face toward room centre
+  root.rotation.y = (3 * Math.PI) / 4; // front faces diagonally into the room
   scene.add(root);
 
   // ── Pedestal — short, wide stand instead of a thin pole ──
