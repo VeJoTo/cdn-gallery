@@ -137,13 +137,13 @@ export function createExteriorRoom(scene) {
   });
 
   const frameMat = new THREE.MeshStandardMaterial({
-    color: 0xcccccc,
+    color: 0xd8cfb8,
     roughness: 0.3,
     metalness: 0.6
   });
 
   const backWallMat = new THREE.MeshStandardMaterial({
-    color: 0x888888,
+    color: 0xc8b896,
     roughness: 0.8,
     metalness: 0.0
   });
@@ -244,7 +244,7 @@ export function createExteriorRoom(scene) {
   glasshus.add(doorGroup);
 
   const doorFrameMat = new THREE.MeshStandardMaterial({
-    color: 0xbbbbbb,
+    color: 0xa8a090,
     roughness: 0.3,
     metalness: 0.7
   });
@@ -351,10 +351,9 @@ export function createExteriorRoom(scene) {
   // ── Surroundings ──
   // ────────────────────────────────────────────────────────────────
 
-  // ── Grey stone walls flanking the glasshus ──
-  // Reference: concrete/stone blocks on both sides of the glass volume
+  // ── Stone walls flanking the glasshus — warm sandstone ──
   const stoneMat = new THREE.MeshStandardMaterial({
-    color: 0x8a8878,
+    color: 0xc4ad84,
     roughness: 0.9,
     metalness: 0.0
   });
@@ -409,8 +408,8 @@ export function createExteriorRoom(scene) {
   addHedge(-(WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // left
   addHedge( (WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // right
 
-  // ── 3 white wooden plank houses behind the glasshus ──
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.7 });
+  // ── 3 wooden plank houses behind the glasshus (Bergen Bryggen palette) ──
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x3d2820, roughness: 0.7 });
 
   // Canvas texture for white wooden planks
   function makePlankTexture() {
@@ -439,7 +438,15 @@ export function createExteriorRoom(scene) {
   }
 
   const plankTex = makePlankTexture();
-  const houseMat = new THREE.MeshStandardMaterial({ map: plankTex, roughness: 0.8 });
+  // Per-house tinted plank materials — Bergen Bryggen-inspired palette.
+  // The map is multiplied by .color, so the cream plank texture takes on
+  // the tint while keeping the wood-grain detail visible.
+  function makeHouseMat(tint) {
+    return new THREE.MeshStandardMaterial({ map: plankTex, color: tint, roughness: 0.85 });
+  }
+  const houseMatRed   = makeHouseMat(0xc8584c); // coral red
+  const houseMatOcher = makeHouseMat(0xd49a3a); // ochre / mustard
+  const houseMatSage  = makeHouseMat(0x7aa692); // muted sage
 
   // Window material — dark glass
   const windowMat = new THREE.MeshStandardMaterial({
@@ -449,13 +456,13 @@ export function createExteriorRoom(scene) {
   });
   const windowFrameMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.5 });
 
-  function addHouse(x, z, w, h, d, rotY) {
+  function addHouse(x, z, w, h, d, rotY, wallMat = houseMatRed) {
     const hGroup = new THREE.Group();
     hGroup.position.set(ox + x, 0, z);
     if (rotY) hGroup.rotation.y = rotY;
 
     // Body
-    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), houseMat);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
     body.position.y = h / 2;
     body.castShadow = true;
     hGroup.add(body);
@@ -509,9 +516,9 @@ export function createExteriorRoom(scene) {
   }
 
   // Houses flanking the glasshus — attached to the stone walls on each side
-  addHouse(-5.5, -2.0, 4.5, 5.0, 4.0, 0);     // left side of glasshus
-  addHouse( 5.5, -2.0, 4.5, 5.0, 4.0, 0);     // right side of glasshus
-  addHouse( 0,  -9.0, 5.0, 5.5, 4.5, 0);      // one behind centre for depth
+  addHouse(-5.5, -2.0, 4.5, 5.0, 4.0, 0, houseMatRed);   // left:  coral red
+  addHouse( 5.5, -2.0, 4.5, 5.0, 4.0, 0, houseMatOcher); // right: ochre
+  addHouse( 0,  -9.0, 5.0, 5.5, 4.5, 0, houseMatSage);   // back:  sage
 
   // ── CDN signpost ──
   const signGroup = new THREE.Group();
