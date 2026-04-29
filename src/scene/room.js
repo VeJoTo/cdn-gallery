@@ -1,5 +1,6 @@
 // src/scene/room.js
 import * as THREE from 'three';
+import { Reflector } from 'three/addons/objects/Reflector.js';
 
 // Gallery dimensions — museum-hall scale, white cube.
 export const ROOM_WIDTH  = 16;  // X
@@ -70,25 +71,40 @@ export function createRoom(scene) {
   marbleTex.repeat.set(2, 3); // large slabs — ~8m × 7.3m per tile
   marbleTex.anisotropy = 16;
 
-  const floorMat = new THREE.MeshPhysicalMaterial({
-    map: marbleTex,
-    roughness: 0.04,
-    metalness: 0.0,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.02,
-    reflectivity: 0.95,
-  });
   const ceilMat = new THREE.MeshStandardMaterial({
     color: 0x0a1420, metalness: 0.05, roughness: 0.9
   });
 
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
-    floorMat
+  const floorGeo = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
+
+  // Layer 1: Reflector — renders the scene mirrored so neon strips appear in the floor
+  const floorReflector = new Reflector(floorGeo, {
+    clipBias: 0.003,
+    textureWidth:  512,
+    textureHeight: 512,
+    color: new THREE.Color(0x6a7d90), // gray-blue tint keeps it from looking like a mirror
+  });
+  floorReflector.rotation.x = -Math.PI / 2;
+  scene.add(floorReflector);
+
+  // Layer 2: marble texture overlay — blends over the reflection so the floor still looks like stone
+  const marbleOverlay = new THREE.Mesh(
+    floorGeo.clone(),
+    new THREE.MeshPhysicalMaterial({
+      map: marbleTex,
+      transparent: true,
+      opacity: 0.60,
+      roughness: 0.04,
+      metalness: 0.0,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.02,
+      depthWrite: false,
+    })
   );
-  floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  marbleOverlay.rotation.x = -Math.PI / 2;
+  marbleOverlay.position.y = 0.001;
+  marbleOverlay.receiveShadow = true;
+  scene.add(marbleOverlay);
 
   const ceil = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
