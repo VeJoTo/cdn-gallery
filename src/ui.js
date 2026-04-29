@@ -1339,6 +1339,7 @@ export function createUI(camera, renderer, controls, scene) {
   let _globeStarted = false;
 
   function openGlobeVideos(onStart) {
+    import('./achievements.js').then(m => m.unlock('globe'));
     _onGlobeStart = onStart || null;
     if (_globeStarted) {
       globeVideosStartScreen.classList.add('hidden');
