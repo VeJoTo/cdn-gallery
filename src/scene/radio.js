@@ -23,7 +23,8 @@ import * as THREE from 'three';
 const MUSIC_CHANNELS = [
   { name: 'Channel 1', videoId: '7rgG3sboipg' },
   { name: 'Channel 2', videoId: 'UnCeRajvwps' },
-  // TODO: add more music channels — e.g. lo-fi, ambient, classical
+  { name: 'Channel 3', videoId: 'HIdNZlBKrTA' },
+  // To extend: append { name, videoId } entries.
 ];
 
 const PODCAST_CHANNELS = [
