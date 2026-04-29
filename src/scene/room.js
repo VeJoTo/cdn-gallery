@@ -113,11 +113,13 @@ export function createRoom(scene) {
   const vigCanvas = document.createElement('canvas');
   vigCanvas.width = 1; vigCanvas.height = 128;
   const vctx = vigCanvas.getContext('2d');
+  // alphaMap reads luminance: white = opaque (vignette visible), black = transparent (no effect).
+  // flipY=true: canvas top (y=0) → UV V=1 → back wall; canvas bottom (y=128) → UV V=0 → near camera.
   const vgrad = vctx.createLinearGradient(0, 0, 0, 128);
-  vgrad.addColorStop(0,    'rgba(0,0,0,0)');    // top of canvas → back wall → no darkening
-  vgrad.addColorStop(0.35, 'rgba(0,0,0,0.10)');
-  vgrad.addColorStop(0.70, 'rgba(0,0,0,0.45)');
-  vgrad.addColorStop(1,    'rgba(0,0,0,0.82)'); // bottom of canvas → near camera → dark
+  vgrad.addColorStop(0,    '#000000'); // back wall → transparent → no vignette
+  vgrad.addColorStop(0.35, '#1a1a1a');
+  vgrad.addColorStop(0.65, '#707070');
+  vgrad.addColorStop(1,    '#d4d4d4'); // near camera → opaque black → dark
   vctx.fillStyle = vgrad;
   vctx.fillRect(0, 0, 1, 128);
   const vigTex = new THREE.CanvasTexture(vigCanvas);
