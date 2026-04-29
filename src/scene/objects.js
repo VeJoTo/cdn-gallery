@@ -4,6 +4,7 @@ import { ROOM_WIDTH } from "./room.js";
 import { buildTV } from "./tv.js";
 import { createSofa } from "./sofa.js";
 import { createArcade } from "./arcade.js";
+import { createChessTable } from "./chess-table.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
@@ -1096,6 +1097,10 @@ export function createObjects(scene) {
   // Sofa in front of the TV wall — clickable to sit down
   const sofa = createSofa(scene);
 
+  // Easter egg: coffee table + chess board in mid-game
+  // (CDN's actual building has a chess board in the entrance)
+  const chessTable = createChessTable(scene);
+
   // Pac-Man arcade cabinet — entry wall, user's left
   const arcade = createArcade(scene);
 
@@ -1126,6 +1131,6 @@ export function createObjects(scene) {
     pedestal,
     tv,
     sceneUpdate,
-    extras: [pedestal, portal, tv, sofa, arcade],
+    extras: [pedestal, portal, tv, sofa, arcade, chessTable],
   };
 }
