@@ -18,6 +18,7 @@ import { createObjects } from "./scene/objects.js";
 import { createNatureRoom, NATURE_CENTER_X } from "./scene/nature-room.js";
 import { createExteriorRoom } from "./scene/exterior-room.js";
 import { createGlobeScreenInstallation } from "./scene/globe-screen.js";
+import { createDoNotPressButton } from "./scene/do-not-press.js";
 import { createNavigationState, createNavigationSystem } from "./navigation.js";
 import { createUI } from "./ui.js";
 import { applySkyMode, getSkyMode, clearSkyObjects } from "./sky.js";
@@ -355,11 +356,13 @@ function trackChildren(builder) {
 // ── AI room ──
 let globeScreen;
 let kulturKartet;
+let doNotPress;
 let roomClickables = [];
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   ({ clickables: roomClickables } = createRoom(scene));
   globeScreen = createGlobeScreenInstallation(scene, camera, cssScene);
   kulturKartet = createKulturKartet(scene);
+  doNotPress = createDoNotPressButton(scene);
   return createObjects(scene);
 });
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
@@ -1133,6 +1136,7 @@ window.__toggleMagnifier = () => {
 
 const clickableObjects = [
   pedestal,
+  doNotPress,
   ...extras,
   ...globeScreen.clickables,
   ...kulturKartet.clickables,
@@ -1846,6 +1850,7 @@ document.addEventListener("mousedown", () => {
     globeScreen.selectCountry(obj.userData.country);
   if (action === "resetGlobeScreen") globeScreen.reset();
   if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
+  if (action === "rickRoll") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
   if (action === "exitToExterior")  window.__transitionToRoom("exterior");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");
