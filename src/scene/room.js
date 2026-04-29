@@ -109,6 +109,10 @@ export function createRoom(scene) {
     doorGroup.add(sidePost);
   }
 
+  const doorHandleMat = new THREE.MeshStandardMaterial({
+    color: 0x111111, roughness: 0.4, metalness: 0.8
+  });
+
   // Glass panels + handles
   const doorPanelMat = new THREE.MeshStandardMaterial({
     color: 0xc8d8e0, emissive: 0x8ab0c0, emissiveIntensity: 0.6,
@@ -124,7 +128,7 @@ export function createRoom(scene) {
     doorGroup.add(panel);
 
     const handle = new THREE.Mesh(
-      new THREE.BoxGeometry(0.03, 0.4, 0.03), doorFrameMat
+      new THREE.BoxGeometry(0.03, 0.4, 0.03), doorHandleMat
     );
     handle.position.set(dpx > 0 ? dpx - 0.13 : dpx + 0.13, 1.05, 0.05);
     doorGroup.add(handle);
