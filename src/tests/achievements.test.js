@@ -11,8 +11,10 @@ function mockLocalStorage() {
   };
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.stubGlobal('localStorage', mockLocalStorage());
+  const mod = await import('../achievements.js');
+  mod._resetForTests();
 });
 
 describe('ACHIEVEMENTS definitions', () => {
@@ -43,5 +45,48 @@ describe('getState — initial', () => {
     expect(s.xp).toBe(0);
     expect(s.level).toBe(1);
     expect(s.recent).toEqual([]);
+  });
+});
+
+describe('initAchievements — persistence', () => {
+  const STORAGE_KEY = 'cdn-gallery:achievements';
+
+  it('loads empty state when nothing is stored', async () => {
+    const { initAchievements, getState } = await import('../achievements.js');
+    initAchievements();
+    expect(getState().unlockedIds.size).toBe(0);
+  });
+
+  it('round-trips unlocked set across re-init via real shape', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      schemaVersion: 1,
+      unlocked: { book: 1234567890, tv: 1234567999 },
+    }));
+    const { initAchievements, getState } = await import('../achievements.js');
+    initAchievements();
+    const s = getState();
+    expect(s.unlockedIds).toEqual(new Set(['book', 'tv']));
+    expect(s.xp).toBe(200);
+    expect(s.level).toBe(3);
+  });
+
+  it('falls back to empty state on corrupted JSON', async () => {
+    localStorage.setItem(STORAGE_KEY, '{not valid json');
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { initAchievements, getState } = await import('../achievements.js');
+    initAchievements();
+    expect(getState().unlockedIds.size).toBe(0);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('falls back to empty state on unknown schemaVersion', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      schemaVersion: 999,
+      unlocked: { book: 1 },
+    }));
+    const { initAchievements, getState } = await import('../achievements.js');
+    initAchievements();
+    expect(getState().unlockedIds.size).toBe(0);
   });
 });

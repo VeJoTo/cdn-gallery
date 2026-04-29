@@ -29,3 +29,40 @@ export function getState() {
 export function isUnlocked(id) {
   return Object.prototype.hasOwnProperty.call(_state.unlocked, id);
 }
+
+const STORAGE_KEY = 'cdn-gallery:achievements';
+const SCHEMA_VERSION = 1;
+
+export function initAchievements() {
+  _state = _readFromStorage();
+}
+
+function _readFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { unlocked: {} };
+    const parsed = JSON.parse(raw);
+    if (parsed?.schemaVersion !== SCHEMA_VERSION) return { unlocked: {} };
+    if (!parsed.unlocked || typeof parsed.unlocked !== 'object') return { unlocked: {} };
+    return { unlocked: { ...parsed.unlocked } };
+  } catch (err) {
+    console.warn('[achievements] localStorage read failed:', err);
+    return { unlocked: {} };
+  }
+}
+
+function _writeToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      schemaVersion: SCHEMA_VERSION,
+      unlocked: _state.unlocked,
+    }));
+  } catch (err) {
+    console.warn('[achievements] localStorage write failed:', err);
+  }
+}
+
+// Test-only — do not call from production code.
+export function _resetForTests() {
+  _state = { unlocked: {} };
+}
