@@ -2021,8 +2021,8 @@ document.addEventListener('mouseup', (e) => {
   const HINTS = [
     {
       id: 'fin-du-monde',
-      pos: new THREE.Vector3(3.5, 1.5, -9.5),
-      radius: 3.2,
+      pos: new THREE.Vector3(0, 1.5, -8.0),
+      radius: 3.5,
       pages: [
         "This is a research project where an AI was asked to write a story about the end of the world. Meteors are hitting cities, people are disappearing, and the AI just keeps narrating, calmly, like it doesn't quite grasp what it's describing."
       ]
@@ -2046,8 +2046,8 @@ document.addEventListener('mouseup', (e) => {
     },
     {
       id: 'book',
-      pos: new THREE.Vector3(-6.5, 0, -9.0),
-      radius: 3.2,
+      pos: new THREE.Vector3(-7.0, 1.0, -2.75),
+      radius: 3.0,
       pages: [
         "How generalising is AI?",
         "This is a research project that asked an AI to retell a dark Norwegian folktale called The Sweetheart in the Forest, a story about a young woman who outwits a murderer in the woods. Take a look at how AI interpret the folklore!"
