@@ -527,287 +527,149 @@ export function createRadio(scene) {
   liftHalo.position.y = PED_H - 0.001;
   root.add(liftHalo);
 
-  // ── Radio body — friendly retro silhouette, rounded corners ──
-  const bodyW = 0.95, bodyH = 0.50, bodyD = 0.38;
-  const bodyMat = new THREE.MeshStandardMaterial({
-    color: 0x4a6a78,           // friendly slate-blue (vs the previous near-black)
-    metalness: 0.35,
-    roughness: 0.55,
-    emissive: 0x1a3540,
-    emissiveIntensity: 0.4,
+  // ──────────────────────────────────────────────────────────────────
+  // Clean, futuristic monolith: a thin glass tablet floating on the
+  // alien stand. The face display fills the front; three glowing
+  // hex pads at the bottom are the only controls. No speaker grille,
+  // no antenna, no knobs — let the surface itself communicate state.
+  // ──────────────────────────────────────────────────────────────────
+
+  const bodyW = 0.7, bodyH = 0.45, bodyD = 0.06; // slim slab
+
+  // Glass body — translucent cyan with strong emissive glow
+  const bodyMat = new THREE.MeshPhysicalMaterial({
+    color: 0x102228,
+    emissive: 0x0a1a22,
+    emissiveIntensity: 0.6,
+    metalness: 0.2,
+    roughness: 0.18,
+    transparent: true,
+    opacity: 0.92,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05,
   });
   const body = new THREE.Mesh(
-    new RoundedBoxGeometry(bodyW, bodyH, bodyD, 6, 0.05),
+    new RoundedBoxGeometry(bodyW, bodyH, bodyD, 8, 0.04),
     bodyMat
   );
   body.position.y = PED_H + bodyH / 2;
   body.castShadow = true;
   root.add(body);
 
-  // ── Futuristic edge lighting — cyan strips along the body's seams ──
-  const stripMat = new THREE.MeshBasicMaterial({
-    color: 0x00d4ff,
-    transparent: true,
-    opacity: 0.85,
-  });
-  // Front-top + front-bottom horizontal seams
-  for (const yOff of [bodyH - 0.002, 0.002]) {
-    const strip = new THREE.Mesh(
-      new THREE.BoxGeometry(bodyW - 0.03, 0.004, 0.006),
-      stripMat
-    );
-    strip.position.set(0, PED_H + yOff, bodyD / 2 + 0.002);
-    root.add(strip);
-  }
-  // Front-side vertical seams (left + right edges of the front face)
-  for (const xOff of [-bodyW / 2 + 0.002, bodyW / 2 - 0.002]) {
-    const strip = new THREE.Mesh(
-      new THREE.BoxGeometry(0.004, bodyH - 0.02, 0.006),
-      stripMat
-    );
-    strip.position.set(xOff, PED_H + bodyH / 2, bodyD / 2 + 0.002);
-    root.add(strip);
-  }
-
-  // ── Antenna — slim glass rod sticking up from the right rear corner ──
-  const antennaMat = new THREE.MeshStandardMaterial({
-    color: 0xaaffff,
-    emissive: 0x00ffee,
-    emissiveIntensity: 3.0,
+  // Thin cyan edge halo — single ring around the front silhouette
+  const edgeMat = new THREE.MeshBasicMaterial({
+    color: 0x5ee0ff,
     transparent: true,
     opacity: 0.7,
-    roughness: 0.05,
   });
-  const ANT_H = 0.55;
-  const antenna = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.006, 0.012, ANT_H, 10),
-    antennaMat
+  // Bottom edge strip
+  const bottomEdge = new THREE.Mesh(
+    new THREE.BoxGeometry(bodyW - 0.04, 0.003, 0.005),
+    edgeMat
   );
-  antenna.position.set(bodyW / 2 - 0.04, PED_H + bodyH + ANT_H / 2, -bodyD / 2 + 0.04);
-  root.add(antenna);
-  // Tip glow ball
-  const antennaTip = new THREE.Mesh(
-    new THREE.SphereGeometry(0.018, 12, 8),
-    new THREE.MeshBasicMaterial({ color: 0x00d4ff })
+  bottomEdge.position.set(0, PED_H + 0.002, bodyD / 2 + 0.001);
+  root.add(bottomEdge);
+  // Top edge strip
+  const topEdge = new THREE.Mesh(
+    new THREE.BoxGeometry(bodyW - 0.04, 0.003, 0.005),
+    edgeMat
   );
-  antennaTip.position.set(bodyW / 2 - 0.04, PED_H + bodyH + ANT_H + 0.005, -bodyD / 2 + 0.04);
-  root.add(antennaTip);
+  topEdge.position.set(0, PED_H + bodyH - 0.002, bodyD / 2 + 0.001);
+  root.add(topEdge);
 
-  // ── Speaker grille — BIG, on the LEFT half of the front face ──
-  // Classic boombox-style radio look: speaker dominates one side.
-  const grilleMat = new THREE.MeshStandardMaterial({
-    color: 0x05101a,
-    roughness: 0.95,
-  });
-  const grilleR = bodyH * 0.42;
-  const grilleX = -bodyW * 0.27;
-  const grilleY = PED_H + bodyH * 0.5;
-  const grille = new THREE.Mesh(
-    new THREE.CircleGeometry(grilleR, 40),
-    grilleMat
-  );
-  grille.position.set(grilleX, grilleY, bodyD / 2 + 0.002);
-  root.add(grille);
-  // Cyan rim around the speaker — futuristic accent
-  const grilleRing = new THREE.Mesh(
-    new THREE.RingGeometry(grilleR + 0.005, grilleR + 0.015, 40),
-    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.75 })
-  );
-  grilleRing.position.set(grilleX, grilleY, bodyD / 2 + 0.003);
-  root.add(grilleRing);
-  // Concentric inner ring for visual interest
-  const grilleInner = new THREE.Mesh(
-    new THREE.RingGeometry(grilleR * 0.42, grilleR * 0.46, 32),
-    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.4 })
-  );
-  grilleInner.position.set(grilleX, grilleY, bodyD / 2 + 0.0035);
-  root.add(grilleInner);
-  // Centre dust cap (the dark dome in the middle of a real speaker)
-  const grilleCenter = new THREE.Mesh(
-    new THREE.CircleGeometry(grilleR * 0.18, 24),
-    new THREE.MeshStandardMaterial({ color: 0x0a1419, roughness: 0.5, metalness: 0.5 })
-  );
-  grilleCenter.position.set(grilleX, grilleY, bodyD / 2 + 0.004);
-  root.add(grilleCenter);
-  // Hole pattern (smaller now, denser, scaled to the bigger grille)
-  const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 9; j++) {
-      const dx = (i - 4) * 0.025;
-      const dy = (j - 4) * 0.025;
-      const r = Math.hypot(dx, dy);
-      if (r > grilleR * 0.85 || r < grilleR * 0.22) continue; // ring band
-      const hole = new THREE.Mesh(
-        new THREE.CircleGeometry(0.006, 8),
-        holeMat
-      );
-      hole.position.set(grilleX + dx, grilleY + dy, bodyD / 2 + 0.0042);
-      root.add(hole);
-    }
-  }
-
-  // ── Display panel — RIGHT half of the front face, smaller ──
-  const dispW = bodyW * 0.42, dispH = bodyH * 0.55;
+  // ── Display — fills the upper portion of the front ──
+  const dispW = bodyW * 0.85, dispH = bodyH * 0.62;
   const display = new THREE.Mesh(
     new THREE.PlaneGeometry(dispW, dispH),
     new THREE.MeshBasicMaterial({ map: _displayTex })
   );
-  display.position.set(bodyW * 0.26, PED_H + bodyH * 0.62, bodyD / 2 + 0.002);
+  display.position.set(0, PED_H + bodyH * 0.65, bodyD / 2 + 0.001);
   root.add(display);
 
-  // (Tuning strip removed — the dot-row indicator below the display
-  // already shows the active channel.)
-
-  // ── Buttons (clickable) — three big, futuristic pads on top of the body ──
-  // Each button is a tall cap with a glowing ring at its base. The whole
-  // group is clickable, with a wide invisible click target around it so
-  // it's forgiving to aim at from a meter or two away.
-  function makeButton(action, color, label) {
-    const btnGroup = new THREE.Group();
-    btnGroup.userData = { clickable: true, action, hoverLabel: label };
-
-    const btnMat = new THREE.MeshStandardMaterial({
-      color,
-      emissive: color,
-      emissiveIntensity: 0.8,
-      metalness: 0.25,
-      roughness: 0.25,
-    });
-
-    // Tall cap — sticks up from the body, easy to see from across the room
-    const cap = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.052, 0.062, 0.04, 24),
-      btnMat
-    );
-    cap.position.y = 0.02;
-    btnGroup.add(cap);
-
-    // Glowing ring at the base — the futuristic pulse halo
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.07, 0.082, 32),
-      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
-    );
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.001;
-    btnGroup.add(ring);
-
-    // Invisible larger click target so the hit area is generous
-    const target = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.085, 0.085, 0.06, 12),
-      new THREE.MeshBasicMaterial({ visible: false })
-    );
-    target.position.y = 0.03;
-    btnGroup.add(target);
-
-    return btnGroup;
-  }
-
-  // ── Three pill buttons on the FRONT face, between the two knobs ──
-  // Buttons sit slightly forward of the body so they read as pressable.
-  const btnFrontZ = bodyD / 2 + 0.012;
-  const btnFrontY = PED_H + bodyH * 0.18; // lower-front, between knobs
-  const btnSpacing = 0.075;
-  const btnRowX = bodyW * 0.06; // shift slightly right to align under display
-
-  const powerBtn = makeButton('radioPower', 0xff6b6b, 'Power on / off');
-  powerBtn.rotation.x = Math.PI / 2; // lay the cap so it points forward, not up
-  powerBtn.position.set(btnRowX - btnSpacing, btnFrontY, btnFrontZ);
-  root.add(powerBtn);
-
-  const playBtn = makeButton('radioPlayPause', 0x5ee0ff, 'Play / Pause');
-  playBtn.rotation.x = Math.PI / 2;
-  playBtn.position.set(btnRowX, btnFrontY, btnFrontZ);
-  root.add(playBtn);
-
-  const nextBtn = makeButton('radioNext', 0xff8d8d, 'Next channel');
-  nextBtn.rotation.x = Math.PI / 2;
-  nextBtn.position.set(btnRowX + btnSpacing, btnFrontY, btnFrontZ);
-  root.add(nextBtn);
-
-  // ── Two big metal knobs at the bottom corners — decorative + clickable ──
-  // Left knob mirrors Power; right knob mirrors Next. Gives the classic
-  // radio silhouette and serves as bigger click targets on each side.
-  function makeKnob(action, accentColor, label) {
+  // ── Three hex control pads in a clean row at the bottom ──
+  // Pads are flat hexagons (CylinderGeometry with 6 sides) sitting
+  // flush to the surface — no protruding caps, no knobs. Press = tap
+  // the surface in 3D space.
+  function makeHexPad(action, accent, label) {
     const grp = new THREE.Group();
     grp.userData = { clickable: true, action, hoverLabel: label };
 
-    const metalMat = new THREE.MeshStandardMaterial({
-      color: 0xc8d4dc,
-      metalness: 0.85,
+    // Hex base — dark fill for the pad
+    const padMat = new THREE.MeshStandardMaterial({
+      color: 0x05131a,
+      emissive: accent,
+      emissiveIntensity: 0.35,
+      metalness: 0.3,
       roughness: 0.25,
     });
-    const knob = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.062, 0.07, 0.05, 32),
-      metalMat
+    const pad = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.038, 0.04, 0.012, 6),
+      padMat
     );
-    knob.rotation.x = Math.PI / 2; // face forward
-    grp.add(knob);
+    pad.rotation.x = Math.PI / 2; // face forward
+    pad.rotation.z = Math.PI / 6; // flat-top hexagon
+    grp.add(pad);
 
-    // Cyan accent ring around the front face of the knob
-    const accent = new THREE.Mesh(
-      new THREE.RingGeometry(0.05, 0.058, 32),
-      new THREE.MeshBasicMaterial({ color: accentColor, transparent: true, opacity: 0.85 })
+    // Glowing rim — single thin hex outline around the pad
+    const rim = new THREE.Mesh(
+      new THREE.RingGeometry(0.035, 0.043, 6),
+      new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.85 })
     );
-    accent.position.z = 0.026;
-    grp.add(accent);
+    rim.rotation.z = Math.PI / 6;
+    rim.position.z = 0.0065;
+    grp.add(rim);
 
-    // Indicator notch on the knob (cyan dot showing knob "rotation")
-    const dot = new THREE.Mesh(
-      new THREE.CircleGeometry(0.008, 16),
-      new THREE.MeshBasicMaterial({ color: accentColor })
+    // Center glyph — solid small hex for the on-state visual
+    const glyph = new THREE.Mesh(
+      new THREE.CircleGeometry(0.012, 6),
+      new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.9 })
     );
-    dot.position.set(0, 0.038, 0.027);
-    grp.add(dot);
+    glyph.rotation.z = Math.PI / 6;
+    glyph.position.z = 0.0066;
+    grp.add(glyph);
+
+    // Generous invisible click target — large radius forgives aim
+    const target = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.06, 0.04, 12),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    target.rotation.x = Math.PI / 2;
+    grp.add(target);
 
     return grp;
   }
 
-  const knobZ = bodyD / 2 + 0.005;
-  const knobY = PED_H + bodyH * 0.22;
-  const leftKnob = makeKnob('radioPower', 0x5ee0ff, 'Power on / off');
-  leftKnob.position.set(-bodyW * 0.40, knobY, knobZ);
-  root.add(leftKnob);
-  const rightKnob = makeKnob('radioNext', 0xff8d8d, 'Next channel');
-  rightKnob.position.set(bodyW * 0.40, knobY, knobZ);
-  root.add(rightKnob);
+  const padFrontZ = bodyD / 2 + 0.005;
+  const padY = PED_H + bodyH * 0.18;
+  const padSpacing = 0.13;
 
-  // ── Dot-row tuning indicator above the buttons ──
-  // One cyan dot per channel; the dot for the current channel lights up.
-  const dotsY = PED_H + bodyH * 0.36;
-  const dotsBaseX = btnRowX - (CHANNELS.length - 1) * 0.024;
-  const channelDots = [];
-  for (let i = 0; i < CHANNELS.length; i++) {
-    const dot = new THREE.Mesh(
-      new THREE.CircleGeometry(0.011, 16),
-      new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.25 })
-    );
-    dot.position.set(dotsBaseX + i * 0.048, dotsY, bodyD / 2 + 0.003);
-    root.add(dot);
-    channelDots.push(dot);
-  }
-  // Light up the active dot
-  function refreshChannelDots() {
-    for (let i = 0; i < channelDots.length; i++) {
-      channelDots[i].material.opacity = i === state.channel ? 1.0 : 0.25;
-    }
-  }
-  refreshChannelDots();
-  _radioChannelDots = { refresh: refreshChannelDots };
+  const powerPad = makeHexPad('radioPower', 0xff6b6b, 'Power on / off');
+  powerPad.position.set(-padSpacing, padY, padFrontZ);
+  root.add(powerPad);
 
-  // ── Power-on light (small dot on the body that lights up when on) ──
+  const playPad = makeHexPad('radioPlayPause', 0x5ee0ff, 'Play / Pause');
+  playPad.position.set(0, padY, padFrontZ);
+  root.add(playPad);
+
+  const nextPad = makeHexPad('radioNext', 0xff8d8d, 'Next channel');
+  nextPad.position.set(padSpacing, padY, padFrontZ);
+  root.add(nextPad);
+
+  // ── Power-on indicator — single thin glowing line below the display ──
   const lightDot = new THREE.Mesh(
-    new THREE.CircleGeometry(0.005, 16),
-    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0 })
+    new THREE.PlaneGeometry(0.04, 0.003),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0 })
   );
-  lightDot.position.set(-bodyW * 0.42, PED_H + bodyH * 0.85, bodyD / 2 + 0.002);
+  lightDot.position.set(0, PED_H + bodyH * 0.32, bodyD / 2 + 0.0015);
   root.add(lightDot);
   _powerLight = lightDot;
 
-  // Sync visuals to whatever state was loaded (default: off, but display
-  // still shows the persisted mode + channel so the user sees their last
-  // choice the moment they walk up to it).
+  // Initial visual sync
   drawDisplay();
   _powerLight.material.opacity = state.on ? 1.0 : 0;
+  // No more channel-dot indicator — the display itself shows the channel,
+  // so wire the runtime hook to a no-op.
+  _radioChannelDots = { refresh() { /* nothing — display handles it */ } };
 
   return root;
 }
