@@ -14,6 +14,7 @@
 //                          the central click handler in main.js / navigation.js
 
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 // ── Channels ────────────────────────────────────────
 // Flat channel list: cycling Next cycles through every station regardless
@@ -409,7 +410,7 @@ _startFaceLoop();
 // ── Build the radio mesh ────────────────────────────
 
 let _powerLight = null; // updated when on/off
-let _radioNeedle = null; // { mesh, baseX, stepX } — moved when channel changes
+let _radioChannelDots = null; // { refresh() } — relights the active channel dot
 
 export function createRadio(scene) {
   const root = new THREE.Group();
@@ -526,17 +527,17 @@ export function createRadio(scene) {
   liftHalo.position.y = PED_H - 0.001;
   root.add(liftHalo);
 
-  // ── Radio body — even bigger now (1.5× larger again) ──
-  const bodyW = 0.85, bodyH = 0.42, bodyD = 0.32;
+  // ── Radio body — friendly retro silhouette, rounded corners ──
+  const bodyW = 0.95, bodyH = 0.50, bodyD = 0.38;
   const bodyMat = new THREE.MeshStandardMaterial({
-    color: 0x0a1419,
-    metalness: 0.4,
-    roughness: 0.45,
-    emissive: 0x002030,
-    emissiveIntensity: 0.6,
+    color: 0x4a6a78,           // friendly slate-blue (vs the previous near-black)
+    metalness: 0.35,
+    roughness: 0.55,
+    emissive: 0x1a3540,
+    emissiveIntensity: 0.4,
   });
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(bodyW, bodyH, bodyD),
+    new RoundedBoxGeometry(bodyW, bodyH, bodyD, 6, 0.05),
     bodyMat
   );
   body.position.y = PED_H + bodyH / 2;
@@ -654,43 +655,8 @@ export function createRadio(scene) {
   display.position.set(bodyW * 0.26, PED_H + bodyH * 0.62, bodyD / 2 + 0.002);
   root.add(display);
 
-  // ── Tuning strip — horizontal cyan slot below the display showing the
-  // ── current channel position. Classic dial-radio touch.
-  const stripBgMat = new THREE.MeshStandardMaterial({
-    color: 0x05101a,
-    metalness: 0.3,
-    roughness: 0.4,
-  });
-  const stripW = bodyW * 0.42;
-  const stripH = 0.025;
-  const stripBg = new THREE.Mesh(
-    new THREE.PlaneGeometry(stripW, stripH),
-    stripBgMat
-  );
-  stripBg.position.set(bodyW * 0.26, PED_H + bodyH * 0.22, bodyD / 2 + 0.0015);
-  root.add(stripBg);
-  // Tick marks along the strip
-  const tickMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.55 });
-  const TICKS = CHANNELS.length;
-  for (let i = 0; i < TICKS; i++) {
-    const tick = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.003, stripH * 0.7),
-      tickMat
-    );
-    const tx = bodyW * 0.26 - stripW / 2 + (stripW / (TICKS - 1 || 1)) * i;
-    tick.position.set(tx, PED_H + bodyH * 0.22, bodyD / 2 + 0.0025);
-    root.add(tick);
-  }
-  // The needle — a cyan vertical bar that we'll move per-channel
-  const needleMat = new THREE.MeshBasicMaterial({ color: 0xff8d8d });
-  const needle = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.006, stripH * 1.1),
-    needleMat
-  );
-  needle.position.set(bodyW * 0.26 - stripW / 2, PED_H + bodyH * 0.22, bodyD / 2 + 0.003);
-  root.add(needle);
-  // Expose for runtime updates
-  _radioNeedle = { mesh: needle, baseX: bodyW * 0.26 - stripW / 2, stepX: stripW / Math.max(1, TICKS - 1) };
+  // (Tuning strip removed — the dot-row indicator below the display
+  // already shows the active channel.)
 
   // ── Buttons (clickable) — three big, futuristic pads on top of the body ──
   // Each button is a tall cap with a glowing ring at its base. The whole
@@ -736,21 +702,97 @@ export function createRadio(scene) {
     return btnGroup;
   }
 
-  const btnY = PED_H + bodyH + 0.01;
-  const btnZ = -bodyD / 2 + 0.09;
-  const btnSpacing = 0.18;
+  // ── Three pill buttons on the FRONT face, between the two knobs ──
+  // Buttons sit slightly forward of the body so they read as pressable.
+  const btnFrontZ = bodyD / 2 + 0.012;
+  const btnFrontY = PED_H + bodyH * 0.18; // lower-front, between knobs
+  const btnSpacing = 0.075;
+  const btnRowX = bodyW * 0.06; // shift slightly right to align under display
 
-  const powerBtn = makeButton('radioPower', 0x00d4ff, 'Power on / off');
-  powerBtn.position.set(-btnSpacing, btnY, btnZ);
+  const powerBtn = makeButton('radioPower', 0xff6b6b, 'Power on / off');
+  powerBtn.rotation.x = Math.PI / 2; // lay the cap so it points forward, not up
+  powerBtn.position.set(btnRowX - btnSpacing, btnFrontY, btnFrontZ);
   root.add(powerBtn);
 
-  const modeBtn = makeButton('radioPlayPause', 0x5ee0ff, 'Play / Pause');
-  modeBtn.position.set(0, btnY, btnZ);
-  root.add(modeBtn);
+  const playBtn = makeButton('radioPlayPause', 0x5ee0ff, 'Play / Pause');
+  playBtn.rotation.x = Math.PI / 2;
+  playBtn.position.set(btnRowX, btnFrontY, btnFrontZ);
+  root.add(playBtn);
 
-  const channelBtn = makeButton('radioNext', 0xff8d8d, 'Next channel');
-  channelBtn.position.set(btnSpacing, btnY, btnZ);
-  root.add(channelBtn);
+  const nextBtn = makeButton('radioNext', 0xff8d8d, 'Next channel');
+  nextBtn.rotation.x = Math.PI / 2;
+  nextBtn.position.set(btnRowX + btnSpacing, btnFrontY, btnFrontZ);
+  root.add(nextBtn);
+
+  // ── Two big metal knobs at the bottom corners — decorative + clickable ──
+  // Left knob mirrors Power; right knob mirrors Next. Gives the classic
+  // radio silhouette and serves as bigger click targets on each side.
+  function makeKnob(action, accentColor, label) {
+    const grp = new THREE.Group();
+    grp.userData = { clickable: true, action, hoverLabel: label };
+
+    const metalMat = new THREE.MeshStandardMaterial({
+      color: 0xc8d4dc,
+      metalness: 0.85,
+      roughness: 0.25,
+    });
+    const knob = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.062, 0.07, 0.05, 32),
+      metalMat
+    );
+    knob.rotation.x = Math.PI / 2; // face forward
+    grp.add(knob);
+
+    // Cyan accent ring around the front face of the knob
+    const accent = new THREE.Mesh(
+      new THREE.RingGeometry(0.05, 0.058, 32),
+      new THREE.MeshBasicMaterial({ color: accentColor, transparent: true, opacity: 0.85 })
+    );
+    accent.position.z = 0.026;
+    grp.add(accent);
+
+    // Indicator notch on the knob (cyan dot showing knob "rotation")
+    const dot = new THREE.Mesh(
+      new THREE.CircleGeometry(0.008, 16),
+      new THREE.MeshBasicMaterial({ color: accentColor })
+    );
+    dot.position.set(0, 0.038, 0.027);
+    grp.add(dot);
+
+    return grp;
+  }
+
+  const knobZ = bodyD / 2 + 0.005;
+  const knobY = PED_H + bodyH * 0.22;
+  const leftKnob = makeKnob('radioPower', 0x5ee0ff, 'Power on / off');
+  leftKnob.position.set(-bodyW * 0.40, knobY, knobZ);
+  root.add(leftKnob);
+  const rightKnob = makeKnob('radioNext', 0xff8d8d, 'Next channel');
+  rightKnob.position.set(bodyW * 0.40, knobY, knobZ);
+  root.add(rightKnob);
+
+  // ── Dot-row tuning indicator above the buttons ──
+  // One cyan dot per channel; the dot for the current channel lights up.
+  const dotsY = PED_H + bodyH * 0.36;
+  const dotsBaseX = btnRowX - (CHANNELS.length - 1) * 0.024;
+  const channelDots = [];
+  for (let i = 0; i < CHANNELS.length; i++) {
+    const dot = new THREE.Mesh(
+      new THREE.CircleGeometry(0.011, 16),
+      new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.25 })
+    );
+    dot.position.set(dotsBaseX + i * 0.048, dotsY, bodyD / 2 + 0.003);
+    root.add(dot);
+    channelDots.push(dot);
+  }
+  // Light up the active dot
+  function refreshChannelDots() {
+    for (let i = 0; i < channelDots.length; i++) {
+      channelDots[i].material.opacity = i === state.channel ? 1.0 : 0.25;
+    }
+  }
+  refreshChannelDots();
+  _radioChannelDots = { refresh: refreshChannelDots };
 
   // ── Power-on light (small dot on the body that lights up when on) ──
   const lightDot = new THREE.Mesh(
@@ -795,9 +837,6 @@ export function handleRadioAction(action) {
   saveState();
   drawDisplay();
   if (_powerLight) _powerLight.material.opacity = state.on ? 1.0 : 0;
-  if (_radioNeedle) {
-    _radioNeedle.mesh.position.x =
-      _radioNeedle.baseX + state.channel * _radioNeedle.stepX;
-  }
+  if (_radioChannelDots) _radioChannelDots.refresh();
   applyAudio();
 }
