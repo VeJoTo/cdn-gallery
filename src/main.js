@@ -12,12 +12,13 @@ import { createGlobeScreenInstallation } from './scene/globe-screen.js';
 import { createNavigationState, createNavigationSystem } from './navigation.js';
 import { createUI } from './ui.js';
 import { applySkyMode, getSkyMode, clearSkyObjects } from './sky.js';
-import { initHUD } from './hud.js';
+import { initHUD, initAchievementToast } from './hud.js';
 import { initAchievements, unlock } from './achievements.js';
 import { EffectComposer, RenderPass } from 'postprocessing';
 import { GodraysPass } from 'three-good-godrays';
 
 initAchievements();
+initAchievementToast();
 
 const canvas = document.getElementById('gallery-canvas');
 

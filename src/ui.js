@@ -128,6 +128,7 @@ export function createUI(camera, renderer, controls, scene) {
   const inventoryOverlay = document.getElementById('inventory-overlay');
   const inventoryClose   = document.getElementById('inventory-close');
   const inventoryContent = document.getElementById('inventory-content');
+  window.__isInventoryOpen = () => !inventoryOverlay.classList.contains('hidden');
   // ── HUD ──────────────────────────────────────────
   function updateHUD(hotspotId) {
     breadcrumb.textContent = 'CDN GALLERY';
