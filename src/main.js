@@ -2030,7 +2030,7 @@ document.addEventListener('mouseup', (e) => {
     {
       id: 'culture-map',
       pos: new THREE.Vector3(7.9, 1.6, 5.3),
-      radius: 3.2,
+      radius: 5.0,
       pages: [
         "What happens when AI tries to tell stories set in different countries? Does it actually succeed in capturing the different cultures?",
         "This is a research project that asked an AI to write a unique story for every country in the world, expecting 236 different tales shaped by different cultures and traditions. Instead, every single one had the exact same plot, proving that AI doesn't actually understand culture, it just repeats the same story with different names and places."
