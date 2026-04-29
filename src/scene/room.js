@@ -233,7 +233,7 @@ export function createRoom(scene) {
   dirLight.shadow.camera.right = ROOM_WIDTH / 2;
   dirLight.shadow.camera.top = ROOM_DEPTH / 2;
   dirLight.shadow.camera.bottom = -ROOM_DEPTH / 2;
-  dirLight.shadow.mapSize.set(1024, 1024);
+  dirLight.shadow.mapSize.set(512, 512);
   scene.add(dirLight);
 
   // Ceiling point lights — warmer white to illuminate objects against dark walls.

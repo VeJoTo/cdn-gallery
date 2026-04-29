@@ -53,7 +53,7 @@ function buildPortal() {
   const rings = [];
   for (const def of ringDefs) {
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(def.radius, def.tube, 8, 64),
+      new THREE.TorusGeometry(def.radius, def.tube, 8, 32),
       ringMat.clone(),
     );
     ring.userData.spinSpeed = def.speed;

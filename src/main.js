@@ -271,6 +271,7 @@ export function addUpdateCallback(fn) {
   updateCallbacks.push(fn);
 }
 
+let _frameCounter = 0;
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
@@ -295,7 +296,9 @@ function animate() {
     _signSprite.scale.set(0, 0, 0);
     if (_signLight) _signLight.intensity = 0;
   }
-  updateHoverHighlight();
+  // Throttle hover raycast to every other frame — visually imperceptible
+  // but halves the per-frame raycaster cost while walking around.
+  if ((_frameCounter++ & 1) === 0) updateHoverHighlight();
   if (isTransitioning) {
     renderer.setClearColor(0x000000, 1);
     renderer.clear();
