@@ -1062,8 +1062,11 @@ magDiv.style.cssText = `
   border-radius:50%;
   border:3px solid #00d4ff;
   box-shadow:0 0 28px rgba(0,212,255,0.75),inset 0 0 18px rgba(0,0,0,0.5);
-  overflow:hidden; pointer-events:none; display:none; z-index:1000;
+  overflow:hidden; pointer-events:none; display:none; z-index:10000;
   transform:translate(-50%,-50%);
+  transition: opacity 1s ease-out;
+  will-change: opacity;
+
 `;
 document.body.appendChild(magDiv);
 
@@ -1100,6 +1103,7 @@ function _positionMagIframe(mx, my) {
 
 document.addEventListener("mousemove", (e) => {
   if (!magActive) return;
+  
   magDiv.style.left = `${e.clientX}px`;
   magDiv.style.top = `${e.clientY}px`;
   _positionMagIframe(e.clientX, e.clientY);
@@ -1400,6 +1404,20 @@ function exitTVMode() {
 // Hover highlight while in TV mode (free mouse)
 document.addEventListener("mousemove", (e) => {
   if (!atTV) return;
+  // --- HER SKAL DEN NYE LOGIKKEN LIGGE ---
+  if (magActive && magDiv) {
+    const rect = _tvRect || (typeof getTVScreenRect === 'function' ? getTVScreenRect() : null);
+    
+    if (rect) {
+      const isOutside = 
+        e.clientX < rect.left || e.clientX > rect.left + rect.width || 
+        e.clientY < rect.top || e.clientY > rect.top + rect.height;
+
+      magDiv.style.opacity = isOutside ? "0" : "1";
+      magDiv.style.pointerEvents = isOutside ? "none" : "auto";
+    }
+  }
+  // --- SLUTT PÅ NY LOGIKK ---
   const rect = renderer.domElement.getBoundingClientRect();
   tvMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
   tvMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
