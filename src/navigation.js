@@ -18,7 +18,7 @@ export const HOTSPOTS = {
   'poster-1':         { position: { x: -1.4, y: 2.0, z: -1.5 }, target: { x: -1.4, y: 2.0,  z: -2.90 }, label: 'Pac-Man' },
   'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
   'poster-ai-cinema': { position: { x: 2.0,  y: 1.5, z: 2.2  }, target: { x: 3.42, y: 1.5,  z: 2.2   }, label: 'AI Cinema' },
-  'kultur-kartet':    { position: { x: -5.0, y: 1.9, z: 5.3  }, target: { x: -7.9,  y: 2.0, z: 5.3  }, label: 'Kultur-kartet' },
+  'kultur-kartet':    { position: { x: 5.0,  y: 1.9, z: 5.3  }, target: { x: 7.9,   y: 2.0, z: 5.3  }, label: 'Kultur-kartet' },
   exit:               { position: { x: 0,    y: 2,   z: 5    }, target: { x: 0,    y: 1,    z: 3     }, label: 'Exit' },
   table:          { position: { x: 0.5,  y: 1.2, z: -0.2 }, target: { x: 0,    y: 0.5, z: 0.5 }, label: 'Table' },
   'desk-left-monitor':  { position: { x: 1.0, y: 1.4, z: -1.8 }, target: { x: 1.25, y: 1.18, z: -3.0 }, label: 'Left Monitor' },
