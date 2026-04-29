@@ -227,8 +227,8 @@ export function createRadio(scene) {
   pedTop.position.y = PED_H - 0.02;
   root.add(pedTop);
 
-  // ── Radio body — bigger now (1.8× original) ──
-  const bodyW = 0.55, bodyH = 0.28, bodyD = 0.22;
+  // ── Radio body — even bigger now (1.5× larger again) ──
+  const bodyW = 0.85, bodyH = 0.42, bodyD = 0.32;
   const bodyMat = new THREE.MeshStandardMaterial({
     color: 0x0a1419,
     metalness: 0.4,
@@ -244,19 +244,54 @@ export function createRadio(scene) {
   body.castShadow = true;
   root.add(body);
 
-  // Cyan border lights along the body edges (one per face boundary on top)
+  // ── Futuristic edge lighting — cyan strips along the body's seams ──
   const stripMat = new THREE.MeshBasicMaterial({
     color: 0x00d4ff,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.85,
   });
-  // Top-front edge strip
-  const topEdge = new THREE.Mesh(
-    new THREE.BoxGeometry(bodyW - 0.02, 0.003, 0.005),
-    stripMat
+  // Front-top + front-bottom horizontal seams
+  for (const yOff of [bodyH - 0.002, 0.002]) {
+    const strip = new THREE.Mesh(
+      new THREE.BoxGeometry(bodyW - 0.03, 0.004, 0.006),
+      stripMat
+    );
+    strip.position.set(0, PED_H + yOff, bodyD / 2 + 0.002);
+    root.add(strip);
+  }
+  // Front-side vertical seams (left + right edges of the front face)
+  for (const xOff of [-bodyW / 2 + 0.002, bodyW / 2 - 0.002]) {
+    const strip = new THREE.Mesh(
+      new THREE.BoxGeometry(0.004, bodyH - 0.02, 0.006),
+      stripMat
+    );
+    strip.position.set(xOff, PED_H + bodyH / 2, bodyD / 2 + 0.002);
+    root.add(strip);
+  }
+
+  // ── Antenna — slim glass rod sticking up from the right rear corner ──
+  const antennaMat = new THREE.MeshStandardMaterial({
+    color: 0xaaffff,
+    emissive: 0x00ffee,
+    emissiveIntensity: 3.0,
+    transparent: true,
+    opacity: 0.7,
+    roughness: 0.05,
+  });
+  const ANT_H = 0.55;
+  const antenna = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.006, 0.012, ANT_H, 10),
+    antennaMat
   );
-  topEdge.position.set(0, PED_H + bodyH - 0.001, bodyD / 2 + 0.001);
-  root.add(topEdge);
+  antenna.position.set(bodyW / 2 - 0.04, PED_H + bodyH + ANT_H / 2, -bodyD / 2 + 0.04);
+  root.add(antenna);
+  // Tip glow ball
+  const antennaTip = new THREE.Mesh(
+    new THREE.SphereGeometry(0.018, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0x00d4ff })
+  );
+  antennaTip.position.set(bodyW / 2 - 0.04, PED_H + bodyH + ANT_H + 0.005, -bodyD / 2 + 0.04);
+  root.add(antennaTip);
 
   // ── Display panel (canvas-on-mesh on the front face) ──
   const dispW = bodyW * 0.7, dispH = bodyH * 0.55;
@@ -273,30 +308,40 @@ export function createRadio(scene) {
     roughness: 0.95,
   });
   const grille = new THREE.Mesh(
-    new THREE.CircleGeometry(0.075, 24),
+    new THREE.CircleGeometry(0.115, 32),
     grilleMat
   );
   grille.position.set(bodyW * 0.34, PED_H + bodyH * 0.5, bodyD / 2 + 0.002);
   root.add(grille);
-  // Tiny holes (decorative)
+  // Cyan glow ring around the speaker grille — futuristic accent
+  const grilleRing = new THREE.Mesh(
+    new THREE.RingGeometry(0.118, 0.128, 32),
+    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.7 })
+  );
+  grilleRing.position.set(bodyW * 0.34, PED_H + bodyH * 0.5, bodyD / 2 + 0.003);
+  root.add(grilleRing);
+  // Decorative hole pattern on the speaker
   const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   for (let i = 0; i < 5; i++) {
     for (let j = 0; j < 5; j++) {
       if ((i - 2) ** 2 + (j - 2) ** 2 > 4) continue; // disc shape
       const hole = new THREE.Mesh(
-        new THREE.CircleGeometry(0.007, 8),
+        new THREE.CircleGeometry(0.011, 8),
         holeMat
       );
       hole.position.set(
-        bodyW * 0.34 + (i - 2) * 0.024,
-        PED_H + bodyH * 0.5 + (j - 2) * 0.024,
-        bodyD / 2 + 0.003
+        bodyW * 0.34 + (i - 2) * 0.036,
+        PED_H + bodyH * 0.5 + (j - 2) * 0.036,
+        bodyD / 2 + 0.004
       );
       root.add(hole);
     }
   }
 
-  // ── Buttons (clickable) — three on the top of the body ──
+  // ── Buttons (clickable) — three big, futuristic pads on top of the body ──
+  // Each button is a tall cap with a glowing ring at its base. The whole
+  // group is clickable, with a wide invisible click target around it so
+  // it's forgiving to aim at from a meter or two away.
   function makeButton(action, color, label) {
     const btnGroup = new THREE.Group();
     btnGroup.userData = { clickable: true, action, hoverLabel: label };
@@ -304,22 +349,42 @@ export function createRadio(scene) {
     const btnMat = new THREE.MeshStandardMaterial({
       color,
       emissive: color,
-      emissiveIntensity: 0.6,
-      metalness: 0.3,
-      roughness: 0.3,
+      emissiveIntensity: 0.8,
+      metalness: 0.25,
+      roughness: 0.25,
     });
+
+    // Tall cap — sticks up from the body, easy to see from across the room
     const cap = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.032, 0.038, 0.02, 16),
+      new THREE.CylinderGeometry(0.052, 0.062, 0.04, 24),
       btnMat
     );
+    cap.position.y = 0.02;
     btnGroup.add(cap);
+
+    // Glowing ring at the base — the futuristic pulse halo
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.07, 0.082, 32),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.001;
+    btnGroup.add(ring);
+
+    // Invisible larger click target so the hit area is generous
+    const target = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.085, 0.085, 0.06, 12),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    target.position.y = 0.03;
+    btnGroup.add(target);
 
     return btnGroup;
   }
 
   const btnY = PED_H + bodyH + 0.01;
-  const btnZ = -bodyD / 2 + 0.06;
-  const btnSpacing = 0.11;
+  const btnZ = -bodyD / 2 + 0.09;
+  const btnSpacing = 0.18;
 
   const powerBtn = makeButton('radioPower', 0x00d4ff, 'Power on / off');
   powerBtn.position.set(-btnSpacing, btnY, btnZ);
