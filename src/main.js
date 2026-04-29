@@ -2015,6 +2015,129 @@ document.addEventListener('mouseup', (e) => {
   if (e.button === 0 && _globeDragActive) { _globeDragActive = false; globeScreen.endDrag(); }
 });
 
+// ── Jason proximity hints (AI room) ─────────────────────────────────────────
+{
+  const BASE = import.meta.env.BASE_URL;
+  const HINTS = [
+    {
+      id: 'fin-du-monde',
+      pos: new THREE.Vector3(3.5, 1.5, -9.5),
+      radius: 3.2,
+      pages: [
+        "This is a research project where an AI was asked to write a story about the end of the world. Meteors are hitting cities, people are disappearing, and the AI just keeps narrating, calmly, like it doesn't quite grasp what it's describing."
+      ]
+    },
+    {
+      id: 'culture-map',
+      pos: new THREE.Vector3(7.9, 1.6, 5.3),
+      radius: 3.2,
+      pages: [
+        "What happens when AI tries to tell stories set in different countries? Does it actually succeed in capturing the different cultures?",
+        "This is a research project that asked an AI to write a unique story for every country in the world, expecting 236 different tales shaped by different cultures and traditions. Instead, every single one had the exact same plot — proving that AI doesn't actually understand culture, it just repeats the same story with different names and places."
+      ]
+    },
+    {
+      id: 'tv-sofa',
+      pos: new THREE.Vector3(-4, 1.0, 0),
+      radius: 3.2,
+      pages: [
+        "Take a seat in the sofa and explore a collection of videos showcasing innovative research projects from the Center for Digital Narrative!"
+      ]
+    },
+    {
+      id: 'book',
+      pos: new THREE.Vector3(-6.5, 0, -9.0),
+      radius: 3.2,
+      pages: [
+        "How generalising is AI? This is a research project that asked an AI to retell a dark Norwegian folktale called The Sweetheart in the Forest — a story about a young woman who outwits a murderer in the woods. Take a look at how AI interprets the folklore!"
+      ]
+    }
+  ];
+
+  const hintEl       = document.getElementById('proximity-hint');
+  const hintPortrait = document.getElementById('proximity-hint-portrait');
+  const hintBody     = document.getElementById('proximity-hint-body');
+  const hintClose    = document.getElementById('proximity-hint-close');
+
+  const shown = new Set();
+  let active = null;
+  let activePage = 0;
+
+  function loadPortraitNoWhite(url) {
+    if (!hintPortrait) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < data.data.length; i += 4) {
+        if (data.data[i] > 230 && data.data[i + 1] > 230 && data.data[i + 2] > 230) {
+          data.data[i + 3] = 0;
+        }
+      }
+      ctx.putImageData(data, 0, 0);
+      hintPortrait.src = canvas.toDataURL();
+    };
+    img.src = url;
+  }
+
+  function dismiss() {
+    active = null;
+    activePage = 0;
+    if (hintEl) hintEl.classList.add('hidden');
+  }
+
+  function showPage(hint, idx) {
+    if (!hintBody) return;
+    hintBody.textContent = hint.pages[idx];
+  }
+
+  function trigger(hint) {
+    if (shown.has(hint.id) || active) return;
+    shown.add(hint.id);
+    active = hint;
+    activePage = 0;
+    loadPortraitNoWhite(BASE + 'guide-ai.png');
+    showPage(hint, 0);
+    if (hintEl) hintEl.classList.remove('hidden');
+  }
+
+  function advance() {
+    if (!active) return;
+    if (activePage < active.pages.length - 1) {
+      activePage++;
+      showPage(active, activePage);
+    } else {
+      dismiss();
+    }
+  }
+
+  if (hintClose) hintClose.addEventListener('click', dismiss);
+  if (hintEl) hintEl.addEventListener('click', (e) => {
+    if (e.target !== hintClose) advance();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!active) return;
+    if (e.key === ' ') { e.preventDefault(); advance(); }
+    if (e.key === 'Escape') dismiss();
+  });
+
+  addUpdateCallback(() => {
+    if (currentRoom !== 'ai' || active) return;
+    for (const hint of HINTS) {
+      if (shown.has(hint.id)) continue;
+      if (camera.position.distanceTo(hint.pos) < hint.radius) {
+        trigger(hint);
+        break;
+      }
+    }
+  });
+}
+
 animate();
 initHUD();
 
