@@ -106,6 +106,35 @@ export function createRoom(scene) {
   marbleOverlay.receiveShadow = true;
   scene.add(marbleOverlay);
 
+  // Layer 3: depth vignette — dark near the camera, fading to transparent at the back wall.
+  // PlaneGeometry UV: V=0 → world z=+ROOM_DEPTH/2 (front/camera side),
+  //                  V=1 → world z=-ROOM_DEPTH/2 (back wall).
+  // With CanvasTexture flipY=true: canvas y=0 (top) → UV V=1 (back), canvas y=H (bottom) → UV V=0 (front).
+  const vigCanvas = document.createElement('canvas');
+  vigCanvas.width = 1; vigCanvas.height = 128;
+  const vctx = vigCanvas.getContext('2d');
+  const vgrad = vctx.createLinearGradient(0, 0, 0, 128);
+  vgrad.addColorStop(0,    'rgba(0,0,0,0)');    // top of canvas → back wall → no darkening
+  vgrad.addColorStop(0.35, 'rgba(0,0,0,0.10)');
+  vgrad.addColorStop(0.70, 'rgba(0,0,0,0.45)');
+  vgrad.addColorStop(1,    'rgba(0,0,0,0.82)'); // bottom of canvas → near camera → dark
+  vctx.fillStyle = vgrad;
+  vctx.fillRect(0, 0, 1, 128);
+  const vigTex = new THREE.CanvasTexture(vigCanvas);
+
+  const floorVignette = new THREE.Mesh(
+    floorGeo.clone(),
+    new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      alphaMap: vigTex,
+      transparent: true,
+      depthWrite: false,
+    })
+  );
+  floorVignette.rotation.x = -Math.PI / 2;
+  floorVignette.position.y = 0.002;
+  scene.add(floorVignette);
+
   const ceil = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
     ceilMat
