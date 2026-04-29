@@ -2122,7 +2122,7 @@ document.addEventListener('mouseup', (e) => {
   });
   document.addEventListener('keydown', (e) => {
     if (!active) return;
-    if (e.key === ' ') { e.preventDefault(); advance(); }
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); advance(); }
     if (e.key === 'Escape') dismiss();
   });
 
