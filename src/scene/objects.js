@@ -150,101 +150,191 @@ function buildPedestal() {
   group.position.set(-6.5, -0.9, -9.0);
   group.scale.setScalar(2.4);
 
-  // White glossy cube stand
-  const cube = new THREE.Mesh(
-    new RoundedBoxGeometry(0.42, 0.42, 0.42, 4, 0.04),
-    new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      roughness: 0.05,
-      metalness: 0.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      reflectivity: 1.0,
-    }),
-  );
-  cube.position.y = 0.86;
-  cube.scale.setScalar(0.82);
-  cube.rotation.y = 0.9 + Math.PI / 2;
-  cube.castShadow = true;
-  cube.userData = { clickable: true, hotspot: "pedestal" };
-  group.add(cube);
+  // ── Pointed oval arc bookstand ───────────────────────────────────────────
 
-  // ── Holographic wireframe bookstand ──────────────────────────────────────
-  const holoMat = new THREE.LineBasicMaterial({
-    color: 0x00eeff,
+  const pearlMat = new THREE.MeshPhysicalMaterial({
+    color: 0xe8eef6,
+    metalness: 0.08,
+    roughness: 0.18,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.04,
+  });
+
+  const mkGlow = (color, opacity) => new THREE.MeshBasicMaterial({
+    color,
     transparent: true,
-    opacity: 0.75,
+    opacity,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
 
-  const holoStand = new THREE.Group();
-  holoStand.position.set(0, 1.06, 0);
-  holoStand.rotation.y = 0.9 + Math.PI / 2;
+  // Canvas texture for column: grey panel seams + LED dots
+  function makeColTex() {
+    const W = 256, H = 512;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#e8eef6';
+    ctx.fillRect(0, 0, W, H);
 
-  function wireBox(w, h, d) {
-    return new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d)),
-      holoMat.clone(),
+    // Vertical seam lines (6 panels)
+    ctx.strokeStyle = 'rgba(125, 140, 168, 0.65)';
+    ctx.lineWidth = 1.4;
+    for (let i = 0; i <= 6; i++) {
+      const x = (i / 6) * W;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+
+    // Horizontal groove rings at 28 %, 54 %, 76 %
+    ctx.strokeStyle = 'rgba(140, 155, 182, 0.45)';
+    ctx.lineWidth = 2;
+    for (const v of [0.28, 0.54, 0.76]) {
+      const y = (1 - v) * H;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    // LED indicator dots — 6 around the column at 54 % height
+    for (let i = 0; i < 6; i++) {
+      const x = ((i + 0.5) / 6) * W;
+      const y = (1 - 0.54) * H;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 6);
+      g.addColorStop(0,   'rgba(130, 200, 255, 1.0)');
+      g.addColorStop(0.4, 'rgba(100, 175, 255, 0.7)');
+      g.addColorStop(1,   'rgba(100, 175, 255, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(x - 6, y - 6, 12, 12);
+    }
+    const tex = new THREE.CanvasTexture(cv);
+    tex.wrapS = THREE.RepeatWrapping;
+    return tex;
+  }
+
+  // ── Base — three stepped rings sitting on the floor ──
+  // group.position.y = -0.9, scale = 2.4  →  local floor level = 0.9/2.4 = 0.375
+  const FLOOR = 0.375;
+
+  const baseDisc = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.14, 0.15, 0.05, 48),
+    pearlMat.clone(),
+  );
+  baseDisc.position.y = FLOOR + 0.025;
+  baseDisc.castShadow = true;
+  baseDisc.receiveShadow = true;
+  baseDisc.userData = { clickable: true, hotspot: "pedestal" };
+  group.add(baseDisc);
+
+  const baseRimGlow = new THREE.Mesh(
+    new THREE.TorusGeometry(0.135, 0.007, 6, 48),
+    mkGlow(0x99ccff, 0.5),
+  );
+  baseRimGlow.rotation.x = Math.PI / 2;
+  baseRimGlow.position.y = FLOOR + 0.051;
+  baseRimGlow.raycast = () => {};
+  group.add(baseRimGlow);
+
+  // ── Column — shorter, platform clears book bottom ──
+  const colPts = [
+    new THREE.Vector2(0.00, 0.09),
+    new THREE.Vector2(0.09, 0.12),
+    new THREE.Vector2(0.052, 0.24),
+    new THREE.Vector2(0.036, 0.48),
+    new THREE.Vector2(0.032, 0.68),
+    new THREE.Vector2(0.040, 0.78),
+    new THREE.Vector2(0.09,  0.83),
+    new THREE.Vector2(0.14,  0.87),
+    new THREE.Vector2(0.14,  0.90),
+    new THREE.Vector2(0.00,  0.91),
+  ];
+
+  const colMat = pearlMat.clone();
+  colMat.map = makeColTex();
+
+  const column = new THREE.Mesh(new THREE.LatheGeometry(colPts, 32), colMat);
+  column.castShadow = true;
+  column.userData = { clickable: true, hotspot: "pedestal" };
+  group.add(column);
+
+  // ── Platform disc ──
+  const platform = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.16, 0.145, 0.025, 32),
+    pearlMat.clone(),
+  );
+  platform.position.y = 0.923;
+  platform.castShadow = true;
+  platform.userData = { clickable: true, hotspot: "pedestal" };
+  group.add(platform);
+
+  const platRimGlow = new THREE.Mesh(
+    new THREE.TorusGeometry(0.145, 0.007, 6, 32),
+    mkGlow(0xaaddff, 0.65),
+  );
+  platRimGlow.rotation.x = Math.PI / 2;
+  platRimGlow.position.y = 0.937;
+  platRimGlow.raycast = () => {};
+  group.add(platRimGlow);
+
+
+  // ── Directional spotlight beam — wide cone, bright at base, fades to nothing at top ──
+  const BEAM_BOT = 0.95;
+  const BEAM_TOP = 1.32;
+  const BEAM_H   = BEAM_TOP - BEAM_BOT;
+  const BEAM_CY  = BEAM_BOT + BEAM_H / 2;
+
+  // Gradient texture: white at bottom (V=0) → black at top (V=1) for alphaMap
+  const beamFadeTex = (() => {
+    const cv = document.createElement('canvas');
+    cv.width = 1; cv.height = 64;
+    const ctx = cv.getContext('2d');
+    const g = ctx.createLinearGradient(0, 64, 0, 0); // canvas bottom → top
+    g.addColorStop(0,   'white');
+    g.addColorStop(0.5, 'black');
+    g.addColorStop(1,   'black');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 1, 64);
+    return new THREE.CanvasTexture(cv);
+  })();
+
+  for (const [rTop, rBot, op, col] of [
+    [0.55, 0.018, 0.07, 0xaad8ff],  // wide soft outer halo
+    [0.38, 0.012, 0.14, 0x88c8ff],  // mid layer
+    [0.18, 0.006, 0.28, 0x66b8ff],  // bright inner core
+  ]) {
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(rTop, rBot, BEAM_H, 48, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: col,
+        transparent: true,
+        opacity: op,
+        alphaMap: beamFadeTex,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
     );
+    beam.position.y = BEAM_CY;
+    beam.raycast = () => {};
+    group.add(beam);
   }
 
-  // Flat platform — rounded rectangle outline instead of sharp wireBox
-  function roundedWirePlatform(w, h, d, r, segs) {
-    const hw = w / 2, hd = d / 2;
-    const grp = new THREE.Group();
+  // Bright source disc at the emitter (platform top)
+  const srcDisc = new THREE.Mesh(
+    new THREE.CircleGeometry(0.07, 32),
+    new THREE.MeshBasicMaterial({
+      color: 0xaaddff,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }),
+  );
+  srcDisc.rotation.x = -Math.PI / 2;
+  srcDisc.position.y = BEAM_BOT;
+  srcDisc.raycast = () => {};
+  group.add(srcDisc);
 
-    // Top and bottom rounded rectangle loops
-    for (const y of [h / 2, -h / 2]) {
-      const pts = [];
-      const corners = [
-        [ hw - r,  hd - r, 0              ],
-        [-hw + r,  hd - r, Math.PI / 2    ],
-        [-hw + r, -hd + r, Math.PI        ],
-        [ hw - r, -hd + r, Math.PI * 1.5  ],
-      ];
-      for (const [cx, cz, start] of corners) {
-        for (let i = 0; i <= segs; i++) {
-          const a = start + (Math.PI / 2) * (i / segs);
-          pts.push(new THREE.Vector3(cx + r * Math.cos(a), y, cz + r * Math.sin(a)));
-        }
-      }
-      pts.push(pts[0].clone()); // close the loop
-      grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), holoMat.clone()));
-    }
-
-    // Vertical edges at each corner arc midpoint
-    for (const [cx, cz, a] of [
-      [ hw - r,  hd - r, Math.PI / 4      ],
-      [-hw + r,  hd - r, Math.PI * 3 / 4  ],
-      [-hw + r, -hd + r, Math.PI * 5 / 4  ],
-      [ hw - r, -hd + r, Math.PI * 7 / 4  ],
-    ]) {
-      const x = cx + r * Math.cos(a), z = cz + r * Math.sin(a);
-      grp.add(new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(x,  h / 2, z),
-          new THREE.Vector3(x, -h / 2, z),
-        ]),
-        holoMat.clone(),
-      ));
-    }
-    return grp;
-  }
-
-  const platform = roundedWirePlatform(0.344, 0.006, 0.344, 0.022, 7);
-  holoStand.add(platform);
-
-  // Disable raycasting on holoStand so clicks pass through to cube and book
-  holoStand.traverse((child) => {
-    child.raycast = () => {};
-  });
-
-  group.add(holoStand);
-
-  // Accent light — makes the book visible from across the room
-  const pedestalLight = new THREE.PointLight(0x00d4ff, 2.0, 5);
-  pedestalLight.position.set(0, 1.6, 0);
+  // Accent light sitting at platform level, casts upward onto the book
+  const pedestalLight = new THREE.PointLight(0x00d4ff, 2.5, 4);
+  pedestalLight.position.set(0, 0.94, 0);
   group.add(pedestalLight);
 
   // Book group (will bob — referenced via userData for the update loop)
@@ -721,7 +811,7 @@ function buildPedestal() {
     new THREE.BufferAttribute(cubeSmokeCol, 3),
   );
   const cubeSmokeMat = new THREE.PointsMaterial({
-    size: 0.008,
+    size: 0.022,
     vertexColors: true,
     transparent: true,
     opacity: 1.0,
@@ -734,8 +824,8 @@ function buildPedestal() {
   const CUBE_WX = -6.5,
     CUBE_WZ = -9.0;
   const CUBE_HALF = 0.21;
-  const CUBE_BOTTOM = 0.63,
-    CUBE_TOP = 1.05;
+  const CUBE_BOTTOM = 1.32,
+    CUBE_TOP = 1.74;
   const cubeSmokePalette = [
     [0.0, 1.0, 0.8],
     [0.0, 0.8, 1.0],
@@ -743,17 +833,11 @@ function buildPedestal() {
     [0.0, 0.3, 0.9],
   ];
   const cubeSmokeParticles = Array.from({ length: CUBE_SMOKE_COUNT }, () => ({
-    x: 0,
-    y: 0,
-    z: 0,
-    vx: 0,
-    vy: 0,
-    vz: 0,
-    life: 0,
-    maxLife: 1.0,
-    r: 0,
-    g: 0,
-    b: 0,
+    x: 0, y: 0, z: 0,
+    vx: 0, vy: 0, vz: 0,
+    life: 0, maxLife: 1.0,
+    r: 0, g: 0, b: 0,
+    opacity: 1.0,
   }));
 
   function resetCubeSmokeParticle(p) {
@@ -787,6 +871,7 @@ function buildPedestal() {
     p.vz = (Math.random() - 0.5) * 0.01;
     p.life = 0;
     p.maxLife = 0.8 + Math.random() * 0.8;
+    p.opacity = 0.35 + Math.random() * 0.65;
     const c =
       cubeSmokePalette[Math.floor(Math.random() * cubeSmokePalette.length)];
     [p.r, p.g, p.b] = c;
@@ -805,7 +890,7 @@ function buildPedestal() {
       if (p.life >= p.maxLife) resetCubeSmokeParticle(p);
       const t = p.life / p.maxLife;
       const fade = t < 0.15 ? t / 0.15 : t > 0.6 ? 1 - (t - 0.6) / 0.4 : 1.0;
-      const brightness = Math.max(0, fade) * 1.0;
+      const brightness = Math.max(0, fade) * p.opacity;
       p.x += p.vx * delta;
       p.y += p.vy * delta;
       p.z += p.vz * delta;
