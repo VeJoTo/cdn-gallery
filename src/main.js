@@ -1540,6 +1540,9 @@ const fadeOverlay = document.getElementById("fade-overlay");
 let currentRoom = "exterior"; // 'exterior', 'ai', or 'nature'
 let isTransitioning = false;
 
+// Expose current room for UI gating (e.g. inventory hides sky toggle in AI room)
+window.__getCurrentRoom = () => currentRoom;
+
 function transitionToRoom(targetRoom) {
   if (isTransitioning) return;
   isTransitioning = true;
