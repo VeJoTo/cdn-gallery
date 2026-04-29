@@ -11,7 +11,7 @@ export function createRoom(scene) {
     color: 0xffffff, metalness: 0.0, roughness: 0.95, side: THREE.DoubleSide
   });
   const floorMat = new THREE.MeshStandardMaterial({
-    color: 0xf4f4f6, metalness: 0.05, roughness: 0.85
+    color: 0x080a0f, metalness: 0.15, roughness: 0.88
   });
   const ceilMat = new THREE.MeshStandardMaterial({
     color: 0xffffff, metalness: 0.0, roughness: 0.9
