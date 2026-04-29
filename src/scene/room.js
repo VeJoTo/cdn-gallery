@@ -350,11 +350,11 @@ export function createRoom(scene) {
   const SAT_R = 0.90;
   const SAT_W = 0.08;
   const logoSats = [
-    { x: -5.5, z: -2.75, hex: 0x7ab668 }, // Bookstand    — sage green
-    { x: -6.0, z:  2.75, hex: 0x1d7a8c }, // TV           — dark teal
-    { x:  5.5, z:  8.0,  hex: 0x8090c4 }, // Arcade       — blue-purple
-    { x:  0.0, z: -8.0,  hex: 0x3aabaa }, // Fin du Monde — teal
-    { x:  6.0, z:  3.0,  hex: 0x7ab668 }, // Culture map  — sage green
+    { x: -5.5, z: -2.75, hex: 0x0077b5 }, // Bookstand
+    { x: -6.0, z:  2.75, hex: 0x7db455 }, // TV
+    { x:  5.5, z:  8.0,  hex: 0x5087c5 }, // Arcade
+    { x:  0.0, z: -8.0,  hex: 0x009f95 }, // Fin du Monde
+    { x:  6.0, z:  3.0,  hex: 0x1ca2ba }, // Culture map
   ];
 
   for (const { x, z, hex } of logoSats) {
