@@ -11,14 +11,17 @@ import * as THREE from 'three';
 // (at -4, ?, 2.75 facing -X) and the TV wall, on the floor.
 const TABLE_POS = new THREE.Vector3(-5.5, 0, 2.75);
 
-const TABLE_W = 1.0;   // table top width  (X)
-const TABLE_D = 0.6;   // table top depth  (Z)
-const TABLE_H = 0.42;  // table height
-const TABLE_THICK = 0.04;
+const TABLE_W = 1.5;   // table top width  (X)
+const TABLE_D = 0.95;  // table top depth  (Z)
+const TABLE_H = 0.55;  // table height
+const TABLE_THICK = 0.06;
 
-const BOARD_SIZE = 0.48; // total board width = 8 squares
+const BOARD_SIZE = 0.78; // total board width = 8 squares
 const SQUARE = BOARD_SIZE / 8;
-const BOARD_THICK = 0.015;
+const BOARD_THICK = 0.025;
+
+// Scale piece geometry up to match the bigger board.
+const P = 1.6;
 
 const CYAN_BRIGHT = 0x5ee0ff;
 const CYAN_DEEP   = 0x0d2230;
@@ -57,31 +60,31 @@ function pieceMaterial(side) {
 
 function makePawn(mat) {
   const g = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.026, 0.025, 16), mat);
-  base.position.y = 0.0125;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.018, 16, 12), mat);
-  head.position.y = 0.038;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.022 * P, 0.026 * P, 0.025 * P, 16), mat);
+  base.position.y = 0.0125 * P;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.018 * P, 16, 12), mat);
+  head.position.y = 0.038 * P;
   g.add(base, head);
   return g;
 }
 
 function makeRook(mat) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.028, 0.04, 16), mat);
-  body.position.y = 0.02;
-  const top = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.012, 0.05), mat);
-  top.position.y = 0.046;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.024 * P, 0.028 * P, 0.04 * P, 16), mat);
+  body.position.y = 0.02 * P;
+  const top = new THREE.Mesh(new THREE.BoxGeometry(0.05 * P, 0.012 * P, 0.05 * P), mat);
+  top.position.y = 0.046 * P;
   g.add(body, top);
   return g;
 }
 
 function makeKnight(mat) {
   const g = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.028, 0.025, 16), mat);
-  base.position.y = 0.0125;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.024 * P, 0.028 * P, 0.025 * P, 16), mat);
+  base.position.y = 0.0125 * P;
   // Head: tilted box that suggests a horse profile
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.04, 0.05), mat);
-  head.position.set(0, 0.04, -0.005);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.025 * P, 0.04 * P, 0.05 * P), mat);
+  head.position.set(0, 0.04 * P, -0.005 * P);
   head.rotation.x = -0.3;
   g.add(base, head);
   return g;
@@ -89,37 +92,37 @@ function makeKnight(mat) {
 
 function makeBishop(mat) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.028, 0.04, 16), mat);
-  body.position.y = 0.02;
-  const top = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.03, 16), mat);
-  top.position.y = 0.055;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.022 * P, 0.028 * P, 0.04 * P, 16), mat);
+  body.position.y = 0.02 * P;
+  const top = new THREE.Mesh(new THREE.ConeGeometry(0.018 * P, 0.03 * P, 16), mat);
+  top.position.y = 0.055 * P;
   g.add(body, top);
   return g;
 }
 
 function makeQueen(mat) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.03, 0.045, 16), mat);
-  body.position.y = 0.0225;
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.02, 16, 12), mat);
-  ball.position.y = 0.058;
-  const crown = new THREE.Mesh(new THREE.ConeGeometry(0.014, 0.018, 8), mat);
-  crown.position.y = 0.078;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.024 * P, 0.03 * P, 0.045 * P, 16), mat);
+  body.position.y = 0.0225 * P;
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.02 * P, 16, 12), mat);
+  ball.position.y = 0.058 * P;
+  const crown = new THREE.Mesh(new THREE.ConeGeometry(0.014 * P, 0.018 * P, 8), mat);
+  crown.position.y = 0.078 * P;
   g.add(body, ball, crown);
   return g;
 }
 
 function makeKing(mat) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.03, 0.05, 16), mat);
-  body.position.y = 0.025;
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.02, 16, 12), mat);
-  ball.position.y = 0.064;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.024 * P, 0.03 * P, 0.05 * P, 16), mat);
+  body.position.y = 0.025 * P;
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.02 * P, 16, 12), mat);
+  ball.position.y = 0.064 * P;
   // Cross
-  const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.022, 0.006), mat);
-  crossV.position.y = 0.088;
-  const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.006, 0.006), mat);
-  crossH.position.y = 0.084;
+  const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.006 * P, 0.022 * P, 0.006 * P), mat);
+  crossV.position.y = 0.088 * P;
+  const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.014 * P, 0.006 * P, 0.006 * P), mat);
+  crossH.position.y = 0.084 * P;
   g.add(body, ball, crossV, crossH);
   return g;
 }
@@ -166,59 +169,41 @@ export function createChessTable(scene) {
   root.position.copy(TABLE_POS);
   scene.add(root);
 
-  // ── Coffee table ────────────────────────────────────────────────────
-  const tableTopMat = new THREE.MeshPhysicalMaterial({
-    color: CYAN_DEEP,
-    emissive: CYAN_BRIGHT,
-    emissiveIntensity: 0.05,
-    metalness: 0.4,
-    roughness: 0.2,
-    clearcoat: 0.9,
-    clearcoatRoughness: 0.1,
+  // ── Coffee table — glassy neon material that matches the sofa ──────
+  // Same recipe as the neonMat in src/scene/sofa.js.
+  const neonMat = new THREE.MeshPhysicalMaterial({
+    color: 0xaaffff,
+    emissive: 0x00ffee,
+    emissiveIntensity: 10.0,
+    roughness: 0.0,
+    metalness: 0.0,
+    transmission: 0.98,
+    thickness: 1.0,
+    transparent: true,
+    opacity: 0.12,
   });
+
   const tableTop = new THREE.Mesh(
     new THREE.BoxGeometry(TABLE_W, TABLE_THICK, TABLE_D),
-    tableTopMat
+    neonMat
   );
   tableTop.position.y = TABLE_H - TABLE_THICK / 2;
-  tableTop.castShadow = true;
+  // Translucent glass shouldn't write to depth buffer or cast solid shadows
+  tableTop.castShadow = false;
   tableTop.receiveShadow = true;
   root.add(tableTop);
 
-  // Cyan underglow strip running around the underside of the top
-  const glowMat = new THREE.MeshBasicMaterial({
-    color: CYAN_BRIGHT,
-    transparent: true,
-    opacity: 0.7,
-  });
-  for (const [w, d, dx, dz] of [
-    [TABLE_W,        0.006, 0,            TABLE_D / 2],
-    [TABLE_W,        0.006, 0,           -TABLE_D / 2],
-    [0.006,        TABLE_D, TABLE_W / 2,  0          ],
-    [0.006,        TABLE_D, -TABLE_W / 2, 0          ],
-  ]) {
-    const strip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.004, d), glowMat);
-    strip.position.set(dx, TABLE_H - TABLE_THICK - 0.003, dz);
-    root.add(strip);
-  }
-
-  // Slim metal legs at the four corners
-  const legMat = new THREE.MeshStandardMaterial({
-    color: 0x1a2530,
-    metalness: 0.85,
-    roughness: 0.3,
-  });
-  const legGeom = new THREE.BoxGeometry(0.03, TABLE_H - TABLE_THICK, 0.03);
-  const legInset = 0.05;
+  // Slim glass legs at the four corners — same neon material
+  const legGeom = new THREE.BoxGeometry(0.05, TABLE_H - TABLE_THICK, 0.05);
+  const legInset = 0.07;
   for (const [lx, lz] of [
     [ TABLE_W / 2 - legInset,  TABLE_D / 2 - legInset],
     [-TABLE_W / 2 + legInset,  TABLE_D / 2 - legInset],
     [ TABLE_W / 2 - legInset, -TABLE_D / 2 + legInset],
     [-TABLE_W / 2 + legInset, -TABLE_D / 2 + legInset],
   ]) {
-    const leg = new THREE.Mesh(legGeom, legMat);
+    const leg = new THREE.Mesh(legGeom, neonMat);
     leg.position.set(lx, (TABLE_H - TABLE_THICK) / 2, lz);
-    leg.castShadow = true;
     root.add(leg);
   }
 
