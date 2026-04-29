@@ -127,57 +127,211 @@ _displayCanvas.width = DISPLAY_W;
 _displayCanvas.height = DISPLAY_H;
 const _displayTex = new THREE.CanvasTexture(_displayCanvas);
 
+// ── Animated pixel face on the display ────────────────────────────
+// State drives expressions:
+//   off                  → sleeping (closed eyes, flat mouth)
+//   on (music idle)      → smile, occasional blink
+//   on (podcast idle)    → smile with little EQ bars wiggling next to it
+//   transient: 'wink'    → left eye closed, smirk (briefly, on Mode click)
+//   transient: 'wide'    → big eyes + "o" mouth (briefly, on Next click)
+//   blink                → eyes closed for ~150ms, scheduled at random intervals
+
+const FACE = {
+  // Pixel size — chunky CRT feel
+  px: 6,
+  // Center of the face area in canvas pixels
+  cx: DISPLAY_W / 2,
+  cy: DISPLAY_H / 2,
+  // Cyan glow color
+  ink: '#5ee0ff',
+  inkDim: 'rgba(94, 224, 255, 0.55)',
+};
+
+// transient face state — these timers drive what's rendered each frame
+const _face = {
+  blinkUntil: 0,
+  nextBlinkAt: 0,
+  expr: null,       // 'wink' | 'wide' | null
+  exprUntil: 0,
+  lastTickEq: 0,    // for the EQ bars in podcast mode
+};
+
+function _drawPixel(ctx, gx, gy, w = 1, h = 1, color = FACE.ink) {
+  ctx.fillStyle = color;
+  ctx.fillRect(
+    Math.round(FACE.cx + gx * FACE.px - (w * FACE.px) / 2),
+    Math.round(FACE.cy + gy * FACE.px - (h * FACE.px) / 2),
+    w * FACE.px,
+    h * FACE.px
+  );
+}
+
+function _drawEyes(ctx, kind) {
+  const lx = -5; // left eye grid X (negative = left of center)
+  const rx = 5;
+  const ey = -2; // eye row (above center)
+  if (kind === 'open') {
+    _drawPixel(ctx, lx, ey, 2, 3);
+    _drawPixel(ctx, rx, ey, 2, 3);
+  } else if (kind === 'closed') {
+    _drawPixel(ctx, lx, ey, 3, 1);
+    _drawPixel(ctx, rx, ey, 3, 1);
+  } else if (kind === 'wide') {
+    // big eyes — outer + inner pupil
+    _drawPixel(ctx, lx, ey, 4, 4);
+    _drawPixel(ctx, rx, ey, 4, 4);
+    _drawPixel(ctx, lx, ey, 2, 2, '#0a1419'); // inner dark dot
+    _drawPixel(ctx, rx, ey, 2, 2, '#0a1419');
+  } else if (kind === 'wink') {
+    _drawPixel(ctx, lx, ey, 3, 1); // closed
+    _drawPixel(ctx, rx, ey, 2, 3); // open
+  }
+}
+
+function _drawMouth(ctx, kind) {
+  const my = 3; // mouth baseline (below center)
+  if (kind === 'smile') {
+    // Three-segment smile curve, pixel-art style
+    _drawPixel(ctx, -4, my,     1, 1);
+    _drawPixel(ctx, -3, my + 1, 1, 1);
+    _drawPixel(ctx, -2, my + 2, 1, 1);
+    _drawPixel(ctx, -1, my + 2, 1, 1);
+    _drawPixel(ctx,  0, my + 2, 1, 1);
+    _drawPixel(ctx,  1, my + 2, 1, 1);
+    _drawPixel(ctx,  2, my + 2, 1, 1);
+    _drawPixel(ctx,  3, my + 1, 1, 1);
+    _drawPixel(ctx,  4, my,     1, 1);
+  } else if (kind === 'flat') {
+    _drawPixel(ctx, 0, my + 1, 5, 1);
+  } else if (kind === 'oh') {
+    // Small "o" — a 3×3 ring
+    _drawPixel(ctx, -1, my,     3, 1);
+    _drawPixel(ctx, -2, my + 1, 1, 1);
+    _drawPixel(ctx,  2, my + 1, 1, 1);
+    _drawPixel(ctx, -1, my + 2, 3, 1);
+  } else if (kind === 'smirk') {
+    // Asymmetric — left side goes up, right side flat
+    _drawPixel(ctx, -3, my,     1, 1);
+    _drawPixel(ctx, -2, my + 1, 1, 1);
+    _drawPixel(ctx, -1, my + 2, 1, 1);
+    _drawPixel(ctx,  0, my + 2, 1, 1);
+    _drawPixel(ctx,  1, my + 2, 1, 1);
+    _drawPixel(ctx,  2, my + 2, 1, 1);
+    _drawPixel(ctx,  3, my + 2, 1, 1);
+  }
+}
+
+function _drawEqBars(ctx) {
+  // Little EQ bars to the right of the face — only when podcast is playing
+  const baseX = DISPLAY_W - 36;
+  const baseY = DISPLAY_H - 14;
+  const heights = [0, 1, 2, 3].map(i =>
+    3 + Math.floor(Math.abs(Math.sin(_face.lastTickEq * 0.18 + i * 1.3)) * 4)
+  );
+  for (let i = 0; i < heights.length; i++) {
+    const h = heights[i] * 3;
+    ctx.fillStyle = FACE.inkDim;
+    ctx.fillRect(baseX + i * 6, baseY - h, 4, h);
+  }
+}
+
 function drawDisplay() {
   const ctx = _displayCanvas.getContext('2d');
-  // Background — dark with cyan inner glow
+  // Background — dark with subtle scan lines (CRT vibe)
   ctx.fillStyle = '#0a1419';
   ctx.fillRect(0, 0, DISPLAY_W, DISPLAY_H);
-  // Subtle scanlines
   for (let y = 0; y < DISPLAY_H; y += 3) {
-    ctx.fillStyle = 'rgba(0, 212, 255, 0.045)';
+    ctx.fillStyle = 'rgba(94, 224, 255, 0.05)';
     ctx.fillRect(0, y, DISPLAY_W, 1);
   }
+  // Slight inner glow border
+  ctx.strokeStyle = 'rgba(94, 224, 255, 0.25)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(2, 2, DISPLAY_W - 4, DISPLAY_H - 4);
 
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'center';
+  ctx.imageSmoothingEnabled = false;
 
   if (!state.on) {
-    ctx.fillStyle = 'rgba(0, 212, 255, 0.45)';
-    ctx.font = 'bold 28px "Octosquares", sans-serif';
-    ctx.fillText('— OFF —', DISPLAY_W / 2, DISPLAY_H / 2);
+    _drawEyes(ctx, 'closed');
+    _drawMouth(ctx, 'flat');
+    // Tiny "Z" sleep indicator next to the face
+    ctx.fillStyle = FACE.inkDim;
+    ctx.font = 'bold 14px "Roboto", monospace';
+    ctx.fillText('z', DISPLAY_W - 38, 24);
+    ctx.font = 'bold 18px "Roboto", monospace';
+    ctx.fillText('Z', DISPLAY_W - 28, 18);
     _displayTex.needsUpdate = true;
     return;
   }
 
-  // Mode label (small)
-  ctx.fillStyle = '#00d4ff';
-  ctx.font = 'bold 12px "Roboto", sans-serif';
-  ctx.fillText(`▸ ${state.mode.toUpperCase()}`, DISPLAY_W / 2, 22);
+  // Decide current expression
+  const now = Date.now();
+  let expression = 'idle';
+  if (now < _face.exprUntil && _face.expr) {
+    expression = _face.expr;
+  } else {
+    // Idle scheduling: random blink every 3-6s
+    if (now > _face.nextBlinkAt && now > _face.blinkUntil) {
+      _face.blinkUntil = now + 160;
+      _face.nextBlinkAt = now + 3000 + Math.random() * 3000;
+    }
+    if (now < _face.blinkUntil) expression = 'blink';
+  }
 
-  // Channel name (large)
+  switch (expression) {
+    case 'wink':
+      _drawEyes(ctx, 'wink');
+      _drawMouth(ctx, 'smirk');
+      break;
+    case 'wide':
+      _drawEyes(ctx, 'wide');
+      _drawMouth(ctx, 'oh');
+      break;
+    case 'blink':
+      _drawEyes(ctx, 'closed');
+      _drawMouth(ctx, 'smile');
+      break;
+    default:
+      _drawEyes(ctx, 'open');
+      _drawMouth(ctx, 'smile');
+      break;
+  }
+
+  // Mode-specific decoration
+  if (state.mode === 'podcast') {
+    _drawEqBars(ctx);
+  }
+
+  // Mode + channel label, small along the bottom
+  ctx.fillStyle = FACE.inkDim;
+  ctx.font = 'bold 9px "Roboto", monospace';
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
   const list = state.mode === 'music' ? MUSIC_CHANNELS : PODCAST_CHANNELS;
   const idx = state.mode === 'music' ? state.musicChannel : state.podcastChannel;
   const ch = list[idx];
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 24px "Octosquares", sans-serif';
-  // Truncate long names so they fit
-  const label = ch?.name ?? '—';
-  const maxLabel = label.length > 24 ? label.slice(0, 22) + '…' : label;
-  ctx.fillText(maxLabel, DISPLAY_W / 2, 56);
-
-  // Channel index footer
-  ctx.fillStyle = 'rgba(214, 244, 251, 0.55)';
-  ctx.font = '11px "Roboto", monospace';
-  ctx.fillText(
-    `${idx + 1} / ${list.length}`,
-    DISPLAY_W / 2,
-    DISPLAY_H - 16
-  );
+  ctx.fillText(`${state.mode.toUpperCase()} · ${ch?.name ?? '—'}`, 8, DISPLAY_H - 12);
 
   _displayTex.needsUpdate = true;
 }
 
+// Animation loop — 8 fps is enough for chunky CRT feel and is cheap
+let _faceLoopHandle = null;
+function _startFaceLoop() {
+  if (_faceLoopHandle) return;
+  _faceLoopHandle = setInterval(() => {
+    _face.lastTickEq++;
+    drawDisplay();
+  }, 125);
+}
+
+function _triggerExpression(name, ms = 450) {
+  _face.expr = name;
+  _face.exprUntil = Date.now() + ms;
+}
+
 drawDisplay();
+_startFaceLoop();
 
 // ── Build the radio mesh ────────────────────────────
 
@@ -424,6 +578,7 @@ export function handleRadioAction(action) {
   } else if (action === 'radioMode') {
     if (!state.on) state.on = true; // switching mode also turns it on
     state.mode = state.mode === 'music' ? 'podcast' : 'music';
+    _triggerExpression('wink');
   } else if (action === 'radioNext') {
     if (!state.on) state.on = true;
     if (state.mode === 'music') {
@@ -431,6 +586,7 @@ export function handleRadioAction(action) {
     } else {
       state.podcastChannel = (state.podcastChannel + 1) % PODCAST_CHANNELS.length;
     }
+    _triggerExpression('wide');
   } else {
     return; // unknown action
   }
