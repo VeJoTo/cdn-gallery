@@ -147,7 +147,7 @@ function buildPortal() {
 
 function buildPedestal() {
   const group = new THREE.Group();
-  group.position.set(-6.5, -0.9, -9.0);
+  group.position.set(-7.0, -0.9, -2.75);
   group.scale.setScalar(2.4);
 
   // ── Pointed oval arc bookstand ───────────────────────────────────────────
@@ -821,8 +821,8 @@ function buildPedestal() {
   });
   const cubeSmokePoints = new THREE.Points(cubeSmokeGeo, cubeSmokeMat);
 
-  const CUBE_WX = -6.5,
-    CUBE_WZ = -9.0;
+  const CUBE_WX = -7.0,
+    CUBE_WZ = -2.75;
   const CUBE_HALF = 0.21;
   const CUBE_BOTTOM = 1.32,
     CUBE_TOP = 1.74;
@@ -1088,7 +1088,7 @@ export function createObjects(scene) {
   // Portal on the right wall — click to enter the garden room.
   const portal = buildPortal();
   portal.scale.setScalar(1.5);
-  portal.position.set(ROOM_WIDTH / 2 - 0.1, 2.4, 0);
+  portal.position.set(ROOM_WIDTH / 2 - 0.1, 2.4, -2.75);
   portal.rotation.y = -Math.PI / 2;
 
   const tv = buildTV();
