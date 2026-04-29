@@ -110,9 +110,9 @@ export function createRoom(scene) {
   }
 
   // Glass panels + handles
-  const doorPanelMat = new THREE.MeshPhysicalMaterial({
-    color: 0xd0e8f0, transparent: true, opacity: 0.75,
-    roughness: 0.15, metalness: 0.1, side: THREE.DoubleSide
+  const doorPanelMat = new THREE.MeshStandardMaterial({
+    color: 0xc8d8e0, emissive: 0x8ab0c0, emissiveIntensity: 0.6,
+    roughness: 0.3, metalness: 0.1, side: THREE.DoubleSide
   });
 
   for (const dpx of [-0.265, 0.265]) {
