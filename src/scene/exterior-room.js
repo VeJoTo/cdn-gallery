@@ -137,13 +137,13 @@ export function createExteriorRoom(scene) {
   });
 
   const frameMat = new THREE.MeshStandardMaterial({
-    color: 0xcccccc,
+    color: 0xd8cfb8,
     roughness: 0.3,
     metalness: 0.6
   });
 
   const backWallMat = new THREE.MeshStandardMaterial({
-    color: 0x888888,
+    color: 0xc8b896,
     roughness: 0.8,
     metalness: 0.0
   });
@@ -244,7 +244,7 @@ export function createExteriorRoom(scene) {
   glasshus.add(doorGroup);
 
   const doorFrameMat = new THREE.MeshStandardMaterial({
-    color: 0xbbbbbb,
+    color: 0xa8a090,
     roughness: 0.3,
     metalness: 0.7
   });
@@ -304,24 +304,84 @@ export function createExteriorRoom(scene) {
   };
   doorGroup.add(doorClickTarget);
 
-  // Floating "Click to enter" label above door
+  // Floating "Walk or click to enter" label above door — dark cyan pill
+  // for contrast against the cream glasshus wall.
   const enterCanvas = document.createElement('canvas');
-  enterCanvas.width = 512;
-  enterCanvas.height = 64;
+  enterCanvas.width = 768;
+  enterCanvas.height = 96;
   const ectx = enterCanvas.getContext('2d');
-  ectx.clearRect(0, 0, 512, 64);
-  ectx.shadowColor = '#ffffff';
-  ectx.shadowBlur = 6;
-  ectx.font = 'bold 28px Arial, sans-serif';
-  ectx.fillStyle = '#ffffff';
-  ectx.textAlign = 'center';
-  ectx.fillText('▸ Walk or click to enter ◂', 256, 40);
+
+  function drawEnterLabel() {
+    const W = 768, H = 96;
+    ectx.clearRect(0, 0, W, H);
+
+    // Rounded-rect dark pill with cyan border and outer glow
+    const padX = 20, padY = 14;
+    const rx = padX, ry = padY, rw = W - padX * 2, rh = H - padY * 2;
+    const radius = rh / 2;
+
+    function roundedRect(x, y, w, h, r) {
+      ectx.beginPath();
+      ectx.moveTo(x + r, y);
+      ectx.lineTo(x + w - r, y);
+      ectx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ectx.lineTo(x + w, y + h - r);
+      ectx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ectx.lineTo(x + r, y + h);
+      ectx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ectx.lineTo(x, y + r);
+      ectx.quadraticCurveTo(x, y, x + r, y);
+      ectx.closePath();
+    }
+
+    // Outer glow
+    ectx.shadowColor = '#5ee0ff';
+    ectx.shadowBlur = 24;
+    ectx.fillStyle = 'rgba(10, 22, 32, 0.92)';
+    roundedRect(rx, ry, rw, rh, radius);
+    ectx.fill();
+    ectx.shadowBlur = 0;
+
+    // Cyan border
+    ectx.strokeStyle = '#5ee0ff';
+    ectx.lineWidth = 2;
+    roundedRect(rx, ry, rw, rh, radius);
+    ectx.stroke();
+
+    // Cyan text with soft glow
+    ectx.shadowColor = '#5ee0ff';
+    ectx.shadowBlur = 10;
+    ectx.font = '700 28px "Roboto", sans-serif';
+    ectx.fillStyle = '#e8faff';
+    ectx.textAlign = 'center';
+    ectx.textBaseline = 'middle';
+    ectx.fillText('▸ WALK OR CLICK TO ENTER ◂', W / 2, H / 2);
+    ectx.shadowBlur = 0;
+  }
+
+  drawEnterLabel();
+  // Redraw when JetBrains Mono finishes loading.
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      drawEnterLabel();
+      enterTex.needsUpdate = true;
+    });
+  }
+
   const enterTex = new THREE.CanvasTexture(enterCanvas);
+  enterTex.anisotropy = 4;
   const enterLabel = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.4, 0.18),
-    new THREE.MeshBasicMaterial({ map: enterTex, transparent: true, side: THREE.DoubleSide })
+    new THREE.PlaneGeometry(2.0, 0.25),
+    new THREE.MeshBasicMaterial({
+      map: enterTex,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false, // avoids alpha-vs-depth glitch
+    })
   );
-  enterLabel.position.set(0, 2.6, 0);
+  // Push forward in z so it's not coplanar with the door frame / glass
+  enterLabel.position.set(0, 2.6, 0.06);
+  enterLabel.renderOrder = 2;
   doorGroup.add(enterLabel);
 
   // Small downward arrow indicator
@@ -351,10 +411,10 @@ export function createExteriorRoom(scene) {
   // ── Surroundings ──
   // ────────────────────────────────────────────────────────────────
 
-  // ── Grey stone walls flanking the glasshus ──
-  // Reference: concrete/stone blocks on both sides of the glass volume
+  // ── Stone walls flanking the glasshus — clean white concrete to read
+  // as part of the CDN building shell, not a separate yellow surface
   const stoneMat = new THREE.MeshStandardMaterial({
-    color: 0x8a8878,
+    color: 0xeae5db,
     roughness: 0.9,
     metalness: 0.0
   });
@@ -409,23 +469,24 @@ export function createExteriorRoom(scene) {
   addHedge(-(WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // left
   addHedge( (WALL_W / 2 + sWallW / 2), 1.0, sWallW, 0.5);  // right
 
-  // ── 3 white wooden plank houses behind the glasshus ──
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.7 });
+  // ── 3 wooden plank houses behind the glasshus (Bergen Bryggen palette) ──
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x3d2820, roughness: 0.7 });
 
-  // Canvas texture for white wooden planks
+  // Canvas texture for white wooden planks — bright, clean white
+  // (CDN's actual building is white modern architecture)
   function makePlankTexture() {
     const c = document.createElement('canvas');
     c.width = 256; c.height = 256;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = '#f0ece4';
+    ctx.fillStyle = '#fafaf6';
     ctx.fillRect(0, 0, 256, 256);
     // Horizontal plank lines
     for (let y = 0; y < 256; y += 20) {
-      ctx.strokeStyle = '#d8d0c4';
+      ctx.strokeStyle = '#e6e2da';
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke();
       // Wood grain within plank
-      ctx.strokeStyle = '#e4dcd0';
+      ctx.strokeStyle = '#f0ece4';
       ctx.lineWidth = 0.5;
       for (let g = 0; g < 3; g++) {
         const gy = y + 5 + Math.random() * 10;
@@ -439,7 +500,7 @@ export function createExteriorRoom(scene) {
   }
 
   const plankTex = makePlankTexture();
-  const houseMat = new THREE.MeshStandardMaterial({ map: plankTex, roughness: 0.8 });
+  const houseMat = new THREE.MeshStandardMaterial({ map: plankTex, roughness: 0.85 });
 
   // Window material — dark glass
   const windowMat = new THREE.MeshStandardMaterial({
@@ -531,44 +592,126 @@ export function createExteriorRoom(scene) {
   signCanvas.height = 192;
   const sgnctx = signCanvas.getContext('2d');
 
-  // Background
-  sgnctx.fillStyle = '#1a2a3a';
-  sgnctx.fillRect(0, 0, 512, 192);
+  function drawSign() {
+  const W = 512, H = 192;
+  // Fresh dusk palette — cyan + mint + soft coral on a warm-tinged navy
+  const CYAN  = '#5ee0ff';        // brighter, fresher cyan
+  const MINT  = '#8df0c8';        // mint-green secondary
+  const CORAL = '#ff8d8d';        // soft coral CTA pop
+  const GRID  = 'rgba(141, 240, 200, 0.14)';
+  const TEXT  = '#e6f3fb';
 
-  // Border
-  sgnctx.strokeStyle = '#cccccc';
-  sgnctx.lineWidth = 4;
-  sgnctx.strokeRect(6, 6, 500, 180);
+  // Background — twilight gradient (violet-blue → teal)
+  const bg = sgnctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0,    '#1a1a3a'); // dusk violet
+  bg.addColorStop(0.55, '#142538'); // mid-twilight blue
+  bg.addColorStop(1,    '#0d2230'); // deep teal
+  sgnctx.fillStyle = bg;
+  sgnctx.fillRect(0, 0, W, H);
 
-  // CDN logo-ish stripe
-  sgnctx.fillStyle = '#3366aa';
-  sgnctx.fillRect(6, 6, 500, 40);
+  // Subtle grid in mint
+  sgnctx.strokeStyle = GRID;
+  sgnctx.lineWidth = 1;
+  for (let x = 0; x <= W; x += 32) {
+    sgnctx.beginPath(); sgnctx.moveTo(x, 0); sgnctx.lineTo(x, H); sgnctx.stroke();
+  }
+  for (let y = 0; y <= H; y += 32) {
+    sgnctx.beginPath(); sgnctx.moveTo(0, y); sgnctx.lineTo(W, y); sgnctx.stroke();
+  }
 
-  // Text: CDN abbreviation in stripe
-  sgnctx.fillStyle = '#ffffff';
-  sgnctx.font = 'bold 26px Arial, sans-serif';
+  // Scanline overlay (very faint cyan)
+  sgnctx.fillStyle = 'rgba(94, 224, 255, 0.05)';
+  for (let y = 0; y < H; y += 3) {
+    sgnctx.fillRect(0, y, W, 1);
+  }
+
+  // Outer border — cyan dim
+  sgnctx.strokeStyle = 'rgba(94, 224, 255, 0.45)';
+  sgnctx.lineWidth = 2;
+  sgnctx.strokeRect(4, 4, W - 8, H - 8);
+
+  // Corner brackets — alternating cyan and mint for a fresh two-tone
+  sgnctx.lineWidth = 3;
+  const bl = 18;
+  // top-left + bottom-right: cyan
+  sgnctx.strokeStyle = CYAN;
+  sgnctx.beginPath(); sgnctx.moveTo(4, 4 + bl); sgnctx.lineTo(4, 4); sgnctx.lineTo(4 + bl, 4); sgnctx.stroke();
+  sgnctx.beginPath(); sgnctx.moveTo(W - 4 - bl, H - 4); sgnctx.lineTo(W - 4, H - 4); sgnctx.lineTo(W - 4, H - 4 - bl); sgnctx.stroke();
+  // top-right + bottom-left: mint
+  sgnctx.strokeStyle = MINT;
+  sgnctx.beginPath(); sgnctx.moveTo(W - 4 - bl, 4); sgnctx.lineTo(W - 4, 4); sgnctx.lineTo(W - 4, 4 + bl); sgnctx.stroke();
+  sgnctx.beginPath(); sgnctx.moveTo(4, H - 4 - bl); sgnctx.lineTo(4, H - 4); sgnctx.lineTo(4 + bl, H - 4); sgnctx.stroke();
+
+  // Header microcopy (cyan, left)
+  sgnctx.fillStyle = CYAN;
+  sgnctx.font = '600 12px "Roboto", sans-serif';
+  sgnctx.textAlign = 'left';
+  sgnctx.fillText('▸ DIGITAL NARRATIVE LAB', 22, 28);
+
+  // Right-side status microcopy (mint)
+  sgnctx.textAlign = 'right';
+  sgnctx.fillStyle = MINT;
+  sgnctx.fillText('[ EST. UIB ]', W - 22, 28);
+
+  // CDN monogram — cyan glow, mint backlight, white surface
   sgnctx.textAlign = 'center';
-  sgnctx.fillText('CDN', 256, 34);
+  sgnctx.font = 'bold 64px "Octosquares", sans-serif';
+  // Mint backlight
+  sgnctx.fillStyle = MINT;
+  sgnctx.shadowColor = MINT;
+  sgnctx.shadowBlur = 32;
+  sgnctx.fillText('CDN', W / 2, 92);
+  // Cyan halo
+  sgnctx.fillStyle = CYAN;
+  sgnctx.shadowColor = CYAN;
+  sgnctx.shadowBlur = 18;
+  sgnctx.fillText('CDN', W / 2, 92);
+  // Sharp white face
+  sgnctx.shadowBlur = 0;
+  sgnctx.fillStyle = '#ffffff';
+  sgnctx.fillText('CDN', W / 2, 92);
 
-  // Main line
-  sgnctx.fillStyle = '#e8eef5';
-  sgnctx.font = 'bold 20px Arial, sans-serif';
-  sgnctx.fillText('Center for Digital Narrative', 256, 90);
+  // Main line — Centre for Digital Narrative
+  sgnctx.font = '600 16px "Roboto", sans-serif';
+  sgnctx.fillStyle = TEXT;
+  sgnctx.fillText('CENTRE FOR DIGITAL NARRATIVE', W / 2, 124);
 
-  // Sub line
-  sgnctx.fillStyle = '#aabbcc';
-  sgnctx.font = '16px Arial, sans-serif';
-  sgnctx.fillText('University of Bergen', 256, 120);
+  // Sub line — University of Bergen (mint)
+  sgnctx.font = '12px "Roboto", sans-serif';
+  sgnctx.fillStyle = 'rgba(141, 240, 200, 0.7)';
+  sgnctx.fillText('// UNIVERSITY OF BERGEN', W / 2, 144);
 
-  // Small arrow hint
-  sgnctx.fillStyle = '#7799bb';
-  sgnctx.font = '13px Arial, sans-serif';
-  sgnctx.fillText('▶  Enter to explore', 256, 158);
+  // Bottom CTA — coral, glowing — the warm pop
+  sgnctx.font = '600 12px "Roboto", sans-serif';
+  sgnctx.fillStyle = CORAL;
+  sgnctx.shadowColor = CORAL;
+  sgnctx.shadowBlur = 14;
+  sgnctx.fillText('▸ ENTER TO EXPLORE', W / 2, 172);
+  sgnctx.shadowBlur = 0;
+  }
+
+  drawSign();
+  // Redraw once Google Fonts (Orbitron / JetBrains Mono) finish loading,
+  // so the sign reliably uses the intended typefaces instead of fallbacks.
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      drawSign();
+      signTex.needsUpdate = true;
+    });
+  }
 
   const signTex  = new THREE.CanvasTexture(signCanvas);
+  signTex.anisotropy = 4;
   const signPanel = new THREE.Mesh(
     new THREE.BoxGeometry(1.4, 0.52, 0.04),
-    new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.5 })
+    new THREE.MeshStandardMaterial({
+      map: signTex,
+      emissiveMap: signTex,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.35,
+      roughness: 0.4,
+      metalness: 0.2,
+    })
   );
   signPanel.position.set(0.75, 1.9, 0);
   signGroup.add(signPanel);

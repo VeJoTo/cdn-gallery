@@ -103,7 +103,7 @@ function drawStartScreen(canvas) {
   ctx.textAlign = 'center';
 
   // Heading
-  ctx.font = 'bold 54px sans-serif';
+  ctx.font = 'bold 54px "Octosquares", sans-serif';
   ctx.fillStyle = '#7dd4f8';
   ctx.shadowColor = '#00d4ff';
   ctx.shadowBlur = 32;
@@ -137,7 +137,7 @@ function drawStartScreen(canvas) {
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  ctx.font = 'bold 52px sans-serif';
+  ctx.font = 'bold 52px "Octosquares", sans-serif';
   ctx.fillStyle = '#ffffff';
   ctx.textBaseline = 'middle';
   ctx.fillText('Start', W / 2, by + BH / 2);
@@ -186,7 +186,7 @@ function drawDefaultScreen(canvas, locked = false) {
   ctx.clip();
 
   // Title
-  ctx.font = 'bold 36px sans-serif';
+  ctx.font = 'bold 36px "Octosquares", sans-serif';
   ctx.fillStyle = '#1b7ab8';
   ctx.shadowColor = '#1b7ab8';
   ctx.shadowBlur = 14;
@@ -201,7 +201,7 @@ function drawDefaultScreen(canvas, locked = false) {
   ctx.stroke();
 
   // Body text
-  ctx.font = '18px sans-serif';
+  ctx.font = '18px "Roboto", sans-serif';
   ctx.fillStyle = '#b8d8e8';
   const body = [
     '"Fin du Monde" is an AI-generated dark comedy about the apocalypse. By clicking on different parts of the globe, situated to the right of this screen, you will be shown dramatic, AI-generated images of meteor showers striking the selected country.',
@@ -215,7 +215,7 @@ function drawDefaultScreen(canvas, locked = false) {
   }
 
   // CTA
-  ctx.font = 'bold 17px sans-serif';
+  ctx.font = 'bold 17px "Roboto", sans-serif';
   if (locked) {
     ctx.fillStyle = '#00d4ff';
     ctx.shadowColor = '#00d4ff';
@@ -256,13 +256,13 @@ function drawDefaultScreen(canvas, locked = false) {
     if (ey > H) break;
 
     // Broadcast number
-    ctx.font = 'bold 13px sans-serif';
+    ctx.font = 'bold 13px "Roboto", sans-serif';
     ctx.fillStyle = 'rgba(0,212,255,0.5)';
     ctx.textAlign = 'left';
     ctx.fillText(`BROADCAST ${i + 1}`, rx, ey + 14);
 
     // Title
-    ctx.font = 'bold 18px sans-serif';
+    ctx.font = 'bold 18px "Roboto", sans-serif';
     ctx.fillStyle = '#e8f4ff';
     ctx.fillText(BROADCAST_TITLES[i], rx, ey + 33);
 
@@ -314,7 +314,7 @@ function drawVideoCountryScreen(canvas, country) {
 
   // Country title
   ctx.textAlign = 'center';
-  ctx.font = 'bold 54px sans-serif';
+  ctx.font = 'bold 54px "Octosquares", sans-serif';
   ctx.fillStyle = '#7dd4f8';
   ctx.shadowColor = '#00d4ff';
   ctx.shadowBlur = 28;
@@ -390,14 +390,14 @@ function drawCountryScreen(canvas, country, onReady) {
     ctx.textAlign = 'center';
 
     // Country name
-    ctx.font = 'bold 64px sans-serif';
+    ctx.font = 'bold 64px "Octosquares", sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = accent;
     ctx.shadowBlur = 24;
     ctx.fillText(country, W / 2, H - 70);
 
     // Back prompt
-    ctx.font = '17px sans-serif';
+    ctx.font = '17px "Roboto", sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.shadowBlur = 0;
     ctx.fillText('← look at screen and click to go back', W / 2, H - 30);
@@ -524,7 +524,7 @@ function buildGlobe(screenRef) {
     lx.stroke();
     lx.shadowBlur = 0;
 
-    lx.font         = 'bold 44px sans-serif';
+    lx.font         = 'bold 44px "Octosquares", sans-serif';
     lx.fillStyle    = '#ffffff';
     lx.textAlign    = 'center';
     lx.textBaseline = 'middle';
@@ -722,7 +722,7 @@ function buildNeonSign(scene, leftX, rightX, z) {
   c.width = W; c.height = H;
   const ctx = c.getContext('2d');
   const text = 'Fin du Monde';
-  ctx.font = 'bold 120px sans-serif';
+  ctx.font = 'bold 120px "Octosquares", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
@@ -852,6 +852,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   }
 
   function start() {
+    _started = true;
     screen.userData.state = 'default';
     screen.userData.screenMesh.userData.action = 'openGlobeVideos';
     screen.userData.screenMesh.userData.hotspot = 'screen';
@@ -890,10 +891,22 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   const _css3dPos  = new THREE.Vector3();
   const _css3dQuat = new THREE.Quaternion();
 
+  let _isDragging = false;
+  let _started = false;
+
+  function startDrag() { _isDragging = true; }
+  function drag(movementX) { if (_isDragging) globe.rotation.y += movementX * 0.008; }
+  function endDrag() { _isDragging = false; }
+
   let elapsed = 0;
   function update(delta) {
     elapsed += delta;
-    globe.rotation.y += delta * 0.06;
+    if (!_isDragging) globe.rotation.y += delta * 0.06;
+
+    // Keep CSS3D overlay in sync with room visibility — the 3D screen mesh is hidden
+    // by setRoomVisibility when leaving the AI room, but CSS3D is a separate HTML layer
+    // that doesn't respect Three.js visibility. Sync it here every frame.
+    if (css3dObj && _started) css3dObj.visible = screen.visible;
 
     if (css3dObj && css3dObj.visible) {
       screen.userData.screenMesh.getWorldPosition(_css3dPos);
@@ -937,5 +950,5 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     screen.userData.screenMesh,
   ];
 
-  return { clickables, selectCountry, reset, unlock, start, update };
+  return { clickables, selectCountry, reset, unlock, start, update, startDrag, drag, endDrag };
 }

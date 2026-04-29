@@ -1,9 +1,82 @@
 // src/ui.js
 import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
 import { playIntro as runIntroDialogue } from './intro.js';
+import { ACHIEVEMENTS } from './achievements.js';
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function _achievementsCountWord(n) {
+  return ['Zero', 'One', 'Two', 'Three', 'Four'][n] ?? String(n);
+}
+
+export function renderAchievementsTab(state) {
+  const total = ACHIEVEMENTS.length;
+  const atMax = state.unlockedIds.size === total;
+  const nextThreshold = state.level * 100;
+  const xpInLevel = state.xp - (state.level - 1) * 100;
+  const fillPct = atMax ? 100 : Math.min(100, (xpInLevel / 100) * 100);
+
+  const subtitle = atMax
+    ? '// ALL EXHIBITS LOGGED'
+    : `// ${state.unlockedIds.size} of ${total} EXHIBITS LOGGED`;
+
+  const xpLabel = atMax ? `${state.xp} XP // MAX` : `${state.xp} / ${nextThreshold} XP`;
+
+  const polaroids = ACHIEVEMENTS.map((a, i) => {
+    const unlocked = state.unlockedIds.has(a.id);
+    return `
+      <div class="achievement-card ${unlocked ? 'achievement-card--unlocked' : 'achievement-card--locked'}">
+        <span class="achievement-card__corner achievement-card__corner--tl"></span>
+        <span class="achievement-card__corner achievement-card__corner--tr"></span>
+        <span class="achievement-card__corner achievement-card__corner--bl"></span>
+        <span class="achievement-card__corner achievement-card__corner--br"></span>
+        <div class="achievement-card__icon">${unlocked ? a.icon : '▢'}</div>
+        <div class="achievement-card__title">${unlocked ? a.title : 'DATA NOT ACQUIRED'}</div>
+        <div class="achievement-card__status">${unlocked ? '▣ ACQUIRED' : '▢ LOCKED'}</div>
+        ${unlocked ? `<div class="achievement-card__desc">${a.description}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const recentList = state.recent.length > 0 ? `
+    <div class="achievement-recent">
+      <h4>// RECENT TELEMETRY</h4>
+      <ul>
+        ${state.recent.map(r => {
+          const def = ACHIEVEMENTS.find(a => a.id === r.id);
+          const time = new Date(r.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          return `<li><span class="achievement-recent__time">[${time}]</span> ${def?.title ?? r.id}</li>`;
+        }).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  return `
+    <div class="scrapbook ach-tab">
+      <div class="scrapbook-page scrapbook-left ach-tab__page">
+        <h2 class="ach-tab__title">▸ EXPLORATION LOG</h2>
+        <div class="achievement-rank">
+          <div class="achievement-rank__level">[ LV.${String(state.level).padStart(2,'0')} ]</div>
+          <div class="achievement-rank__bar">
+            <div class="achievement-rank__bar-fill" style="width:${fillPct}%"></div>
+            ${atMax ? '<div class="achievement-rank__max">MAX</div>' : ''}
+          </div>
+          <div class="achievement-rank__xp">${xpLabel}</div>
+          <div class="achievement-rank__subtitle">${subtitle}</div>
+        </div>
+        ${recentList}
+      </div>
+      <div class="scrapbook-spine ach-tab__spine"></div>
+      <div class="scrapbook-page scrapbook-right ach-tab__page">
+        <h2 class="ach-tab__title">▸ DATA RECORDS</h2>
+        <div class="achievement-grid">
+          ${polaroids}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 export const INTRO_FLAG_KEY = 'cdn-gallery:intro-seen';
@@ -128,6 +201,7 @@ export function createUI(camera, renderer, controls, scene) {
   const inventoryOverlay = document.getElementById('inventory-overlay');
   const inventoryClose   = document.getElementById('inventory-close');
   const inventoryContent = document.getElementById('inventory-content');
+  window.__isInventoryOpen = () => !inventoryOverlay.classList.contains('hidden');
   // ── HUD ──────────────────────────────────────────
   function updateHUD(hotspotId) {
     breadcrumb.textContent = 'CDN GALLERY';
@@ -345,26 +419,11 @@ export function createUI(camera, renderer, controls, scene) {
   });
 
   // ── Inventory overlay ────────────────────────────
-  function openInventory() {
-    inventoryContent.innerHTML = `
-      <div class="scrapbook">
-        <div class="scrapbook-page scrapbook-left">
-          <h2 class="scrapbook-title">The Game Room</h2>
-          <div class="polaroid">
-            <div class="polaroid-img" style="background:#1a1a3e;display:flex;align-items:center;justify-content:center;">
-              <span style="font-size:32px">🎮</span>
-            </div>
-            <div class="polaroid-caption">My exploration so far</div>
-          </div>
-          <div class="sticky-note">
-            <h3>Tasks</h3>
-            <ul>
-              <li>Explore the game room</li>
-              <li>Read the wall panels</li>
-              <li>Visit the rabbit hole</li>
-              <li>Talk to the Guide</li>
-            </ul>
-          </div>
+  let _activeInventoryTab = 'profile';
+
+  function renderProfileTab() {
+    const inAIRoom = (typeof window !== 'undefined' && window.__getCurrentRoom?.() === 'ai');
+    const settingsBlock = inAIRoom ? '' : `
           <div class="sticky-note settings-stickynote">
             <h3>Settings</h3>
             <label class="sky-toggle" aria-label="Toggle day or night sky">
@@ -376,7 +435,27 @@ export function createUI(camera, renderer, controls, scene) {
                 <span class="sky-toggle-icon sky-toggle-moon" aria-hidden="true">🌙</span>
               </span>
             </label>
+          </div>`;
+    return `
+      <div class="scrapbook">
+        <div class="scrapbook-page scrapbook-left">
+          <h2 class="scrapbook-title">The AI Room</h2>
+          <div class="polaroid">
+            <div class="polaroid-img" style="background:#1a1a3e;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:32px">🎮</span>
+            </div>
+            <div class="polaroid-caption">My exploration so far</div>
           </div>
+          <div class="sticky-note">
+            <h3>Tasks</h3>
+            <ul>
+              <li>Explore the AI room</li>
+              <li>Read the wall panels</li>
+              <li>Visit the rabbit hole</li>
+              <li>Talk to the Guide</li>
+            </ul>
+          </div>
+          ${settingsBlock}
           <div class="scrapbook-doodle" style="position:absolute;bottom:20px;right:20px;font-size:24px;transform:rotate(-8deg);opacity:0.5">✨</div>
         </div>
         <div class="scrapbook-spine"></div>
@@ -385,7 +464,7 @@ export function createUI(camera, renderer, controls, scene) {
           <div class="discovery-grid">
             <div class="discovery-item found">
               <div class="discovery-thumb">🏛</div>
-              <div class="discovery-label">Game Room</div>
+              <div class="discovery-label">AI Room</div>
             </div>
             <div class="discovery-item found">
               <div class="discovery-thumb">📺</div>
@@ -401,25 +480,78 @@ export function createUI(camera, renderer, controls, scene) {
             </div>
           </div>
           <div class="scrapbook-page-num">1 / 20</div>
-          <div class="scrapbook-tabs">
-            <button class="scrapbook-tab">🏆 Achievements</button>
-            <button class="scrapbook-tab">👤 Profile</button>
-            <button class="scrapbook-tab">📚 Resources</button>
-            <button class="scrapbook-tab">🌐 CDN Website</button>
-          </div>
         </div>
       </div>
     `;
-    // Reflect current sky mode and wire the checkbox
-    const skyCheckbox = inventoryContent.querySelector('#sky-mode-checkbox');
-    if (skyCheckbox) {
-      skyCheckbox.checked = getSkyMode() === 'night';
-      skyCheckbox.addEventListener('change', () => {
-        const nextMode = skyCheckbox.checked ? 'night' : 'day';
-        setSkyMode(nextMode);
-        applySkyMode(scene, nextMode);
-      });
+  }
+
+  function renderTabSidebar(activeTab) {
+    return `
+      <div class="scrapbook-tabs">
+        <button class="scrapbook-tab ${activeTab==='achievements'?'is-active':''}" data-tab="achievements">🏆 Achievements</button>
+        <button class="scrapbook-tab ${activeTab==='profile'?'is-active':''}" data-tab="profile">👤 Profile</button>
+        <button class="scrapbook-tab" data-tab="resources">📚 Resources</button>
+        <button class="scrapbook-tab" data-tab="cdn">🌐 CDN Website</button>
+      </div>
+    `;
+  }
+
+  async function renderInventoryWithTab(tab) {
+    _activeInventoryTab = tab;
+    let body;
+    if (tab === 'achievements') {
+      const ach = await import('./achievements.js');
+      body = renderAchievementsTab(ach.getState());
+    } else {
+      body = renderProfileTab();
     }
+    inventoryContent.innerHTML = body + renderTabSidebar(tab);
+
+    if (tab === 'profile') wireSkyToggle();
+    if (tab === 'achievements') wireAchievementPolaroids();
+    wireTabButtons();
+  }
+
+  function wireTabButtons() {
+    inventoryContent.querySelectorAll('.scrapbook-tab[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        if (tab === 'achievements' || tab === 'profile') {
+          renderInventoryWithTab(tab);
+        }
+        // 'resources' and 'cdn' are out of scope — no-op for now.
+      });
+    });
+  }
+
+  function wireSkyToggle() {
+    const skyCheckbox = inventoryContent.querySelector('#sky-mode-checkbox');
+    if (!skyCheckbox) return;
+    skyCheckbox.checked = getSkyMode() === 'night';
+    skyCheckbox.addEventListener('change', () => {
+      // Defensive: never apply sky changes from inside the AI room
+      // (the toggle UI is already omitted there, but guard the handler
+      // too so future regressions can't re-introduce the night-sky leak).
+      if (window.__getCurrentRoom?.() === 'ai') return;
+      const nextMode = skyCheckbox.checked ? 'night' : 'day';
+      setSkyMode(nextMode);
+      applySkyMode(scene, nextMode);
+    });
+  }
+
+  function wireAchievementPolaroids() {
+    inventoryContent.querySelectorAll('.achievement-card--unlocked').forEach(el => {
+      el.addEventListener('click', () => {
+        const wasOpen = el.classList.contains('is-tapped');
+        inventoryContent.querySelectorAll('.achievement-card--unlocked.is-tapped')
+          .forEach(e => e.classList.remove('is-tapped'));
+        if (!wasOpen) el.classList.add('is-tapped');
+      });
+    });
+  }
+
+  async function openInventory() {
+    await renderInventoryWithTab(_activeInventoryTab);
     inventoryOverlay.classList.remove('hidden');
   }
 
@@ -1116,6 +1248,7 @@ export function createUI(camera, renderer, controls, scene) {
   });
 
   function openBook() {
+    import('./achievements.js').then(m => m.unlock('book'));
     bookOverlay.classList.remove('hidden');
     unlockForOverlay();
     spawnBookParticles();
@@ -1213,6 +1346,7 @@ export function createUI(camera, renderer, controls, scene) {
   let _globeStarted = false;
 
   function openGlobeVideos(onStart) {
+    import('./achievements.js').then(m => m.unlock('globe'));
     _onGlobeStart = onStart || null;
     if (_globeStarted) {
       globeVideosStartScreen.classList.add('hidden');
@@ -1248,6 +1382,7 @@ export function createUI(camera, renderer, controls, scene) {
   const fdmClose   = document.getElementById('findumonde-close');
 
   function openFinDuMonde() {
+    import('./achievements.js').then(m => m.unlock('globe'));
     fdmOverlay.classList.remove('hidden');
     unlockForOverlay();
   }

@@ -1,6 +1,6 @@
 // src/tests/ui.test.js
 import { describe, it, expect } from 'vitest';
-import { BOOK_PAGES, getNextPageIndex, getPrevPageIndex } from '../ui.js';
+import { BOOK_PAGES, getNextPageIndex, getPrevPageIndex, renderAchievementsTab } from '../ui.js';
 
 describe('Book overlay', () => {
   it('exposes a cover and interactive page', () => {
@@ -128,5 +128,60 @@ describe('Intro flag helpers', () => {
       setItem: () => { throw new Error('quota'); }
     };
     expect(() => markIntroSeen(storage)).not.toThrow();
+  });
+});
+
+describe('renderAchievementsTab', () => {
+  it('renders 4 card slots with correct unlocked/locked classes', () => {
+    const html = renderAchievementsTab({
+      unlockedIds: new Set(['book']),
+      xp: 100,
+      level: 2,
+      recent: [{ id: 'book', ts: Date.now() }],
+    });
+    expect((html.match(/class="achievement-card /g) || []).length).toBe(4);
+    expect((html.match(/achievement-card--unlocked/g) || []).length).toBe(1);
+    expect((html.match(/achievement-card--locked/g) || []).length).toBe(3);
+  });
+
+  it('shows level number and XP fraction below max', () => {
+    const html = renderAchievementsTab({
+      unlockedIds: new Set(['book', 'tv']),
+      xp: 200,
+      level: 3,
+      recent: [],
+    });
+    expect(html).toContain('LV.03');
+    expect(html).toContain('200 / 300 XP');
+  });
+
+  it('shows MAX label at level cap', () => {
+    const html = renderAchievementsTab({
+      unlockedIds: new Set(['book', 'tv', 'globe', 'cultureMap']),
+      xp: 400,
+      level: 5,
+      recent: [],
+    });
+    expect(html).toContain('MAX');
+    expect(html).not.toContain('500 XP');
+  });
+
+  it('shows description for unlocked, hides for locked', () => {
+    const html = renderAchievementsTab({
+      unlockedIds: new Set(['book']),
+      xp: 100,
+      level: 2,
+      recent: [],
+    });
+    expect(html).toContain('You read the AI');
+    expect(html).not.toContain('You watched the AI imagine');
+  });
+
+  it('hides recent stamps section when empty', () => {
+    const html = renderAchievementsTab({
+      unlockedIds: new Set(),
+      xp: 0, level: 1, recent: [],
+    });
+    expect(html).not.toContain('RECENT TELEMETRY');
   });
 });

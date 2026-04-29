@@ -20,9 +20,21 @@ import { createGlobeScreenInstallation } from "./scene/globe-screen.js";
 import { createNavigationState, createNavigationSystem } from "./navigation.js";
 import { createUI } from "./ui.js";
 import { applySkyMode, getSkyMode, clearSkyObjects } from "./sky.js";
-import { initHUD } from "./hud.js";
+import { initHUD, initAchievementToast } from "./hud.js";
+import {
+  initAchievements,
+  resetAchievements,
+  unlock,
+} from "./achievements.js";
 import { EffectComposer, RenderPass } from "postprocessing";
 import { GodraysPass } from "three-good-godrays";
+
+// TEMPORARY (playtest feedback): wipe achievement state on every page load
+// so testers see the toast on every visit. Remove resetAchievements() to
+// restore the persistent "earn once, keep forever" behaviour.
+resetAchievements();
+initAchievements();
+initAchievementToast();
 
 const canvas = document.getElementById("gallery-canvas");
 
@@ -635,7 +647,7 @@ hologramDiv.style.cssText = `
   border:1px solid rgba(255,255,255,0.35); border-top:2px solid rgba(0,212,255,0.9);
   border-bottom:2px solid rgba(255,255,255,0.5); border-radius:23px;
   box-shadow:inset 0 0 80px rgba(255,255,255,0.06),inset 0 0 160px rgba(0,212,255,0.06);
-  font-family:'Courier New',monospace; color:#fff; pointer-events:auto; cursor:pointer;
+  font-family:'Roboto',sans-serif; color:#fff; pointer-events:auto; cursor:pointer;
   display:flex; flex-direction:column;
   padding:60px 52px 260px 52px; backdrop-filter:blur(2px);
   opacity:0; transition:opacity 0.4s ease;
@@ -1306,6 +1318,7 @@ function _stopMagHint() {
 }
 
 function enterTVMode() {
+  unlock("tv");
   _cancelRelockOnKey();
   _freeCursorAfterTV = false;
   atTV = true;
@@ -1526,6 +1539,9 @@ addUpdateCallback((delta) => {
 const fadeOverlay = document.getElementById("fade-overlay");
 let currentRoom = "exterior"; // 'exterior', 'ai', or 'nature'
 let isTransitioning = false;
+
+// Expose current room for UI gating (e.g. inventory hides sky toggle in AI room)
+window.__getCurrentRoom = () => currentRoom;
 
 function transitionToRoom(targetRoom) {
   if (isTransitioning) return;
@@ -1903,6 +1919,22 @@ addUpdateCallback(() => {
     doorAutoTriggered = true;
     transitionToRoom("ai");
   }
+});
+
+// Globe drag-to-spin — works in FPS (pointer-locked) mode via movementX
+let _globeDragActive = false;
+document.addEventListener('mousedown', (e) => {
+  if (e.button === 0 && controls.isLocked) { _globeDragActive = true; globeScreen.startDrag(); }
+});
+// Capture phase — fires before PointerLockControls' bubble-phase handler.
+// stopImmediatePropagation prevents the controls from rotating the camera during drag.
+document.addEventListener('mousemove', (e) => {
+  if (!_globeDragActive || !controls.isLocked) return;
+  e.stopImmediatePropagation();
+  globeScreen.drag(e.movementX);
+}, { capture: true });
+document.addEventListener('mouseup', (e) => {
+  if (e.button === 0 && _globeDragActive) { _globeDragActive = false; globeScreen.endDrag(); }
 });
 
 animate();

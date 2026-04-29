@@ -654,7 +654,7 @@ export function createNatureRoom(scene) {
   }
   // Text
   sgnctx.fillStyle = '#2a1a08';
-  sgnctx.font = '18px Georgia, serif';
+  sgnctx.font = '18px "Roboto", sans-serif';
   sgnctx.textAlign = 'center';
 
   const signText = 'This garden is just an example of how this 3D gallery can expand in the future. With several rooms highlighting different research in a visual and engaging way.';
@@ -808,7 +808,7 @@ export function createNatureRoom(scene) {
   rlctx.clearRect(0, 0, 256, 48);
   rlctx.shadowColor = '#44ff88';
   rlctx.shadowBlur = 8;
-  rlctx.font = 'bold 22px sans-serif';
+  rlctx.font = 'bold 22px "Octosquares", sans-serif';
   rlctx.fillStyle = '#44ff88';
   rlctx.textAlign = 'center';
   rlctx.fillText('▸ RETURN TO AI ROOM ◂', 128, 32);
