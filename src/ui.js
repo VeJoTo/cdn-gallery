@@ -416,8 +416,10 @@ export function createUI(camera, renderer, controls, scene) {
   });
 
   // ── Inventory overlay ────────────────────────────
-  function openInventory() {
-    inventoryContent.innerHTML = `
+  let _activeInventoryTab = 'profile';
+
+  function renderProfileTab() {
+    return `
       <div class="scrapbook">
         <div class="scrapbook-page scrapbook-left">
           <h2 class="scrapbook-title">The Game Room</h2>
@@ -472,25 +474,74 @@ export function createUI(camera, renderer, controls, scene) {
             </div>
           </div>
           <div class="scrapbook-page-num">1 / 20</div>
-          <div class="scrapbook-tabs">
-            <button class="scrapbook-tab">🏆 Achievements</button>
-            <button class="scrapbook-tab">👤 Profile</button>
-            <button class="scrapbook-tab">📚 Resources</button>
-            <button class="scrapbook-tab">🌐 CDN Website</button>
-          </div>
         </div>
       </div>
     `;
-    // Reflect current sky mode and wire the checkbox
-    const skyCheckbox = inventoryContent.querySelector('#sky-mode-checkbox');
-    if (skyCheckbox) {
-      skyCheckbox.checked = getSkyMode() === 'night';
-      skyCheckbox.addEventListener('change', () => {
-        const nextMode = skyCheckbox.checked ? 'night' : 'day';
-        setSkyMode(nextMode);
-        applySkyMode(scene, nextMode);
-      });
+  }
+
+  function renderTabSidebar(activeTab) {
+    return `
+      <div class="scrapbook-tabs">
+        <button class="scrapbook-tab ${activeTab==='achievements'?'is-active':''}" data-tab="achievements">🏆 Achievements</button>
+        <button class="scrapbook-tab ${activeTab==='profile'?'is-active':''}" data-tab="profile">👤 Profile</button>
+        <button class="scrapbook-tab" data-tab="resources">📚 Resources</button>
+        <button class="scrapbook-tab" data-tab="cdn">🌐 CDN Website</button>
+      </div>
+    `;
+  }
+
+  async function renderInventoryWithTab(tab) {
+    _activeInventoryTab = tab;
+    let body;
+    if (tab === 'achievements') {
+      const ach = await import('./achievements.js');
+      body = renderAchievementsTab(ach.getState());
+    } else {
+      body = renderProfileTab();
     }
+    inventoryContent.innerHTML = body + renderTabSidebar(tab);
+
+    if (tab === 'profile') wireSkyToggle();
+    if (tab === 'achievements') wireAchievementPolaroids();
+    wireTabButtons();
+  }
+
+  function wireTabButtons() {
+    inventoryContent.querySelectorAll('.scrapbook-tab[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        if (tab === 'achievements' || tab === 'profile') {
+          renderInventoryWithTab(tab);
+        }
+        // 'resources' and 'cdn' are out of scope — no-op for now.
+      });
+    });
+  }
+
+  function wireSkyToggle() {
+    const skyCheckbox = inventoryContent.querySelector('#sky-mode-checkbox');
+    if (!skyCheckbox) return;
+    skyCheckbox.checked = getSkyMode() === 'night';
+    skyCheckbox.addEventListener('change', () => {
+      const nextMode = skyCheckbox.checked ? 'night' : 'day';
+      setSkyMode(nextMode);
+      applySkyMode(scene, nextMode);
+    });
+  }
+
+  function wireAchievementPolaroids() {
+    inventoryContent.querySelectorAll('.achievement-polaroid--unlocked').forEach(el => {
+      el.addEventListener('click', () => {
+        const wasOpen = el.classList.contains('is-tapped');
+        inventoryContent.querySelectorAll('.achievement-polaroid--unlocked.is-tapped')
+          .forEach(e => e.classList.remove('is-tapped'));
+        if (!wasOpen) el.classList.add('is-tapped');
+      });
+    });
+  }
+
+  async function openInventory() {
+    await renderInventoryWithTab(_activeInventoryTab);
     inventoryOverlay.classList.remove('hidden');
   }
 
