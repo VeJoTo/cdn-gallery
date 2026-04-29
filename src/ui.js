@@ -425,7 +425,7 @@ export function createUI(camera, renderer, controls, scene) {
     return `
       <div class="scrapbook">
         <div class="scrapbook-page scrapbook-left">
-          <h2 class="scrapbook-title">The Game Room</h2>
+          <h2 class="scrapbook-title">The AI Room</h2>
           <div class="polaroid">
             <div class="polaroid-img" style="background:#1a1a3e;display:flex;align-items:center;justify-content:center;">
               <span style="font-size:32px">🎮</span>
@@ -435,7 +435,7 @@ export function createUI(camera, renderer, controls, scene) {
           <div class="sticky-note">
             <h3>Tasks</h3>
             <ul>
-              <li>Explore the game room</li>
+              <li>Explore the AI room</li>
               <li>Read the wall panels</li>
               <li>Visit the rabbit hole</li>
               <li>Talk to the Guide</li>
@@ -461,7 +461,7 @@ export function createUI(camera, renderer, controls, scene) {
           <div class="discovery-grid">
             <div class="discovery-item found">
               <div class="discovery-thumb">🏛</div>
-              <div class="discovery-label">Game Room</div>
+              <div class="discovery-label">AI Room</div>
             </div>
             <div class="discovery-item found">
               <div class="discovery-thumb">📺</div>
