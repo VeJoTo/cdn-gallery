@@ -351,9 +351,10 @@ export function createExteriorRoom(scene) {
   // ── Surroundings ──
   // ────────────────────────────────────────────────────────────────
 
-  // ── Stone walls flanking the glasshus — warm sandstone ──
+  // ── Stone walls flanking the glasshus — clean white concrete to read
+  // as part of the CDN building shell, not a separate yellow surface
   const stoneMat = new THREE.MeshStandardMaterial({
-    color: 0xc4ad84,
+    color: 0xeae5db,
     roughness: 0.9,
     metalness: 0.0
   });
