@@ -16,15 +16,15 @@ export function createRoom(scene) {
   marbleCanvas.width = 1024; marbleCanvas.height = 1024;
   const mctx = marbleCanvas.getContext('2d');
 
-  // Base: cool light gray
-  mctx.fillStyle = '#b4bcc8';
+  // Base: brighter warm-gray marble
+  mctx.fillStyle = '#cdd2d8';
   mctx.fillRect(0, 0, 1024, 1024);
 
   // Subtle tonal gradient for depth
   const mgrad = mctx.createLinearGradient(0, 0, 1024, 1024);
-  mgrad.addColorStop(0,   'rgba(210, 215, 225, 0.45)');
-  mgrad.addColorStop(0.4, 'rgba(140, 150, 165, 0.30)');
-  mgrad.addColorStop(1,   'rgba(185, 192, 205, 0.40)');
+  mgrad.addColorStop(0,   'rgba(230, 234, 240, 0.45)');
+  mgrad.addColorStop(0.4, 'rgba(175, 182, 192, 0.30)');
+  mgrad.addColorStop(1,   'rgba(210, 215, 222, 0.40)');
   mctx.fillStyle = mgrad;
   mctx.fillRect(0, 0, 1024, 1024);
 
@@ -77,43 +77,14 @@ export function createRoom(scene) {
 
   const floorGeo = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
 
-  // Layer 1: Reflector with custom shader — reflections fade and blur based on the height
-  // of the reflected object. Low UV-y = floor-level content (clear); high UV-y = ceiling
-  // content (blurry and dark), because the mirror camera sees ceiling objects "high up".
+  // Layer 1: Reflector — mirrors the scene so neon strips appear in the floor
   const floorReflector = new Reflector(floorGeo, {
     clipBias: 0.003,
     textureWidth:  512,
     textureHeight: 512,
-    color: new THREE.Color(0x6a7d90),
+    color: new THREE.Color(0x8899aa),
   });
   floorReflector.rotation.x = -Math.PI / 2;
-
-  floorReflector.material.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace(
-      'gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );',
-      `
-      // Normalised UV inside the reflection render target.
-      // High y = ceiling (far from floor) → faded & blurry.
-      // Low y  = floor-level content → clear.
-      vec2 reflUV = clamp( vUv.xy / vUv.w, 0.0, 1.0 );
-      float fade = 1.0 - smoothstep( 0.30, 0.92, reflUV.y );
-
-      // Box blur that grows as fade drops (ceiling content gets blurrier).
-      vec2 texel = vec2( 1.0 / 512.0 );
-      float blurR = ( 1.0 - fade ) * 14.0;
-      vec4 b0 = texture2D( tDiffuse, reflUV );
-      vec4 b1 = texture2D( tDiffuse, clamp( reflUV + vec2(  blurR,  0.0 ) * texel, 0.0, 1.0 ) );
-      vec4 b2 = texture2D( tDiffuse, clamp( reflUV + vec2( -blurR,  0.0 ) * texel, 0.0, 1.0 ) );
-      vec4 b3 = texture2D( tDiffuse, clamp( reflUV + vec2(  0.0,  blurR ) * texel, 0.0, 1.0 ) );
-      vec4 b4 = texture2D( tDiffuse, clamp( reflUV + vec2(  0.0, -blurR ) * texel, 0.0, 1.0 ) );
-      vec4 blurredBase = b0 * 0.36 + b1 * 0.16 + b2 * 0.16 + b3 * 0.16 + b4 * 0.16;
-
-      vec3 result = blendOverlay( blurredBase.rgb, color ) * fade;
-      gl_FragColor = vec4( result, 1.0 );
-      `
-    );
-  };
-
   scene.add(floorReflector);
 
   // Layer 2: marble texture overlay — blends over the reflection so the floor still looks like stone
@@ -122,11 +93,11 @@ export function createRoom(scene) {
     new THREE.MeshPhysicalMaterial({
       map: marbleTex,
       transparent: true,
-      opacity: 0.60,
-      roughness: 0.04,
+      opacity: 0.65,
+      roughness: 0.35,
       metalness: 0.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.02,
+      clearcoat: 0.3,
+      clearcoatRoughness: 0.4,
       depthWrite: false,
     })
   );
