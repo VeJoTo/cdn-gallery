@@ -18,6 +18,7 @@ import { createObjects } from "./scene/objects.js";
 import { createNatureRoom, NATURE_CENTER_X } from "./scene/nature-room.js";
 import { createExteriorRoom } from "./scene/exterior-room.js";
 import { createGlobeScreenInstallation } from "./scene/globe-screen.js";
+import { createDoNotPressButton } from "./scene/do-not-press.js";
 import { createNavigationState, createNavigationSystem } from "./navigation.js";
 import { createUI } from "./ui.js";
 import { applySkyMode, getSkyMode, clearSkyObjects } from "./sky.js";
@@ -41,7 +42,7 @@ const canvas = document.getElementById("gallery-canvas");
 
 // ── Renderer ─────────────────────────────────────
 export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -73,7 +74,7 @@ camera.lookAt(-20, 1.6, 2);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener("resize", () => {
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -91,6 +92,7 @@ controls.maxPolarAngle = Math.PI - 0.05;
 
 const fpOverlay = document.getElementById("fp-overlay");
 const crosshair = document.getElementById("crosshair");
+const hoverLabelEl = document.getElementById("hover-label");
 fpOverlay.classList.remove("hidden");
 crosshair.classList.add("hidden");
 
@@ -163,6 +165,33 @@ const moveState = {
   left: false,
   right: false,
 };
+
+// ── Head-bob ────────────────────────────────────────
+// Subtle vertical sway while walking. Amplitude ramps in/out so the
+// camera never snaps when input changes.
+const BOB_AMP = 0.06;         // ±6 cm vertical sway — pronounced but not goofy
+const BOB_FREQ = 1.2;         // Hz — slightly brisker than walking-pace
+const BOB_RAMP = 6.0;         // exp ramp speed when starting/stopping
+const BOB_REDUCED_MOTION =
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+let _walkPhase = 0;
+let _bobAmpScale = 0; // 0..1, ramps with movement
+
+function updateHeadBob(delta, isMoving) {
+  if (BOB_REDUCED_MOTION) {
+    camera.position.y = EYE_HEIGHT;
+    return;
+  }
+  const target = isMoving ? 1 : 0;
+  _bobAmpScale += (target - _bobAmpScale) * Math.min(1, delta * BOB_RAMP);
+
+  if (isMoving) {
+    _walkPhase += delta * BOB_FREQ * Math.PI * 2;
+  }
+  camera.position.y = EYE_HEIGHT + Math.sin(_walkPhase) * BOB_AMP * _bobAmpScale;
+}
 
 document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT") return;
@@ -241,25 +270,30 @@ function updateMovement(delta) {
   if (moveState.backward) fwd -= 1;
   if (moveState.right) strafe += 1;
   if (moveState.left) strafe -= 1;
-  if (fwd === 0 && strafe === 0) return;
 
-  // Diagonal movement should not be faster than axis-aligned.
-  const len = Math.hypot(fwd, strafe);
-  const step = (MOVE_SPEED * delta) / len;
-  if (fwd !== 0) controls.moveForward(fwd * step);
-  if (strafe !== 0) controls.moveRight(strafe * step);
+  const isMoving = fwd !== 0 || strafe !== 0;
 
-  // Clamp to current room bounds + pin eye height.
-  const b = ROOM_BOUNDS[currentRoom];
-  camera.position.x = Math.max(
-    b.cx - b.halfW,
-    Math.min(b.cx + b.halfW, camera.position.x),
-  );
-  camera.position.z = Math.max(
-    b.cz - b.halfD,
-    Math.min(b.cz + b.halfD, camera.position.z),
-  );
-  camera.position.y = EYE_HEIGHT;
+  if (isMoving) {
+    // Diagonal movement should not be faster than axis-aligned.
+    const len = Math.hypot(fwd, strafe);
+    const step = (MOVE_SPEED * delta) / len;
+    if (fwd !== 0) controls.moveForward(fwd * step);
+    if (strafe !== 0) controls.moveRight(strafe * step);
+
+    // Clamp to current room bounds.
+    const b = ROOM_BOUNDS[currentRoom];
+    camera.position.x = Math.max(
+      b.cx - b.halfW,
+      Math.min(b.cx + b.halfW, camera.position.x),
+    );
+    camera.position.z = Math.max(
+      b.cz - b.halfD,
+      Math.min(b.cz + b.halfD, camera.position.z),
+    );
+  }
+
+  // Always run the bob update so amplitude can decay smoothly when input stops.
+  updateHeadBob(delta, isMoving);
 }
 
 // ── Render loop ───────────────────────────────────
@@ -270,6 +304,7 @@ export function addUpdateCallback(fn) {
   updateCallbacks.push(fn);
 }
 
+let _frameCounter = 0;
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
@@ -294,7 +329,9 @@ function animate() {
     _signSprite.scale.set(0, 0, 0);
     if (_signLight) _signLight.intensity = 0;
   }
-  updateHoverHighlight();
+  // Throttle hover raycast to every other frame — visually imperceptible
+  // but halves the per-frame raycaster cost while walking around.
+  if ((_frameCounter++ & 1) === 0) updateHoverHighlight();
   if (isTransitioning) {
     renderer.setClearColor(0x000000, 1);
     renderer.clear();
@@ -319,11 +356,13 @@ function trackChildren(builder) {
 // ── AI room ──
 let globeScreen;
 let kulturKartet;
+let doNotPress;
 let roomClickables = [];
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
   ({ clickables: roomClickables } = createRoom(scene));
   globeScreen = createGlobeScreenInstallation(scene, camera, cssScene);
   kulturKartet = createKulturKartet(scene);
+  doNotPress = createDoNotPressButton(scene);
   return createObjects(scene);
 });
 const { pedestal, tv, sceneUpdate, extras } = aiObjects;
@@ -1097,6 +1136,7 @@ window.__toggleMagnifier = () => {
 
 const clickableObjects = [
   pedestal,
+  doNotPress,
   ...extras,
   ...globeScreen.clickables,
   ...kulturKartet.clickables,
@@ -1627,6 +1667,7 @@ function updateHoverHighlight() {
       clearHoverGlow(lastHovered);
       lastHovered = null;
     }
+    if (hoverLabelEl) hoverLabelEl.classList.add("hidden");
     return;
   }
 
@@ -1650,6 +1691,17 @@ function updateHoverHighlight() {
 
   crosshair.style.color = hitObj ? "rgba(0,212,255,1)" : "rgba(0,212,255,0.4)";
   crosshair.style.fontSize = hitObj ? "28px" : "24px";
+
+  // Show / hide tooltip when the hovered object has a hoverLabel.
+  if (hoverLabelEl) {
+    const label = hitObj?.userData?.hoverLabel;
+    if (label) {
+      hoverLabelEl.textContent = label;
+      hoverLabelEl.classList.remove("hidden");
+    } else {
+      hoverLabelEl.classList.add("hidden");
+    }
+  }
 }
 
 // Returns true if this mesh lives inside a child clickable sub-group (e.g. a TV button),
@@ -1798,6 +1850,7 @@ document.addEventListener("mousedown", () => {
     globeScreen.selectCountry(obj.userData.country);
   if (action === "resetGlobeScreen") globeScreen.reset();
   if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
+  if (action === "rickRoll") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
   if (action === "exitToExterior")  window.__transitionToRoom("exterior");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");

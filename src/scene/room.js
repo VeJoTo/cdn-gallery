@@ -1,5 +1,6 @@
 // src/scene/room.js
 import * as THREE from 'three';
+import { Reflector } from 'three/addons/objects/Reflector.js';
 
 // Gallery dimensions — museum-hall scale, white cube.
 export const ROOM_WIDTH  = 16;  // X
@@ -10,34 +11,100 @@ export function createRoom(scene) {
   const wallMat = new THREE.MeshStandardMaterial({
     color: 0x0d1f33, metalness: 0.05, roughness: 0.85, side: THREE.DoubleSide
   });
-  // Tiled floor — one tile per canvas, repeated across the floor
-  const TILE_SIZE = 4; // 4 m per tile
-  const tileCanvas = document.createElement('canvas');
-  tileCanvas.width = 512; tileCanvas.height = 512;
-  const tctx = tileCanvas.getContext('2d');
-  tctx.fillStyle = '#252830';           // dark grey tile
-  tctx.fillRect(0, 0, 512, 512);
-  tctx.strokeStyle = '#0e1018';         // near-black grout
-  tctx.lineWidth = 6;
-  tctx.strokeRect(3, 3, 506, 506);
-  const tileTex = new THREE.CanvasTexture(tileCanvas);
-  tileTex.wrapS = tileTex.wrapT = THREE.RepeatWrapping;
-  tileTex.repeat.set(ROOM_WIDTH / TILE_SIZE, ROOM_DEPTH / TILE_SIZE);
-  tileTex.anisotropy = 8;
-  const floorMat = new THREE.MeshStandardMaterial({
-    map: tileTex, metalness: 0.1, roughness: 0.9
-  });
+  // Glossy marble floor — procedural gray marble with veining
+  const marbleCanvas = document.createElement('canvas');
+  marbleCanvas.width = 1024; marbleCanvas.height = 1024;
+  const mctx = marbleCanvas.getContext('2d');
+
+  // Base: bright light-gray marble
+  mctx.fillStyle = '#e0e4e8';
+  mctx.fillRect(0, 0, 1024, 1024);
+
+  // Subtle tonal gradient for depth
+  const mgrad = mctx.createLinearGradient(0, 0, 1024, 1024);
+  mgrad.addColorStop(0,   'rgba(245, 247, 250, 0.45)');
+  mgrad.addColorStop(0.4, 'rgba(200, 206, 214, 0.30)');
+  mgrad.addColorStop(1,   'rgba(228, 232, 237, 0.40)');
+  mctx.fillStyle = mgrad;
+  mctx.fillRect(0, 0, 1024, 1024);
+
+  // Dark veins — diagonal bezier curves
+  const veins = [
+    { x1: -20, y1: 180, cpx1: 280, cpy1:  80, cpx2: 700, cpy2: 300, x2: 1044, y2: 420, w: 2.8, a: 0.20 },
+    { x1: -20, y1: 480, cpx1: 180, cpy1: 560, cpx2: 600, cpy2: 380, x2: 1044, y2: 260, w: 1.6, a: 0.14 },
+    { x1: 120, y1: -20, cpx1: 360, cpy1: 280, cpx2: 480, cpy2: 640, x2: 680,  y2: 1044, w: 2.2, a: 0.16 },
+    { x1: 380, y1: -20, cpx1: 580, cpy1: 360, cpx2: 700, cpy2: 700, x2: 920,  y2: 1044, w: 1.4, a: 0.11 },
+    { x1: -20, y1: 720, cpx1: 400, cpy1: 820, cpx2: 700, cpy2: 680, x2: 1044, y2: 580, w: 3.2, a: 0.09 },
+    { x1:  60, y1: -20, cpx1: 200, cpy1: 400, cpx2: 300, cpy2: 700, x2: 200,  y2: 1044, w: 1.0, a: 0.13 },
+  ];
+  for (const v of veins) {
+    mctx.beginPath();
+    mctx.moveTo(v.x1, v.y1);
+    mctx.bezierCurveTo(v.cpx1, v.cpy1, v.cpx2, v.cpy2, v.x2, v.y2);
+    mctx.strokeStyle = `rgba(72, 82, 98, ${v.a})`;
+    mctx.lineWidth = v.w;
+    mctx.stroke();
+  }
+
+  // Light highlight veins
+  const lightVeins = [
+    { x1: -20, y1: 300, cpx1: 320, cpy1: 180, cpx2: 680, cpy2: 400, x2: 1044, y2: 500, w: 1.2, a: 0.28 },
+    { x1: 250, y1: -20, cpx1: 460, cpy1: 320, cpx2: 560, cpy2: 680, x2: 760,  y2: 1044, w: 0.9, a: 0.22 },
+  ];
+  for (const v of lightVeins) {
+    mctx.beginPath();
+    mctx.moveTo(v.x1, v.y1);
+    mctx.bezierCurveTo(v.cpx1, v.cpy1, v.cpx2, v.cpy2, v.x2, v.y2);
+    mctx.strokeStyle = `rgba(225, 232, 245, ${v.a})`;
+    mctx.lineWidth = v.w;
+    mctx.stroke();
+  }
+
+  // Large tile grout lines — 2×2 grid per texture repeat
+  mctx.strokeStyle = 'rgba(88, 98, 115, 0.30)';
+  mctx.lineWidth = 1.8;
+  mctx.beginPath(); mctx.moveTo(512, 0); mctx.lineTo(512, 1024); mctx.stroke();
+  mctx.beginPath(); mctx.moveTo(0, 512); mctx.lineTo(1024, 512); mctx.stroke();
+
+  const marbleTex = new THREE.CanvasTexture(marbleCanvas);
+  marbleTex.wrapS = marbleTex.wrapT = THREE.RepeatWrapping;
+  marbleTex.repeat.set(2, 3); // large slabs — ~8m × 7.3m per tile
+  marbleTex.anisotropy = 16;
+
   const ceilMat = new THREE.MeshStandardMaterial({
     color: 0x0a1420, metalness: 0.05, roughness: 0.9
   });
 
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
-    floorMat
+  const floorGeo = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
+
+  // Layer 1: Reflector — mirrors the scene so neon strips appear in the floor
+  const floorReflector = new Reflector(floorGeo, {
+    clipBias: 0.003,
+    textureWidth:  512,
+    textureHeight: 512,
+    color: new THREE.Color(0x8899aa),
+  });
+  floorReflector.rotation.x = -Math.PI / 2;
+  scene.add(floorReflector);
+
+  // Layer 2: marble texture overlay — blends over the reflection so the floor still looks like stone
+  const marbleOverlay = new THREE.Mesh(
+    floorGeo.clone(),
+    new THREE.MeshPhysicalMaterial({
+      map: marbleTex,
+      transparent: true,
+      opacity: 0.88,
+      roughness: 0.8,
+      metalness: 0.0,
+      clearcoat: 0.0,
+      clearcoatRoughness: 1.0,
+      depthWrite: false,
+    })
   );
-  floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  marbleOverlay.rotation.x = -Math.PI / 2;
+  marbleOverlay.position.y = 0.001;
+  marbleOverlay.receiveShadow = true;
+  scene.add(marbleOverlay);
 
   const ceil = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
@@ -233,7 +300,7 @@ export function createRoom(scene) {
   dirLight.shadow.camera.right = ROOM_WIDTH / 2;
   dirLight.shadow.camera.top = ROOM_DEPTH / 2;
   dirLight.shadow.camera.bottom = -ROOM_DEPTH / 2;
-  dirLight.shadow.mapSize.set(1024, 1024);
+  dirLight.shadow.mapSize.set(512, 512);
   scene.add(dirLight);
 
   // Ceiling point lights — warmer white to illuminate objects against dark walls.
@@ -261,6 +328,66 @@ export function createRoom(scene) {
     const el = new THREE.PointLight(0x00d4ff, 0.4, ROOM_HEIGHT * 2);
     el.position.set(x, ROOM_HEIGHT - 0.2, z);
     scene.add(el);
+  }
+
+  // ── CDN Logo floor decal ─────────────────────────────────────────────────
+  // Central hub circle with lines connecting to satellite circles placed in
+  // front of each interactive exhibit (door and portal excluded).
+  const logoMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 2.5,
+    roughness: 0.3, metalness: 0.2, side: THREE.DoubleSide,
+  });
+  const LOGO_Y = 0.005;
+
+  // Central ring — larger hub
+  const CENTER_R = 1.6;
+  const centRing = new THREE.Mesh(new THREE.RingGeometry(CENTER_R - 0.10, CENTER_R, 64), logoMat);
+  centRing.rotation.x = -Math.PI / 2;
+  centRing.position.y = LOGO_Y;
+  scene.add(centRing);
+
+  // Satellite circles — neon cyan ring with a coloured fill from the CDN logo palette
+  const SAT_R = 0.90;
+  const SAT_W = 0.08;
+  const logoSats = [
+    { x: -5.5, z: -2.75, hex: 0x0077b5 }, // Bookstand
+    { x: -6.0, z:  2.75, hex: 0x7db455 }, // TV
+    { x:  5.5, z:  8.0,  hex: 0x5087c5 }, // Arcade
+    { x:  0.0, z: -8.0,  hex: 0x009f95 }, // Fin du Monde
+    { x:  6.0, z:  3.0,  hex: 0x1ca2ba }, // Culture map
+  ];
+
+  for (const { x, z, hex } of logoSats) {
+    // Filled coloured disc (inside)
+    const fillMat = new THREE.MeshStandardMaterial({
+      color: hex, emissive: hex, emissiveIntensity: 1.4,
+      roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide,
+    });
+    const fill = new THREE.Mesh(new THREE.CircleGeometry(SAT_R - SAT_W, 48), fillMat);
+    fill.rotation.x = -Math.PI / 2;
+    fill.position.set(x, LOGO_Y, z);
+    scene.add(fill);
+
+    // Neon cyan ring outline on top
+    const ring = new THREE.Mesh(new THREE.RingGeometry(SAT_R - SAT_W, SAT_R, 48), logoMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(x, LOGO_Y + 0.001, z);
+    scene.add(ring);
+
+    // Neon cyan connector strip
+    const dist = Math.sqrt(x * x + z * z);
+    const len  = dist - CENTER_R - SAT_R;
+    const nx = x / dist, nz = z / dist;
+    const midX = nx * (CENTER_R + len / 2);
+    const midZ = nz * (CENTER_R + len / 2);
+
+    const connector = new THREE.Mesh(
+      new THREE.BoxGeometry(0.06, 0.01, Math.max(len, 0.01)),
+      logoMat,
+    );
+    connector.position.set(midX, LOGO_Y, midZ);
+    connector.rotation.y = Math.atan2(nx, nz);
+    scene.add(connector);
   }
 
   return { clickables: [doorClickTarget] };

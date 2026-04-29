@@ -11,6 +11,134 @@ function _achievementsCountWord(n) {
   return ['Zero', 'One', 'Two', 'Three', 'Four'][n] ?? String(n);
 }
 
+// Cache for /events.json — fetched lazily on first Events tab open
+let _eventsCache = null;
+async function loadEvents() {
+  if (_eventsCache) return _eventsCache;
+  try {
+    const res = await fetch(import.meta.env.BASE_URL + 'events.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _eventsCache = await res.json();
+  } catch (err) {
+    console.warn('[ui] could not load events.json:', err);
+    _eventsCache = { events: [], fetchedAt: null, sourceUrl: 'https://www.uib.no/en/cdn/calendar' };
+  }
+  return _eventsCache;
+}
+
+function _formatEventDate(iso) {
+  // E.g. "Wed, 14 May · 08:30"
+  const d = new Date(iso);
+  return d.toLocaleString([], {
+    weekday: 'short', day: '2-digit', month: 'short',
+    hour: '2-digit', minute: '2-digit',
+    hour12: false,
+  });
+}
+
+function _formatEventTimeRange(startIso, endIso) {
+  if (!endIso) return _formatEventDate(startIso);
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  const sameDay = start.toDateString() === end.toDateString();
+  const startStr = _formatEventDate(startIso);
+  if (sameDay) {
+    const endTime = end.toLocaleTimeString([], {
+      hour: '2-digit', minute: '2-digit', hour12: false,
+    });
+    return `${startStr} – ${endTime}`;
+  }
+  return `${startStr} – ${_formatEventDate(endIso)}`;
+}
+
+export function renderEventsTab(data) {
+  const events = data?.events ?? [];
+  const fetched = data?.fetchedAt
+    ? new Date(data.fetchedAt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })
+    : null;
+  const sourceUrl = data?.sourceUrl ?? 'https://www.uib.no/en/cdn/calendar';
+
+  const eventCards = events.length === 0
+    ? `<li class="events-empty">No upcoming events at the moment.</li>`
+    : events.map(e => `
+        <li class="events-card">
+          <div class="events-card__when">${_formatEventTimeRange(e.start, e.end)}</div>
+          <div class="events-card__title">${e.title ?? ''}</div>
+          ${e.location ? `<div class="events-card__loc">📍 ${e.location}</div>` : ''}
+          ${e.description ? `<div class="events-card__desc">${e.description}</div>` : ''}
+          ${e.url ? `<a class="events-card__link" href="${e.url}" target="_blank" rel="noopener noreferrer">Read more ↗</a>` : ''}
+        </li>
+      `).join('');
+
+  return `
+    <div class="scrapbook ach-tab">
+      <div class="scrapbook-page scrapbook-left ach-tab__page">
+        <h2 class="ach-tab__title">▸ CDN EVENTS</h2>
+        <p class="resources-blurb">
+          Upcoming talks, seminars, and gatherings hosted by the
+          Centre for Digital Narrative at the University of Bergen.
+        </p>
+        ${fetched ? `<p class="events-meta">// LAST UPDATED ${fetched}</p>` : ''}
+        <a class="events-source" href="${sourceUrl}" target="_blank" rel="noopener noreferrer">
+          View full calendar on uib.no ↗
+        </a>
+      </div>
+      <div class="scrapbook-spine ach-tab__spine"></div>
+      <div class="scrapbook-page scrapbook-right ach-tab__page">
+        <h2 class="ach-tab__title">▸ UPCOMING</h2>
+        <ul class="events-list">${eventCards}</ul>
+      </div>
+    </div>
+  `;
+}
+
+export function renderResourcesTab() {
+  // External resources surfaced in the inventory.
+  // To extend: add an entry to one of the lists below; URLs open in a new tab.
+  const aboutLinks = [
+    { label: 'CDN at the University of Bergen', url: 'https://www.uib.no/en/cdn' },
+    { label: 'CDN Collection', url: 'https://collection.cdn.uib.no/' },
+  ];
+
+  const exhibitLinks = [
+    { label: 'Fin du Monde', url: 'https://collection.cdn.uib.no/2024/05/10/fin-du-monde/' },
+    { label: 'The Culture Map', url: 'https://collection.cdn.uib.no/' },
+    { label: 'The Magical Book — folktale research', url: 'https://collection.cdn.uib.no/' },
+  ];
+
+  const linkList = (items) => items.map(({ label, url }) => `
+    <li class="resources-link">
+      <a href="${url}" target="_blank" rel="noopener noreferrer">
+        ${label}<span class="resources-link__arrow">↗</span>
+      </a>
+    </li>
+  `).join('');
+
+  return `
+    <div class="scrapbook ach-tab">
+      <div class="scrapbook-page scrapbook-left ach-tab__page">
+        <h2 class="ach-tab__title">▸ ABOUT CDN</h2>
+        <p class="resources-blurb">
+          The Centre for Digital Narrative at the University of Bergen
+          studies how computational media shape the stories we tell —
+          AI storytelling, interactive fiction, virtual worlds, digital
+          art. This gallery is a window into that work.
+        </p>
+        <ul class="resources-list">${linkList(aboutLinks)}</ul>
+      </div>
+      <div class="scrapbook-spine ach-tab__spine"></div>
+      <div class="scrapbook-page scrapbook-right ach-tab__page">
+        <h2 class="ach-tab__title">▸ THE EXHIBITS</h2>
+        <p class="resources-blurb">
+          Pieces shown in this gallery, with links to their original
+          sources in the CDN collection.
+        </p>
+        <ul class="resources-list">${linkList(exhibitLinks)}</ul>
+      </div>
+    </div>
+  `;
+}
+
 export function renderAchievementsTab(state) {
   const total = ACHIEVEMENTS.length;
   const atMax = state.unlockedIds.size === total;
@@ -490,8 +618,8 @@ export function createUI(camera, renderer, controls, scene) {
       <div class="scrapbook-tabs">
         <button class="scrapbook-tab ${activeTab==='achievements'?'is-active':''}" data-tab="achievements">🏆 Achievements</button>
         <button class="scrapbook-tab ${activeTab==='profile'?'is-active':''}" data-tab="profile">👤 Profile</button>
-        <button class="scrapbook-tab" data-tab="resources">📚 Resources</button>
-        <button class="scrapbook-tab" data-tab="cdn">🌐 CDN Website</button>
+        <button class="scrapbook-tab ${activeTab==='resources'?'is-active':''}" data-tab="resources">📚 Resources</button>
+        <button class="scrapbook-tab ${activeTab==='events'?'is-active':''}" data-tab="events">🗓 CDN Events</button>
       </div>
     `;
   }
@@ -502,6 +630,11 @@ export function createUI(camera, renderer, controls, scene) {
     if (tab === 'achievements') {
       const ach = await import('./achievements.js');
       body = renderAchievementsTab(ach.getState());
+    } else if (tab === 'resources') {
+      body = renderResourcesTab();
+    } else if (tab === 'events') {
+      const events = await loadEvents();
+      body = renderEventsTab(events);
     } else {
       body = renderProfileTab();
     }
@@ -516,10 +649,9 @@ export function createUI(camera, renderer, controls, scene) {
     inventoryContent.querySelectorAll('.scrapbook-tab[data-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-        if (tab === 'achievements' || tab === 'profile') {
+        if (tab === 'achievements' || tab === 'profile' || tab === 'resources' || tab === 'events') {
           renderInventoryWithTab(tab);
         }
-        // 'resources' and 'cdn' are out of scope — no-op for now.
       });
     });
   }

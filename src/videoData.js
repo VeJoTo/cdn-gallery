@@ -1,12 +1,10 @@
 // Three variants of in-depth info to create variety and curiosity
 const infoVariantA =
-  "These works move well beyond simple 'prompt and generate' methods. Each piece is a digital collage, hand-stitched from hundreds of individual AI-generated fragments. Nelson and Krauth treat AI as a painterly brush, exploiting its ability to anticipate and distort visual forms into something entirely new.";
-
+  "These pieces are more than simple 'prompts'. Each work is a digital collage, hand-made from hundreds of small AI-generated parts. Nelson and Krauth use AI as a digital brush, pushing the tech to stretch and distort visual shapes into something completely new.";
 const infoVariantB =
-  "Welcome to the world of Ultra Large Digital Narratives (ULDN). Here, AI is a medium for a new form of digital writing. Instead of a linear story, you are presented with an interactive world where fragments of narrative emerge across a vast visual display, weaving together the organic and the mechanical.";
-
+  "Welcome to Ultra Large Digital Narratives (ULDN). Here, AI is a tool for a new type of storytelling. Instead of a normal plot, you explore a world where story bits appear across a huge screen, mixing the biological with the mechanical.";
 const infoVariantC =
-  "What happens when AI is allowed to dream? In this series, the artists collaborate with algorithms to explore the 'uncanny' possibilities of machine art. The resulting creatures and machines exist in a state of constant mutation, challenging our understanding of digital life and artistic agency.";
+  "What happens when AI is allowed to dream? In this series, the artists work with algorithms to explore strange and machine-made art. These creatures and machines are always changing, questioning how we see digital life and human creativity.";
 
 export const aiArtVideos = [
   {
@@ -14,7 +12,7 @@ export const aiArtVideos = [
     title: "AlgoMutating Digital Creatures — Vid 5",
     artist: "Jason Nelson & Alinta Krauth",
     description:
-      "A study in movement. Observe how AI's anticipatory possibilities create fluid, dream-like animations.",
+      "Focus on the motion. See how the AI predicts movement to create smooth, dream-like animations that flow across the screen.",
     moreInfo: infoVariantA,
     uldn: true,
   },
@@ -32,7 +30,7 @@ export const aiArtVideos = [
     title: "AlgoMutating Digital Creatures — Vid 2",
     artist: "Jason Nelson & Alinta Krauth",
     description:
-      'A deeper dive into the "Ultra Large" scale. Notice the intricate layering of hundreds of individual AI fragments.',
+      "The start of the series. Watch how the first digital lifeforms grow and change through controlled computer code.",
     moreInfo: infoVariantC,
     uldn: true,
   },
@@ -41,7 +39,7 @@ export const aiArtVideos = [
     title: "AlgoMutating Digital Creatures — Vid 3",
     artist: "Jason Nelson & Alinta Krauth",
     description:
-      "Where the mechanical meets the biological. Explore the friction between fantastic machines and organic life.",
+      "Where machines meet nature. Explore the tension between strange mechanical parts and soft, organic shapes.",
     moreInfo: infoVariantA,
     uldn: true,
   },
@@ -51,7 +49,7 @@ export const aiArtVideos = [
     title: "AlgoMutating Digital Creatures — Vid 6",
     artist: "Jason Nelson & Alinta Krauth",
     description:
-      "The climax of the series. A complex visual landscape where every pixel tells a fragment of a hidden story.",
+      "The final piece of the series. A dense visual world where every single pixel helps tell a hidden, digital story.",
     moreInfo: infoVariantB,
     uldn: true,
   },
@@ -60,7 +58,8 @@ export const aiArtVideos = [
     title: "AI-collaborative Art-treehouse",
     artist: "Jason Nelson & Alinta Krauth",
     description:
-      "A vertical exploration of AI creativity. An organic structure built from digital layers, blending nature with code.",
+      "A vertical journey through AI art. An organic tower built from digital layers, mixing nature with computer code.",
+
     moreInfo: infoVariantC,
     uldn: true,
   },
