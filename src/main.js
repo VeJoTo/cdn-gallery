@@ -22,11 +22,7 @@ import { createNavigationState, createNavigationSystem } from "./navigation.js";
 import { createUI } from "./ui.js";
 import { applySkyMode, getSkyMode, clearSkyObjects } from "./sky.js";
 import { initHUD, initAchievementToast } from "./hud.js";
-import {
-  initAchievements,
-  resetAchievements,
-  unlock,
-} from "./achievements.js";
+import { initAchievements, resetAchievements, unlock } from "./achievements.js";
 import { EffectComposer, RenderPass } from "postprocessing";
 import { GodraysPass } from "three-good-godrays";
 
@@ -337,23 +333,35 @@ addUpdateCallback(globeScreen.update);
 addUpdateCallback((delta) => tickKartet(delta));
 
 // ── Kulturkartet fullscreen overlay ──
-const kulturkartetOverlay  = document.getElementById('kulturkartet-overlay');
-const kulturkartetClose    = document.getElementById('kulturkartet-close');
-const kulturkartetMapWrap  = document.getElementById('kulturkartet-map-wrap');
-const kulturkartetTextWrap = document.getElementById('kulturkartet-text-wrap');
-const kulturkartetBtnsEl   = document.getElementById('kulturkartet-btns');
+const kulturkartetOverlay = document.getElementById("kulturkartet-overlay");
+const kulturkartetClose = document.getElementById("kulturkartet-close");
+const kulturkartetMapWrap = document.getElementById("kulturkartet-map-wrap");
+const kulturkartetTextWrap = document.getElementById("kulturkartet-text-wrap");
+const kulturkartetBtnsEl = document.getElementById("kulturkartet-btns");
 
-function openKulturKartet(mode = 'explore') {
-  kulturkartetOverlay.classList.remove('hidden');
-  mountKartetDOMOverlay(kulturkartetMapWrap, kulturkartetTextWrap, kulturkartetBtnsEl, closeKulturKartet, mode);
+function openKulturKartet(mode = "explore") {
+  kulturkartetOverlay.classList.remove("hidden");
+  mountKartetDOMOverlay(
+    kulturkartetMapWrap,
+    kulturkartetTextWrap,
+    kulturkartetBtnsEl,
+    closeKulturKartet,
+    mode,
+  );
 }
 function closeKulturKartet() {
   unmountKartetDOMOverlay();
-  kulturkartetOverlay.classList.add('hidden');
-  try { controls.lock(); } catch { /* swallow */ }
+  kulturkartetOverlay.classList.add("hidden");
+  try {
+    controls.lock();
+  } catch {
+    /* swallow */
+  }
 }
-kulturkartetClose.addEventListener('click', closeKulturKartet);
-kulturkartetOverlay.addEventListener('click', (e) => { if (e.target === kulturkartetOverlay) closeKulturKartet(); });
+kulturkartetClose.addEventListener("click", closeKulturKartet);
+kulturkartetOverlay.addEventListener("click", (e) => {
+  if (e.target === kulturkartetOverlay) closeKulturKartet();
+});
 
 // Tiny floating animation on TV buttons — each offset by phase so they don't all move together
 {
@@ -699,7 +707,7 @@ function renderHoloPage(video) {
       }
       <div style="font-family:'Octosquares',sans-serif;padding-top:24px;padding-bottom:4px;font-size:22px;color:rgba(255,255,255,0.7);letter-spacing:2px;display:flex;justify-content:space-between;white-space:nowrap;border-top:1px solid rgba(255,255,255,0.1)">
         <span>CDN &nbsp;/&nbsp; ART &amp; AI ARCHIVE</span>
-        <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ''}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
+        <span>${multiPage ? `${currentHoloPage + 1}&thinsp;/&thinsp;${holoPages.length} &nbsp;·&nbsp; ` : ""}${currentVideoIndex + 1}&nbsp;/&nbsp;${aiArtVideos.length}</span>
       </div>
     </div>
   `;
@@ -1023,8 +1031,11 @@ magDiv.style.cssText = `
   border-radius:50%;
   border:3px solid #00d4ff;
   box-shadow:0 0 28px rgba(0,212,255,0.75),inset 0 0 18px rgba(0,0,0,0.5);
-  overflow:hidden; pointer-events:none; display:none; z-index:1000;
+  overflow:hidden; pointer-events:none; display:none; z-index:10000;
   transform:translate(-50%,-50%);
+  transition: opacity 1s ease-out; /* Fade */
+  will-change: opacity; /* Legg til denne */
+
 `;
 document.body.appendChild(magDiv);
 
@@ -1061,6 +1072,28 @@ function _positionMagIframe(mx, my) {
 
 document.addEventListener("mousemove", (e) => {
   if (!magActive) return;
+
+  // --- HER SKAL DEN NYE KODEN LIGGE ---
+  if (magActive && magDiv) {
+    const rect =
+      _tvRect ||
+      (typeof getTVScreenRect === "function" ? getTVScreenRect() : null);
+
+    if (rect) {
+      const isOutside =
+        e.clientX < rect.left ||
+        e.clientX > rect.left + rect.width ||
+        e.clientY < rect.top ||
+        e.clientY > rect.top + rect.height;
+
+      // Bruk kun opacity for selve faden
+      magDiv.style.opacity = isOutside ? "0" : "1";
+
+      // Bruk pointerEvents for å unngå at den usynlige sirkelen blokkerer klikk
+      magDiv.style.pointerEvents = isOutside ? "none" : "auto";
+    }
+  }
+  // --- SLUTT PÅ NY KODE ---
   magDiv.style.left = `${e.clientX}px`;
   magDiv.style.top = `${e.clientY}px`;
   _positionMagIframe(e.clientX, e.clientY);
@@ -1635,7 +1668,11 @@ function updateHoverHighlight() {
   const hitObj = hits.length ? findClickable(hits[0]) : null;
 
   // Wall button canvas hover state
-  const wallBtnHit = hitObj?.userData.action === "openKulturKartet" && hitObj.userData.btnIdx !== undefined ? hitObj : null;
+  const wallBtnHit =
+    hitObj?.userData.action === "openKulturKartet" &&
+    hitObj.userData.btnIdx !== undefined
+      ? hitObj
+      : null;
   updateKartetBtnHover(wallBtnHit ? wallBtnHit.userData.btnIdx : -1);
 
   if (lastHovered && lastHovered !== hitObj) {
@@ -1797,9 +1834,10 @@ document.addEventListener("mousedown", () => {
   if (action === "selectCountry")
     globeScreen.selectCountry(obj.userData.country);
   if (action === "resetGlobeScreen") globeScreen.reset();
-  if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
+  if (action === "openKulturKartet")
+    openKulturKartet(obj.userData.btnMode ?? "explore");
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
-  if (action === "exitToExterior")  window.__transitionToRoom("exterior");
+  if (action === "exitToExterior") window.__transitionToRoom("exterior");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");
   if (action === "enterAIRoom") window.__transitionToRoom("ai");
   // TV button actions only fire when the user is at the TV hotspot
@@ -1866,7 +1904,12 @@ document.addEventListener("mousedown", (e) => {
     for (const panel of [hologramDiv, playlistDiv]) {
       if (panel.style.opacity === "0") continue;
       const r = panel.getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+      if (
+        e.clientX >= r.left &&
+        e.clientX <= r.right &&
+        e.clientY >= r.top &&
+        e.clientY <= r.bottom
+      ) {
         nav.goTo("tv");
         return;
       }
@@ -1953,18 +1996,28 @@ addUpdateCallback(() => {
 
 // Globe drag-to-spin — works in FPS (pointer-locked) mode via movementX
 let _globeDragActive = false;
-document.addEventListener('mousedown', (e) => {
-  if (e.button === 0 && controls.isLocked) { _globeDragActive = true; globeScreen.startDrag(); }
+document.addEventListener("mousedown", (e) => {
+  if (e.button === 0 && controls.isLocked) {
+    _globeDragActive = true;
+    globeScreen.startDrag();
+  }
 });
 // Capture phase — fires before PointerLockControls' bubble-phase handler.
 // stopImmediatePropagation prevents the controls from rotating the camera during drag.
-document.addEventListener('mousemove', (e) => {
-  if (!_globeDragActive || !controls.isLocked) return;
-  e.stopImmediatePropagation();
-  globeScreen.drag(e.movementX);
-}, { capture: true });
-document.addEventListener('mouseup', (e) => {
-  if (e.button === 0 && _globeDragActive) { _globeDragActive = false; globeScreen.endDrag(); }
+document.addEventListener(
+  "mousemove",
+  (e) => {
+    if (!_globeDragActive || !controls.isLocked) return;
+    e.stopImmediatePropagation();
+    globeScreen.drag(e.movementX);
+  },
+  { capture: true },
+);
+document.addEventListener("mouseup", (e) => {
+  if (e.button === 0 && _globeDragActive) {
+    _globeDragActive = false;
+    globeScreen.endDrag();
+  }
 });
 
 animate();
