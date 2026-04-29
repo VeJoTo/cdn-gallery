@@ -890,10 +890,16 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   const _css3dPos  = new THREE.Vector3();
   const _css3dQuat = new THREE.Quaternion();
 
+  let _isDragging = false;
+
+  function startDrag() { _isDragging = true; }
+  function drag(movementX) { if (_isDragging) globe.rotation.y += movementX * 0.008; }
+  function endDrag() { _isDragging = false; }
+
   let elapsed = 0;
   function update(delta) {
     elapsed += delta;
-    globe.rotation.y += delta * 0.06;
+    if (!_isDragging) globe.rotation.y += delta * 0.06;
 
     if (css3dObj && css3dObj.visible) {
       screen.userData.screenMesh.getWorldPosition(_css3dPos);
@@ -937,5 +943,5 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     screen.userData.screenMesh,
   ];
 
-  return { clickables, selectCountry, reset, unlock, start, update };
+  return { clickables, selectCountry, reset, unlock, start, update, startDrag, drag, endDrag };
 }
