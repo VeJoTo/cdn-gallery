@@ -2065,6 +2065,7 @@ body:has(
 }
 
 #globe-videos-title {
+  font-family: 'Octosquares', sans-serif;
   font-size: 36px;
   font-weight: bold;
   color: #1b7ab8;
@@ -2154,6 +2155,7 @@ body:has(
 }
 
 .globe-video-title {
+  font-family: 'Octosquares', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: #e8f4ff;
