@@ -11,6 +11,53 @@ function _achievementsCountWord(n) {
   return ['Zero', 'One', 'Two', 'Three', 'Four'][n] ?? String(n);
 }
 
+export function renderResourcesTab() {
+  // External resources surfaced in the inventory.
+  // To extend: add an entry to one of the lists below; URLs open in a new tab.
+  const aboutLinks = [
+    { label: 'CDN at the University of Bergen', url: 'https://www.uib.no/en/cdn' },
+    { label: 'CDN Collection', url: 'https://collection.cdn.uib.no/' },
+  ];
+
+  const exhibitLinks = [
+    { label: 'Fin du Monde', url: 'https://collection.cdn.uib.no/2024/05/10/fin-du-monde/' },
+    { label: 'The Culture Map', url: 'https://collection.cdn.uib.no/' },
+    { label: 'The Magical Book — folktale research', url: 'https://collection.cdn.uib.no/' },
+  ];
+
+  const linkList = (items) => items.map(({ label, url }) => `
+    <li class="resources-link">
+      <a href="${url}" target="_blank" rel="noopener noreferrer">
+        ${label}<span class="resources-link__arrow">↗</span>
+      </a>
+    </li>
+  `).join('');
+
+  return `
+    <div class="scrapbook ach-tab">
+      <div class="scrapbook-page scrapbook-left ach-tab__page">
+        <h2 class="ach-tab__title">▸ ABOUT CDN</h2>
+        <p class="resources-blurb">
+          The Centre for Digital Narrative at the University of Bergen
+          studies how computational media shape the stories we tell —
+          AI storytelling, interactive fiction, virtual worlds, digital
+          art. This gallery is a window into that work.
+        </p>
+        <ul class="resources-list">${linkList(aboutLinks)}</ul>
+      </div>
+      <div class="scrapbook-spine ach-tab__spine"></div>
+      <div class="scrapbook-page scrapbook-right ach-tab__page">
+        <h2 class="ach-tab__title">▸ THE EXHIBITS</h2>
+        <p class="resources-blurb">
+          Pieces shown in this gallery, with links to their original
+          sources in the CDN collection.
+        </p>
+        <ul class="resources-list">${linkList(exhibitLinks)}</ul>
+      </div>
+    </div>
+  `;
+}
+
 export function renderAchievementsTab(state) {
   const total = ACHIEVEMENTS.length;
   const atMax = state.unlockedIds.size === total;
@@ -490,7 +537,7 @@ export function createUI(camera, renderer, controls, scene) {
       <div class="scrapbook-tabs">
         <button class="scrapbook-tab ${activeTab==='achievements'?'is-active':''}" data-tab="achievements">🏆 Achievements</button>
         <button class="scrapbook-tab ${activeTab==='profile'?'is-active':''}" data-tab="profile">👤 Profile</button>
-        <button class="scrapbook-tab" data-tab="resources">📚 Resources</button>
+        <button class="scrapbook-tab ${activeTab==='resources'?'is-active':''}" data-tab="resources">📚 Resources</button>
         <button class="scrapbook-tab" data-tab="cdn">🌐 CDN Website</button>
       </div>
     `;
@@ -502,6 +549,8 @@ export function createUI(camera, renderer, controls, scene) {
     if (tab === 'achievements') {
       const ach = await import('./achievements.js');
       body = renderAchievementsTab(ach.getState());
+    } else if (tab === 'resources') {
+      body = renderResourcesTab();
     } else {
       body = renderProfileTab();
     }
@@ -516,10 +565,10 @@ export function createUI(camera, renderer, controls, scene) {
     inventoryContent.querySelectorAll('.scrapbook-tab[data-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-        if (tab === 'achievements' || tab === 'profile') {
+        if (tab === 'achievements' || tab === 'profile' || tab === 'resources') {
           renderInventoryWithTab(tab);
         }
-        // 'resources' and 'cdn' are out of scope — no-op for now.
+        // 'cdn' is handled separately (#72) — opens in a new browser tab.
       });
     });
   }

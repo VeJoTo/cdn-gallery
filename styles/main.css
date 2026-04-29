@@ -3248,3 +3248,47 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   color: #0a0f1a;
 }
 
+
+/* ── Resources tab ─────────────────────────────────── */
+.resources-blurb {
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(214, 244, 251, 0.75);
+  margin: 4px 0 18px;
+}
+.resources-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.resources-link a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #d6f4fb;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: background 180ms, border-color 180ms, transform 180ms;
+}
+.resources-link a:hover {
+  background: rgba(0, 212, 255, 0.16);
+  border-color: #00d4ff;
+  transform: translateX(2px);
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.35);
+}
+.resources-link__arrow {
+  font-family: 'Roboto', sans-serif;
+  color: #00d4ff;
+  flex: 0 0 auto;
+}
