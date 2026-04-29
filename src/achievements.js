@@ -7,7 +7,7 @@ export const ACHIEVEMENTS = [
   { id: 'globe',      title: 'Doomsday Theorist',     description: 'You watched the AI imagine the end of the world.',     icon: '🌍', xp: 100 },
   { id: 'cultureMap', title: 'Cultural Cartographer', description: 'You mapped the geography of digital narrative.',       icon: '🗺',  xp: 100 },
   { id: 'book',       title: 'Folklorist',            description: 'You read the AI\'s retelling of a Norwegian folktale.', icon: '📖', xp: 100 },
-  { id: 'tv',         title: 'Archivist',             description: 'You spent time in the CDN broadcast archive.',          icon: '📺', xp: 100 },
+  { id: 'tv',         title: 'AI Artist',             description: 'You watched AI-generated art on the gallery TV.',       icon: '📺', xp: 100 },
 ];
 
 let _state = { unlocked: {} }; // id -> timestampMs
