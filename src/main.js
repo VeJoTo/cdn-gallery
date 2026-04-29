@@ -19,6 +19,7 @@ import { createNatureRoom, NATURE_CENTER_X } from "./scene/nature-room.js";
 import { createExteriorRoom } from "./scene/exterior-room.js";
 import { createGlobeScreenInstallation } from "./scene/globe-screen.js";
 import { createDoNotPressButton } from "./scene/do-not-press.js";
+import { handleRadioAction } from "./scene/radio.js";
 import { createNavigationState, createNavigationSystem } from "./navigation.js";
 import { createUI } from "./ui.js";
 import { applySkyMode, getSkyMode, clearSkyObjects } from "./sky.js";
@@ -1851,6 +1852,8 @@ document.addEventListener("mousedown", () => {
   if (action === "resetGlobeScreen") globeScreen.reset();
   if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
   if (action === "rickRoll") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
+  if (action === "radioPower" || action === "radioMode" || action === "radioNext")
+    handleRadioAction(action);
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
   if (action === "exitToExterior")  window.__transitionToRoom("exterior");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");
