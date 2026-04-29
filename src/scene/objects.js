@@ -5,6 +5,7 @@ import { buildTV } from "./tv.js";
 import { createSofa } from "./sofa.js";
 import { createArcade } from "./arcade.js";
 import { createChessTable } from "./chess-table.js";
+import { createRadio } from "./radio.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
@@ -1101,6 +1102,10 @@ export function createObjects(scene) {
   // (CDN's actual building has a chess board in the entrance)
   const chessTable = createChessTable(scene);
 
+  // Physical radio next to the sofa group — pointer-locked controls so
+  // the buttons live on the radio body itself (not an HTML overlay).
+  const radio = createRadio(scene);
+
   // Pac-Man arcade cabinet — entry wall, user's left
   const arcade = createArcade(scene);
 
@@ -1131,6 +1136,6 @@ export function createObjects(scene) {
     pedestal,
     tv,
     sceneUpdate,
-    extras: [pedestal, portal, tv, sofa, arcade, chessTable],
+    extras: [pedestal, portal, tv, sofa, arcade, chessTable, radio],
   };
 }
