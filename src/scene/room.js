@@ -130,7 +130,7 @@ export function createRoom(scene) {
     const handle = new THREE.Mesh(
       new THREE.BoxGeometry(0.03, 0.4, 0.03), doorHandleMat
     );
-    handle.position.set(dpx > 0 ? dpx - 0.13 : dpx + 0.13, 1.05, 0.05);
+    handle.position.set(dpx > 0 ? dpx - 0.13 : dpx + 0.13, 1.05, -0.05);
     doorGroup.add(handle);
   }
 
