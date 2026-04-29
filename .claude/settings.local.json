@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -q 'git commit' && echo '{\"systemMessage\": \"Reminder: update CLAUDE.md if this commit introduced new patterns, fixed bugs, or changed architecture.\"}' || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/rathidevieaswaran/Desktop/cdn-gallery && echo \"{\\\"systemMessage\\\": \\\"Session ended. Active branch: $(git branch --show-current). Remember to update CLAUDE.md with any new patterns, file changes, known issues, or branch updates before /clear.\\\"}\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
