@@ -68,52 +68,122 @@ state.on = false;
 
 // ── Audio iframe ────────────────────────────────────
 
-// CSS for the two iframe states (set inline so the file is self-contained)
+// ── Audio: YouTube (music) + Spotify iFrame API (podcast) ──────────
+
 const HIDDEN_FRAME_CSS =
   'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:0;visibility:hidden;';
-const VISIBLE_FRAME_CSS =
-  'position:fixed;bottom:16px;right:16px;width:340px;height:160px;border:0;visibility:visible;z-index:60;border-radius:12px;box-shadow:0 0 18px rgba(0,212,255,0.45),0 0 0 1px rgba(0,212,255,0.6);background:#0a1419;';
+const SPOTIFY_VISIBLE_CSS =
+  'position:fixed;bottom:16px;right:16px;width:340px;height:160px;border:0;visibility:visible;z-index:60;border-radius:12px;box-shadow:0 0 18px rgba(0,212,255,0.45),0 0 0 1px rgba(0,212,255,0.6);background:#0a1419;overflow:hidden;';
+const SPOTIFY_HIDDEN_CSS =
+  'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;visibility:hidden;border:0;';
 
-let _audioIframe = null;
-function ensureAudioIframe() {
-  if (_audioIframe) return _audioIframe;
-  _audioIframe = document.createElement('iframe');
-  _audioIframe.id = 'radio-audio';
-  _audioIframe.allow = 'autoplay; encrypted-media; clipboard-write';
-  _audioIframe.style.cssText = HIDDEN_FRAME_CSS;
-  document.body.appendChild(_audioIframe);
-  return _audioIframe;
+// YouTube iframe — hidden off-screen, audio-only
+let _ytFrame = null;
+function ensureYouTubeFrame() {
+  if (_ytFrame) return _ytFrame;
+  _ytFrame = document.createElement('iframe');
+  _ytFrame.id = 'radio-youtube';
+  _ytFrame.allow = 'autoplay; encrypted-media';
+  _ytFrame.style.cssText = HIDDEN_FRAME_CSS;
+  document.body.appendChild(_ytFrame);
+  return _ytFrame;
+}
+
+// Spotify EmbedController — loaded lazily on first podcast use. Spotify's
+// iFrame API replaces a placeholder div with its own iframe, so we don't
+// build the iframe ourselves.
+let _spotifyController = null;
+let _spotifyPending = null; // 'play' | 'pause' | { uri } — queued while loading
+let _spotifySetup = false;
+
+function ensureSpotifyController() {
+  if (_spotifyController || _spotifySetup) return;
+  if (typeof window === 'undefined') return;
+  _spotifySetup = true;
+
+  // Container the API will turn into an iframe. Visible by default —
+  // toggleSpotifyVisible() hides it when not playing.
+  const container = document.createElement('div');
+  container.id = 'radio-spotify-container';
+  container.style.cssText = SPOTIFY_HIDDEN_CSS;
+  document.body.appendChild(container);
+
+  // Inject the SDK script
+  const script = document.createElement('script');
+  script.src = 'https://open.spotify.com/embed/iframe-api/v1';
+  script.async = true;
+  document.head.appendChild(script);
+
+  window.onSpotifyIframeApiReady = (IFrameAPI) => {
+    const showId = PODCAST_CHANNELS[0]?.spotifyShowId;
+    if (!showId) return;
+    IFrameAPI.createController(
+      container,
+      {
+        uri: `spotify:show:${showId}`,
+        width: '100%',
+        height: '100%',
+      },
+      (controller) => {
+        _spotifyController = controller;
+        // Drain any queued action that fired before the controller was ready
+        if (_spotifyPending === 'play') {
+          controller.play();
+          toggleSpotifyVisible(true);
+        } else if (_spotifyPending === 'pause') {
+          controller.pause();
+          toggleSpotifyVisible(false);
+        }
+        _spotifyPending = null;
+      }
+    );
+  };
+}
+
+function toggleSpotifyVisible(visible) {
+  const c = document.getElementById('radio-spotify-container');
+  if (!c) return;
+  c.style.cssText = visible ? SPOTIFY_VISIBLE_CSS : SPOTIFY_HIDDEN_CSS;
+}
+
+function spotifyPlay() {
+  ensureSpotifyController();
+  if (_spotifyController) {
+    _spotifyController.play();
+    toggleSpotifyVisible(true);
+  } else {
+    _spotifyPending = 'play';
+  }
+}
+
+function spotifyPause() {
+  if (_spotifyController) {
+    _spotifyController.pause();
+    toggleSpotifyVisible(false);
+  } else {
+    _spotifyPending = 'pause';
+  }
 }
 
 function applyAudio() {
-  const frame = ensureAudioIframe();
+  const yt = ensureYouTubeFrame();
+
+  // Off — silence both sides
   if (!state.on) {
-    frame.src = '';
-    frame.style.cssText = HIDDEN_FRAME_CSS;
+    yt.src = '';
+    spotifyPause();
     return;
   }
-  const list = state.mode === 'music' ? MUSIC_CHANNELS : PODCAST_CHANNELS;
-  const idx = state.mode === 'music' ? state.musicChannel : state.podcastChannel;
-  const ch = list[idx];
-  if (!ch) {
-    frame.src = '';
-    frame.style.cssText = HIDDEN_FRAME_CSS;
-    return;
-  }
-  if (ch.videoId) {
-    // YouTube — autoplay works after the user-gesture click on the power
-    // button. Keep the iframe hidden off-screen; audio still plays.
-    frame.src = `https://www.youtube.com/embed/${ch.videoId}?autoplay=1`;
-    frame.style.cssText = HIDDEN_FRAME_CSS;
-  } else if (ch.spotifyShowId) {
-    // Spotify embeds don't autoplay (Spotify policy). Show the player as
-    // a small visible widget in the bottom-right so the user can pick an
-    // episode and hit play.
-    frame.src = `https://open.spotify.com/embed/show/${ch.spotifyShowId}?utm_source=generator&theme=0`;
-    frame.style.cssText = VISIBLE_FRAME_CSS;
-  } else {
-    frame.src = '';
-    frame.style.cssText = HIDDEN_FRAME_CSS;
+
+  if (state.mode === 'music') {
+    const ch = MUSIC_CHANNELS[state.musicChannel];
+    yt.src = ch?.videoId
+      ? `https://www.youtube.com/embed/${ch.videoId}?autoplay=1`
+      : '';
+    spotifyPause();
+  } else if (state.mode === 'podcast') {
+    yt.src = ''; // stop YouTube
+    spotifyPlay();
   }
 }
 
