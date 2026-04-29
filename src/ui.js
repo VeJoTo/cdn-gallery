@@ -422,6 +422,20 @@ export function createUI(camera, renderer, controls, scene) {
   let _activeInventoryTab = 'profile';
 
   function renderProfileTab() {
+    const inAIRoom = (typeof window !== 'undefined' && window.__getCurrentRoom?.() === 'ai');
+    const settingsBlock = inAIRoom ? '' : `
+          <div class="sticky-note settings-stickynote">
+            <h3>Settings</h3>
+            <label class="sky-toggle" aria-label="Toggle day or night sky">
+              <span class="sky-toggle-label">Sky</span>
+              <span class="sky-toggle-pill">
+                <span class="sky-toggle-icon sky-toggle-sun" aria-hidden="true">☀</span>
+                <input type="checkbox" class="sky-toggle-input" id="sky-mode-checkbox" />
+                <span class="sky-toggle-knob"></span>
+                <span class="sky-toggle-icon sky-toggle-moon" aria-hidden="true">🌙</span>
+              </span>
+            </label>
+          </div>`;
     return `
       <div class="scrapbook">
         <div class="scrapbook-page scrapbook-left">
@@ -441,18 +455,7 @@ export function createUI(camera, renderer, controls, scene) {
               <li>Talk to the Guide</li>
             </ul>
           </div>
-          <div class="sticky-note settings-stickynote">
-            <h3>Settings</h3>
-            <label class="sky-toggle" aria-label="Toggle day or night sky">
-              <span class="sky-toggle-label">Sky</span>
-              <span class="sky-toggle-pill">
-                <span class="sky-toggle-icon sky-toggle-sun" aria-hidden="true">☀</span>
-                <input type="checkbox" class="sky-toggle-input" id="sky-mode-checkbox" />
-                <span class="sky-toggle-knob"></span>
-                <span class="sky-toggle-icon sky-toggle-moon" aria-hidden="true">🌙</span>
-              </span>
-            </label>
-          </div>
+          ${settingsBlock}
           <div class="scrapbook-doodle" style="position:absolute;bottom:20px;right:20px;font-size:24px;transform:rotate(-8deg);opacity:0.5">✨</div>
         </div>
         <div class="scrapbook-spine"></div>
@@ -526,6 +529,10 @@ export function createUI(camera, renderer, controls, scene) {
     if (!skyCheckbox) return;
     skyCheckbox.checked = getSkyMode() === 'night';
     skyCheckbox.addEventListener('change', () => {
+      // Defensive: never apply sky changes from inside the AI room
+      // (the toggle UI is already omitted there, but guard the handler
+      // too so future regressions can't re-introduce the night-sky leak).
+      if (window.__getCurrentRoom?.() === 'ai') return;
       const nextMode = skyCheckbox.checked ? 'night' : 'day';
       setSkyMode(nextMode);
       applySkyMode(scene, nextMode);
