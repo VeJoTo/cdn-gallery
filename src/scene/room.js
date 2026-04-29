@@ -8,7 +8,7 @@ export const ROOM_HEIGHT = 7;   // Y
 
 export function createRoom(scene) {
   const wallMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, metalness: 0.0, roughness: 0.95, side: THREE.DoubleSide
+    color: 0x0d1f33, metalness: 0.05, roughness: 0.85, side: THREE.DoubleSide
   });
   // Tiled floor — one tile per canvas, repeated across the floor
   const TILE_SIZE = 4; // 4 m per tile
@@ -28,7 +28,7 @@ export function createRoom(scene) {
     map: tileTex, metalness: 0.1, roughness: 0.9
   });
   const ceilMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, metalness: 0.0, roughness: 0.9
+    color: 0x0a1420, metalness: 0.05, roughness: 0.9
   });
 
   const floor = new THREE.Mesh(
@@ -82,16 +82,43 @@ export function createRoom(scene) {
   frontWall.receiveShadow = true;
   scene.add(frontWall);
 
-  // ── Lighting ──
-  // Bright, flat, gallery-style. Strong ambient + hemi so walls don't go grey,
-  // plus a grid of soft overhead point lights for subtle falloff.
-  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+  // ── Neon edge strips ──────────────────────────────────────────────────────
+  const neonMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 3.0,
+  });
+  const SW = 0.06; // strip width
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xeeeeee, 0.6);
+  // Ceiling edge strips (all 4 walls, at y = ROOM_HEIGHT)
+  const ceilStrips = [
+    { w: ROOM_WIDTH,  d: SW, x: 0,               z: -ROOM_DEPTH / 2, },  // back
+    { w: ROOM_WIDTH,  d: SW, x: 0,               z:  ROOM_DEPTH / 2, },  // front
+    { w: SW, d: ROOM_DEPTH,  x: -ROOM_WIDTH / 2, z: 0,               },  // left
+    { w: SW, d: ROOM_DEPTH,  x:  ROOM_WIDTH / 2, z: 0,               },  // right
+  ];
+  for (const { w, d, x, z } of ceilStrips) {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(w, SW, d), neonMat);
+    strip.position.set(x, ROOM_HEIGHT, z);
+    scene.add(strip);
+  }
+
+  // Floor edge strips (dimmer — ambient glow, not full brightness)
+  const floorNeonMat = neonMat.clone();
+  floorNeonMat.emissiveIntensity = 1.2;
+  for (const { w, d, x, z } of ceilStrips) {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(w, SW, d), floorNeonMat);
+    strip.position.set(x, 0, z);
+    scene.add(strip);
+  }
+
+  // ── Lighting ──────────────────────────────────────────────────────────────
+  // Darker ambient to suit the navy walls; cyan-tinted hemi for sci-fi tone.
+  scene.add(new THREE.AmbientLight(0x0a1828, 1.2));
+
+  const hemi = new THREE.HemisphereLight(0x1a3a5c, 0x050c14, 0.8);
   hemi.position.set(0, ROOM_HEIGHT, 0);
   scene.add(hemi);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
   dirLight.position.set(0, ROOM_HEIGHT + 4, 0);
   dirLight.castShadow = true;
   dirLight.shadow.camera.near = 0.5;
@@ -103,7 +130,7 @@ export function createRoom(scene) {
   dirLight.shadow.mapSize.set(1024, 1024);
   scene.add(dirLight);
 
-  // Ceiling point lights — reduced from 12 to 4, higher intensity to maintain brightness.
+  // Ceiling point lights — warmer white to illuminate objects against dark walls.
   const rows = 2, cols = 2;
   const xStep = ROOM_WIDTH / (cols + 1);
   const zStep = ROOM_DEPTH / (rows + 1);
@@ -111,9 +138,22 @@ export function createRoom(scene) {
     for (let c = 1; c <= cols; c++) {
       const px = -ROOM_WIDTH / 2 + c * xStep;
       const pz = -ROOM_DEPTH / 2 + r * zStep;
-      const lamp = new THREE.PointLight(0xffffff, 0.7, ROOM_HEIGHT * 3.5);
+      const lamp = new THREE.PointLight(0xddeeff, 1.2, ROOM_HEIGHT * 4);
       lamp.position.set(px, ROOM_HEIGHT - 0.3, pz);
       scene.add(lamp);
     }
+  }
+
+  // Cyan neon point lights from the edge strips — subtle bloom along walls
+  const edgeLights = [
+    { x: 0,              z: -ROOM_DEPTH / 2 },
+    { x: 0,              z:  ROOM_DEPTH / 2 },
+    { x: -ROOM_WIDTH / 2, z: 0              },
+    { x:  ROOM_WIDTH / 2, z: 0              },
+  ];
+  for (const { x, z } of edgeLights) {
+    const el = new THREE.PointLight(0x00d4ff, 0.4, ROOM_HEIGHT * 2);
+    el.position.set(x, ROOM_HEIGHT - 0.2, z);
+    scene.add(el);
   }
 }
