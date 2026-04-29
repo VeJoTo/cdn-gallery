@@ -37,6 +37,15 @@ export function initAchievements() {
   _state = _readFromStorage();
 }
 
+export function resetAchievements() {
+  _state = { unlocked: {} };
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (err) {
+    console.warn('[achievements] localStorage clear failed:', err);
+  }
+}
+
 function _readFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

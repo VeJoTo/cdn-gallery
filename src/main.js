@@ -21,10 +21,18 @@ import { createNavigationState, createNavigationSystem } from "./navigation.js";
 import { createUI } from "./ui.js";
 import { applySkyMode, getSkyMode, clearSkyObjects } from "./sky.js";
 import { initHUD, initAchievementToast } from "./hud.js";
-import { initAchievements, unlock } from "./achievements.js";
+import {
+  initAchievements,
+  resetAchievements,
+  unlock,
+} from "./achievements.js";
 import { EffectComposer, RenderPass } from "postprocessing";
 import { GodraysPass } from "three-good-godrays";
 
+// TEMPORARY (playtest feedback): wipe achievement state on every page load
+// so testers see the toast on every visit. Remove resetAchievements() to
+// restore the persistent "earn once, keep forever" behaviour.
+resetAchievements();
 initAchievements();
 initAchievementToast();
 
