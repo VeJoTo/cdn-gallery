@@ -319,8 +319,9 @@ function trackChildren(builder) {
 // ── AI room ──
 let globeScreen;
 let kulturKartet;
+let roomClickables = [];
 const { result: aiObjects, added: aiRoomChildren } = trackChildren(() => {
-  createRoom(scene);
+  ({ clickables: roomClickables } = createRoom(scene));
   globeScreen = createGlobeScreenInstallation(scene, camera, cssScene);
   kulturKartet = createKulturKartet(scene);
   return createObjects(scene);
@@ -1429,6 +1430,7 @@ const { result: exteriorRoom, added: exteriorRoomChildren } = trackChildren(
   () => createExteriorRoom(scene),
 );
 clickableObjects.push(...exteriorRoom.clickables);
+clickableObjects.push(...roomClickables);
 
 const roomChildren = {
   ai: aiRoomChildren,
@@ -1797,6 +1799,7 @@ document.addEventListener("mousedown", () => {
   if (action === "resetGlobeScreen") globeScreen.reset();
   if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
+  if (action === "exitToExterior")  window.__transitionToRoom("exterior");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");
   if (action === "enterAIRoom") window.__transitionToRoom("ai");
   // TV button actions only fire when the user is at the TV hotspot
@@ -1925,6 +1928,26 @@ addUpdateCallback(() => {
   if (Math.abs(camera.position.x - -20) <= 0.55 && camera.position.z <= -0.1) {
     doorAutoTriggered = true;
     transitionToRoom("ai");
+  }
+});
+
+// Auto-transition when player walks into the interior exit door.
+// The trigger only arms once the player has walked away from the spawn point
+// (z < 9.0), so entering the AI room doesn't immediately re-trigger the exit.
+let exitDoorArmed = false;
+addUpdateCallback(() => {
+  if (currentRoom !== "ai") {
+    exitDoorArmed = false;
+    return;
+  }
+  // Arm once player has moved away from the door area
+  if (!exitDoorArmed && camera.position.z < 9.0) {
+    exitDoorArmed = true;
+  }
+  if (!exitDoorArmed) return;
+  if (Math.abs(camera.position.x) <= 0.6 && camera.position.z >= 9.7) {
+    exitDoorArmed = false;
+    transitionToRoom("exterior");
   }
 });
 

@@ -82,6 +82,62 @@ export function createRoom(scene) {
   frontWall.receiveShadow = true;
   scene.add(frontWall);
 
+  // ── Door on front wall — matches exterior glass double door exactly ──
+  const doorGroup = new THREE.Group();
+  doorGroup.position.set(0, 0, ROOM_DEPTH / 2 - 0.05);
+  doorGroup.scale.setScalar(1.1);
+  scene.add(doorGroup);
+
+  const doorFrameMat = new THREE.MeshStandardMaterial({
+    color: 0xa8a090, roughness: 0.3, metalness: 0.7
+  });
+
+  // Top header
+  const doorFrameTop = new THREE.Mesh(
+    new THREE.BoxGeometry(1.1, 0.07, 0.07), doorFrameMat
+  );
+  doorFrameTop.position.set(0, 2.2, 0);
+  doorGroup.add(doorFrameTop);
+
+  // Side posts
+  for (const fx of [-0.55, 0.55]) {
+    const sidePost = new THREE.Mesh(
+      new THREE.BoxGeometry(0.07, 2.2, 0.07), doorFrameMat
+    );
+    sidePost.position.set(fx, 1.1, 0);
+    doorGroup.add(sidePost);
+  }
+
+  // Glass panels + handles
+  const doorPanelMat = new THREE.MeshPhysicalMaterial({
+    color: 0xddeeff, transparent: true, opacity: 0.35,
+    roughness: 0.04, metalness: 0.1, side: THREE.DoubleSide
+  });
+
+  for (const dpx of [-0.265, 0.265]) {
+    const panel = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.53, 2.1), doorPanelMat
+    );
+    panel.position.set(dpx, 1.1, 0.01);
+    panel.raycast = () => {};
+    doorGroup.add(panel);
+
+    const handle = new THREE.Mesh(
+      new THREE.BoxGeometry(0.03, 0.4, 0.03), doorFrameMat
+    );
+    handle.position.set(dpx > 0 ? dpx - 0.13 : dpx + 0.13, 1.05, 0.05);
+    doorGroup.add(handle);
+  }
+
+  // Invisible click target covering the full door opening
+  const doorClickTarget = new THREE.Mesh(
+    new THREE.BoxGeometry(1.0, 2.2, 0.2),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+  );
+  doorClickTarget.position.set(0, 1.1, 0);
+  doorClickTarget.userData = { clickable: true, action: 'exitToExterior', label: 'Exit' };
+  doorGroup.add(doorClickTarget);
+
   // ── Neon edge strips ──────────────────────────────────────────────────────
   const neonMat = new THREE.MeshStandardMaterial({
     color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 3.0,
@@ -201,4 +257,6 @@ export function createRoom(scene) {
     el.position.set(x, ROOM_HEIGHT - 0.2, z);
     scene.add(el);
   }
+
+  return { clickables: [doorClickTarget] };
 }
