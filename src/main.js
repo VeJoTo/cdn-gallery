@@ -2033,7 +2033,7 @@ document.addEventListener('mouseup', (e) => {
       radius: 3.2,
       pages: [
         "What happens when AI tries to tell stories set in different countries? Does it actually succeed in capturing the different cultures?",
-        "This is a research project that asked an AI to write a unique story for every country in the world, expecting 236 different tales shaped by different cultures and traditions. Instead, every single one had the exact same plot — proving that AI doesn't actually understand culture, it just repeats the same story with different names and places."
+        "This is a research project that asked an AI to write a unique story for every country in the world, expecting 236 different tales shaped by different cultures and traditions. Instead, every single one had the exact same plot, proving that AI doesn't actually understand culture, it just repeats the same story with different names and places."
       ]
     },
     {
@@ -2049,7 +2049,8 @@ document.addEventListener('mouseup', (e) => {
       pos: new THREE.Vector3(-6.5, 0, -9.0),
       radius: 3.2,
       pages: [
-        "How generalising is AI? This is a research project that asked an AI to retell a dark Norwegian folktale called The Sweetheart in the Forest — a story about a young woman who outwits a murderer in the woods. Take a look at how AI interprets the folklore!"
+        "How generalising is AI?",
+        "This is a research project that asked an AI to retell a dark Norwegian folktale called The Sweetheart in the Forest, a story about a young woman who outwits a murderer in the woods. Take a look at how AI interpret the folklore!"
       ]
     }
   ];
