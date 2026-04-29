@@ -2038,8 +2038,8 @@ document.addEventListener('mouseup', (e) => {
     },
     {
       id: 'tv-sofa',
-      pos: new THREE.Vector3(-4, 1.0, 0),
-      radius: 3.2,
+      pos: new THREE.Vector3(-5.5, 1.0, 2.75),
+      radius: 4.5,
       pages: [
         "Take a seat in the sofa and explore a collection of videos showcasing innovative research projects from the Center for Digital Narrative!"
       ]
