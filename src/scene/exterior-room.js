@@ -304,24 +304,84 @@ export function createExteriorRoom(scene) {
   };
   doorGroup.add(doorClickTarget);
 
-  // Floating "Click to enter" label above door
+  // Floating "Walk or click to enter" label above door — dark cyan pill
+  // for contrast against the cream glasshus wall.
   const enterCanvas = document.createElement('canvas');
-  enterCanvas.width = 512;
-  enterCanvas.height = 64;
+  enterCanvas.width = 768;
+  enterCanvas.height = 96;
   const ectx = enterCanvas.getContext('2d');
-  ectx.clearRect(0, 0, 512, 64);
-  ectx.shadowColor = '#ffffff';
-  ectx.shadowBlur = 6;
-  ectx.font = 'bold 28px Arial, sans-serif';
-  ectx.fillStyle = '#ffffff';
-  ectx.textAlign = 'center';
-  ectx.fillText('▸ Walk or click to enter ◂', 256, 40);
+
+  function drawEnterLabel() {
+    const W = 768, H = 96;
+    ectx.clearRect(0, 0, W, H);
+
+    // Rounded-rect dark pill with cyan border and outer glow
+    const padX = 20, padY = 14;
+    const rx = padX, ry = padY, rw = W - padX * 2, rh = H - padY * 2;
+    const radius = rh / 2;
+
+    function roundedRect(x, y, w, h, r) {
+      ectx.beginPath();
+      ectx.moveTo(x + r, y);
+      ectx.lineTo(x + w - r, y);
+      ectx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ectx.lineTo(x + w, y + h - r);
+      ectx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ectx.lineTo(x + r, y + h);
+      ectx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ectx.lineTo(x, y + r);
+      ectx.quadraticCurveTo(x, y, x + r, y);
+      ectx.closePath();
+    }
+
+    // Outer glow
+    ectx.shadowColor = '#5ee0ff';
+    ectx.shadowBlur = 24;
+    ectx.fillStyle = 'rgba(10, 22, 32, 0.92)';
+    roundedRect(rx, ry, rw, rh, radius);
+    ectx.fill();
+    ectx.shadowBlur = 0;
+
+    // Cyan border
+    ectx.strokeStyle = '#5ee0ff';
+    ectx.lineWidth = 2;
+    roundedRect(rx, ry, rw, rh, radius);
+    ectx.stroke();
+
+    // Cyan text with soft glow
+    ectx.shadowColor = '#5ee0ff';
+    ectx.shadowBlur = 10;
+    ectx.font = '700 28px "JetBrains Mono", "SF Mono", "Menlo", monospace';
+    ectx.fillStyle = '#e8faff';
+    ectx.textAlign = 'center';
+    ectx.textBaseline = 'middle';
+    ectx.fillText('▸ WALK OR CLICK TO ENTER ◂', W / 2, H / 2);
+    ectx.shadowBlur = 0;
+  }
+
+  drawEnterLabel();
+  // Redraw when JetBrains Mono finishes loading.
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      drawEnterLabel();
+      enterTex.needsUpdate = true;
+    });
+  }
+
   const enterTex = new THREE.CanvasTexture(enterCanvas);
+  enterTex.anisotropy = 4;
   const enterLabel = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.4, 0.18),
-    new THREE.MeshBasicMaterial({ map: enterTex, transparent: true, side: THREE.DoubleSide })
+    new THREE.PlaneGeometry(2.0, 0.25),
+    new THREE.MeshBasicMaterial({
+      map: enterTex,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false, // avoids alpha-vs-depth glitch
+    })
   );
-  enterLabel.position.set(0, 2.6, 0);
+  // Push forward in z so it's not coplanar with the door frame / glass
+  enterLabel.position.set(0, 2.6, 0.06);
+  enterLabel.renderOrder = 2;
   doorGroup.add(enterLabel);
 
   // Small downward arrow indicator
