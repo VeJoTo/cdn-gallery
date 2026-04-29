@@ -1921,6 +1921,22 @@ addUpdateCallback(() => {
   }
 });
 
+// Globe drag-to-spin — works in FPS (pointer-locked) mode via movementX
+let _globeDragActive = false;
+document.addEventListener('mousedown', (e) => {
+  if (e.button === 0 && controls.isLocked) { _globeDragActive = true; globeScreen.startDrag(); }
+});
+// Capture phase — fires before PointerLockControls' bubble-phase handler.
+// stopImmediatePropagation prevents the controls from rotating the camera during drag.
+document.addEventListener('mousemove', (e) => {
+  if (!_globeDragActive || !controls.isLocked) return;
+  e.stopImmediatePropagation();
+  globeScreen.drag(e.movementX);
+}, { capture: true });
+document.addEventListener('mouseup', (e) => {
+  if (e.button === 0 && _globeDragActive) { _globeDragActive = false; globeScreen.endDrag(); }
+});
+
 animate();
 initHUD();
 
