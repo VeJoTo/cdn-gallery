@@ -780,7 +780,7 @@ export function createKulturKartet(scene) {
     new THREE.PlaneGeometry(PW, PH),
     new THREE.MeshBasicMaterial({ map: _mapTex, side: THREE.DoubleSide })
   );
-  mapMesh.position.set(WALL_X, 2.3, 4.3);
+  mapMesh.position.set(WALL_X, 2.3, 2.0);
   mapMesh.rotation.y = -Math.PI / 2;
   mapMesh.userData = { clickable: true, action: 'openKulturKartet' };
   scene.add(mapMesh);
@@ -789,7 +789,7 @@ export function createKulturKartet(scene) {
     new THREE.PlaneGeometry(PW, PH),
     new THREE.MeshBasicMaterial({ map: _textTex, side: THREE.DoubleSide })
   );
-  textMesh.position.set(WALL_X, 2.3, 6.3);
+  textMesh.position.set(WALL_X, 2.3, 4.0);
   textMesh.rotation.y = -Math.PI / 2;
   textMesh.userData = { clickable: true, action: 'openKulturKartet' };
   scene.add(textMesh);
@@ -797,7 +797,7 @@ export function createKulturKartet(scene) {
   // ── Neon sign (Fin du Monde pattern, wall-mounted) ──────────────────────
   const SIGN_W = 3.4;
   const SIGN_H = SIGN_W * (140 / 1024); // preserve canvas aspect ratio ≈ 0.465
-  const SIGN_Y = 3.65, SIGN_Z = 5.3;
+  const SIGN_Y = 3.65, SIGN_Z = 3.0;
 
   // Dark navy backing board — thin box sits flush on the wall, protrudes slightly
   const backingMat = new THREE.MeshStandardMaterial({
@@ -830,13 +830,13 @@ export function createKulturKartet(scene) {
     new THREE.PlaneGeometry(0.01, PH),
     new THREE.MeshBasicMaterial({ color: 0x004455 })
   );
-  sep.position.set(WALL_X, 2.3, 5.3);
+  sep.position.set(WALL_X, 2.3, 3.0);
   sep.rotation.y = -Math.PI / 2;
   scene.add(sep);
 
   // ── Buttons (2 × Button 1 style, centred across the panel span)
   const BTN_SW = 1.1, BTN_SH = 0.28;
-  const BTN_ZS = [4.6, 6.0]; // centred at z=5.3 with 0.3-unit gap
+  const BTN_ZS = [2.3, 3.7]; // centred at z=3.0 with 0.7-unit gap
 
   for (let i = 0; i < BTN_LABELS.length; i++) {
     const bCanvas = document.createElement('canvas');

@@ -110,6 +110,51 @@ export function createRoom(scene) {
     scene.add(strip);
   }
 
+  // ── Wall pilasters ───────────────────────────────────────────────────────
+  const pilasterMat = new THREE.MeshStandardMaterial({
+    color: 0x0a1628, metalness: 0.3, roughness: 0.6,
+  });
+  const pilasterNeonMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 2.5,
+  });
+  const PW = 0.25; // face width
+  const PD = 0.08; // protrusion depth
+  const PH = ROOM_HEIGHT;
+
+  // Side walls — 3 pilasters per wall at z = ±ROOM_DEPTH/4 and 0
+  for (const z of [-ROOM_DEPTH / 4, 0, ROOM_DEPTH / 4]) {
+    const lp = new THREE.Mesh(new THREE.BoxGeometry(PD, PH, PW), pilasterMat);
+    lp.position.set(-ROOM_WIDTH / 2 + PD / 2, PH / 2, z);
+    scene.add(lp);
+    const lpn = new THREE.Mesh(new THREE.BoxGeometry(0.01, PH, 0.04), pilasterNeonMat);
+    lpn.position.set(-ROOM_WIDTH / 2 + PD + 0.006, PH / 2, z);
+    scene.add(lpn);
+
+    const rp = new THREE.Mesh(new THREE.BoxGeometry(PD, PH, PW), pilasterMat);
+    rp.position.set(ROOM_WIDTH / 2 - PD / 2, PH / 2, z);
+    scene.add(rp);
+    const rpn = new THREE.Mesh(new THREE.BoxGeometry(0.01, PH, 0.04), pilasterNeonMat);
+    rpn.position.set(ROOM_WIDTH / 2 - PD - 0.006, PH / 2, z);
+    scene.add(rpn);
+  }
+
+  // End walls — 2 pilasters per wall at x = ±ROOM_WIDTH/4
+  for (const x of [-ROOM_WIDTH / 4, ROOM_WIDTH / 4]) {
+    const bp = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, PD), pilasterMat);
+    bp.position.set(x, PH / 2, -ROOM_DEPTH / 2 + PD / 2);
+    scene.add(bp);
+    const bpn = new THREE.Mesh(new THREE.BoxGeometry(0.04, PH, 0.01), pilasterNeonMat);
+    bpn.position.set(x, PH / 2, -ROOM_DEPTH / 2 + PD + 0.006);
+    scene.add(bpn);
+
+    const fp = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, PD), pilasterMat);
+    fp.position.set(x, PH / 2, ROOM_DEPTH / 2 - PD / 2);
+    scene.add(fp);
+    const fpn = new THREE.Mesh(new THREE.BoxGeometry(0.04, PH, 0.01), pilasterNeonMat);
+    fpn.position.set(x, PH / 2, ROOM_DEPTH / 2 - PD - 0.006);
+    scene.add(fpn);
+  }
+
   // ── Lighting ──────────────────────────────────────────────────────────────
   // Darker ambient to suit the navy walls; cyan-tinted hemi for sci-fi tone.
   scene.add(new THREE.AmbientLight(0x0a1828, 1.2));

@@ -781,17 +781,17 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   const Z = -9.5;
 
   const screen = buildScreen();
-  screen.position.set(2.0, 1.5, Z);
+  screen.position.set(-1.75, 1.5, Z);
   scene.add(screen);
 
   const pedestal = buildPedestal();
-  pedestal.position.set(5.5, 0, Z);
+  pedestal.position.set(1.75, 0, Z);
   pedestal.scale.setScalar(GLOBE_SCALE);
   scene.add(pedestal);
 
   const globe = buildGlobe(screen);
   // Base top is ~0.08 * GLOBE_SCALE; globe radius is 0.5 * GLOBE_SCALE — sit just above base
-  globe.position.set(5.5, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, Z);
+  globe.position.set(1.75, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, Z);
   globe.scale.setScalar(GLOBE_SCALE);
   scene.add(globe);
 
@@ -802,11 +802,45 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   }
 
   const areaLight = new THREE.PointLight(CDN.blue, 0.8, 10);
-  areaLight.position.set(3.7, 3.5, Z + 0.5);
+  areaLight.position.set(0.0, 3.5, Z + 0.5);
   scene.add(areaLight);
 
-  // Neon arch sign spanning both screen and globe
-  buildNeonSign(scene, 0.0, 7.3, Z);
+  // "Fin du Monde" lettering on the back wall
+  const wallSignCanvas = document.createElement('canvas');
+  wallSignCanvas.width = 2048; wallSignCanvas.height = 256;
+  const wallSignCtx = wallSignCanvas.getContext('2d');
+  const wallSignTex = new THREE.CanvasTexture(wallSignCanvas);
+
+  function drawWallSign() {
+    wallSignCtx.clearRect(0, 0, 2048, 256);
+    wallSignCtx.textAlign = 'center';
+    wallSignCtx.textBaseline = 'middle';
+    wallSignCtx.font = "bold 200px 'Octosquares', sans-serif";
+    for (const [blur, alpha, color] of [
+      [80, 0.12, '#00d4ff'],
+      [40, 0.28, '#00d4ff'],
+      [15, 0.55, '#00d4ff'],
+      [4,  0.85, '#00d4ff'],
+      [0,  1.00, '#e8f8ff'],
+    ]) {
+      wallSignCtx.shadowColor = '#00d4ff';
+      wallSignCtx.shadowBlur = blur;
+      wallSignCtx.globalAlpha = alpha;
+      wallSignCtx.fillStyle = color;
+      wallSignCtx.fillText('Fin du Monde', 1024, 128);
+    }
+    wallSignCtx.globalAlpha = 1;
+    wallSignTex.needsUpdate = true;
+  }
+  drawWallSign();
+  document.fonts.load("180px 'Octosquares'").then(() => drawWallSign());
+
+  const wallSign = new THREE.Mesh(
+    new THREE.PlaneGeometry(6.0, 0.75),
+    new THREE.MeshBasicMaterial({ map: wallSignTex, transparent: true, depthWrite: false })
+  );
+  wallSign.position.set(0, 4.9, -10.97);
+  scene.add(wallSign);
 
   // ── CSS3D overlay — renders real HTML on the screen surface ──
   let css3dObj = null;
