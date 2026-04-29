@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
-function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
+function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.1) {
   const g = new THREE.Group();
   g.position.set(xPos, yPos, 0.13); // flush with TV frame front face
 
@@ -22,8 +22,11 @@ function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
   const D = 0.008; // shallow depth — shading does the 3D work
 
   const extOpts = {
-    depth: D, bevelEnabled: true,
-    bevelSize: 0.004, bevelThickness: 0.004, bevelSegments: 5,
+    depth: D,
+    bevelEnabled: true,
+    bevelSize: 0.004,
+    bevelThickness: 0.004,
+    bevelSegments: 5,
   };
 
   function extruded(shape) {
@@ -49,7 +52,8 @@ function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
       // exit point — leave corner toward next
       const lx = curr[0] + (next[0] - curr[0]) * t2;
       const ly = curr[1] + (next[1] - curr[1]) * t2;
-      if (i === 0) shape.moveTo(ex, ey); else shape.lineTo(ex, ey);
+      if (i === 0) shape.moveTo(ex, ey);
+      else shape.lineTo(ex, ey);
       shape.quadraticCurveTo(curr[0], curr[1], lx, ly);
     }
     shape.closePath();
@@ -75,65 +79,80 @@ function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
     const r = w / 2;
     const m = new THREE.Mesh(
       new THREE.CapsuleGeometry(r, Math.max(h - w, 0), 8, 16),
-      mat()
+      mat(),
     );
     return m;
   }
 
   const H = S * 0.44;
 
-  const iconGroup  = new THREE.Group();
-  let   pauseGroup = null;
+  const iconGroup = new THREE.Group();
+  let pauseGroup = null;
 
-  if (icon === '▶') {
-    iconGroup.add(extrudedTriangle([
-      [-H * 0.65, -H], [-H * 0.65, H], [H * 0.85, 0],
-    ]));
+  if (icon === "▶") {
+    iconGroup.add(
+      extrudedTriangle([
+        [-H * 0.65, -H],
+        [-H * 0.65, H],
+        [H * 0.85, 0],
+      ]),
+    );
 
     // Pre-build pause bars (hidden until toggled on)
     pauseGroup = new THREE.Group();
-    const bw = S * 0.14, bh = S * 0.82, gap = S * 0.19;
-    const lb = capsule(bw, bh); lb.position.x = -gap; pauseGroup.add(lb);
-    const rb = capsule(bw, bh); rb.position.x =  gap; pauseGroup.add(rb);
+    const bw = S * 0.14,
+      bh = S * 0.82,
+      gap = S * 0.19;
+    const lb = capsule(bw, bh);
+    lb.position.x = -gap;
+    pauseGroup.add(lb);
+    const rb = capsule(bw, bh);
+    rb.position.x = gap;
+    pauseGroup.add(rb);
     pauseGroup.visible = false;
     g.add(pauseGroup);
-
-  } else if (icon === '▶|') {
+  } else if (icon === "▶|") {
     const tri = extrudedTriangle([
-      [-H * 0.70, -H * 0.85], [-H * 0.70, H * 0.85], [H * 0.18, 0],
+      [-H * 0.7, -H * 0.85],
+      [-H * 0.7, H * 0.85],
+      [H * 0.18, 0],
     ]);
     const bar = capsule(S * 0.11, S * 0.85);
-    bar.position.x = H * 0.60;
+    bar.position.x = H * 0.6;
     iconGroup.add(tri, bar);
-
-  } else if (icon === '|◀') {
+  } else if (icon === "|◀") {
     const tri = extrudedTriangle([
-      [H * 0.70, -H * 0.85], [H * 0.70, H * 0.85], [-H * 0.18, 0],
+      [H * 0.7, -H * 0.85],
+      [H * 0.7, H * 0.85],
+      [-H * 0.18, 0],
     ]);
     const bar = capsule(S * 0.11, S * 0.85);
-    bar.position.x = -H * 0.60;
+    bar.position.x = -H * 0.6;
     iconGroup.add(bar, tri);
-
-  } else if (icon === 'PL') {
+  } else if (icon === "PL") {
     // Playlist icon — small ▶ triangle + three horizontal bars
     const tri = extrudedTriangle([
-      [-S * 0.18, -S * 0.28], [-S * 0.18, S * 0.28], [S * 0.10, 0],
+      [-S * 0.18, -S * 0.28],
+      [-S * 0.18, S * 0.28],
+      [S * 0.1, 0],
     ]);
-    tri.position.x = -S * 0.30;
+    tri.position.x = -S * 0.3;
     iconGroup.add(tri);
-    const barH = S * 0.09, barW = S * 0.48, gap = S * 0.26;
+    const barH = S * 0.09,
+      barW = S * 0.48,
+      gap = S * 0.26;
     for (let i = -1; i <= 1; i++) {
       const bar = box(barW, barH);
       bar.position.set(S * 0.12, i * gap, 0);
       iconGroup.add(bar);
     }
-
-  } else if (icon === 'MAG+') {
+  } else if (icon === "MAG+") {
     // Large lens — slim TorusGeometry gives a proper rounded donut cross-section
-    const lx = -S * 0.06, ly = S * 0.08;
+    const lx = -S * 0.06,
+      ly = S * 0.08;
     const lens = new THREE.Mesh(
       new THREE.TorusGeometry(S * 0.28, S * 0.04, 12, 48),
-      mat()
+      mat(),
     );
     lens.position.set(lx, ly, 0);
 
@@ -143,62 +162,97 @@ function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
     // With h=S*0.26, top-offset from center = (-(h/2)*0.707, +(h/2)*0.707) = (-S*0.092, S*0.092)
     // → center = top - topOffset = (S*0.109+S*0.092, -S*0.089-S*0.092) = (S*0.201, -S*0.181)
     const handle = capsule(S * 0.13, S * 0.26);
-    handle.position.set(S * 0.20, -S * 0.18, 0);
+    handle.position.set(S * 0.2, -S * 0.18, 0);
     handle.rotation.z = Math.PI / 4;
 
     // + inside the lens
-    const ph = box(S * 0.06, S * 0.24); ph.position.set(lx, ly, 0);
-    const pv = box(S * 0.24, S * 0.06); pv.position.set(lx, ly, 0);
+    const ph = box(S * 0.06, S * 0.24);
+    ph.position.set(lx, ly, 0);
+    const pv = box(S * 0.24, S * 0.06);
+    pv.position.set(lx, ly, 0);
 
     iconGroup.add(lens, handle, ph, pv);
-
-  } else if (icon === 'ⓘ') {
+  } else if (icon === "ⓘ") {
     // Dot — sphere for a proper rounded 3D ball
     const dot = new THREE.Mesh(
       new THREE.SphereGeometry(S * 0.11, 16, 16),
-      mat()
+      mat(),
     );
     dot.position.set(0, S * 0.36, 0);
 
     // Stem — sits well below dot
     const stemShape = new THREE.Shape();
-    const sw = S * 0.13, sh = S * 0.32;
-    stemShape.moveTo(-sw/2, -sh/2); stemShape.lineTo(sw/2, -sh/2);
-    stemShape.lineTo(sw/2, sh/2);   stemShape.lineTo(-sw/2, sh/2);
+    const sw = S * 0.13,
+      sh = S * 0.32;
+    stemShape.moveTo(-sw / 2, -sh / 2);
+    stemShape.lineTo(sw / 2, -sh / 2);
+    stemShape.lineTo(sw / 2, sh / 2);
+    stemShape.lineTo(-sw / 2, sh / 2);
     stemShape.closePath();
     const stem = extruded(stemShape);
     stem.position.set(0, -S * 0.14, 0);
 
     iconGroup.add(dot, stem);
-
-  } else if (icon === '🔊') {
+  } else if (icon === "🔊") {
     // Helper: build the speaker body (box + horn trapezoid) into a target group
     function buildSpeakerBody(target) {
       const bd = box(S * 0.18, S * 0.36);
       bd.position.set(-S * 0.25, 0, 0);
-      const horn = extrudedTriangle([
-        [-S * 0.15, -S * 0.18],
-        [-S * 0.15,  S * 0.18],
-        [ S * 0.06,  S * 0.40],
-        [ S * 0.06, -S * 0.40],
-      ], S * 0.09);
+      const horn = extrudedTriangle(
+        [
+          [-S * 0.15, -S * 0.18],
+          [-S * 0.15, S * 0.18],
+          [S * 0.06, S * 0.4],
+          [S * 0.06, -S * 0.4],
+        ],
+        S * 0.09,
+      );
       target.add(bd, horn);
     }
 
     // Sound-ON state (iconGroup): body + horn + two arc waves
     buildSpeakerBody(iconGroup);
-    const arcOpts = { tube: S * 0.04, radialSegments: 8, tubularSegments: 32, arc: Math.PI * 0.65 };
-    const a1 = new THREE.Mesh(new THREE.TorusGeometry(S * 0.24, arcOpts.tube, arcOpts.radialSegments, arcOpts.tubularSegments, arcOpts.arc), mat());
-    a1.position.set(S * 0.08, 0, 0); a1.rotation.z = -Math.PI * 0.325;
-    const a2 = new THREE.Mesh(new THREE.TorusGeometry(S * 0.40, arcOpts.tube, arcOpts.radialSegments, arcOpts.tubularSegments, arcOpts.arc), mat());
-    a2.position.set(S * 0.08, 0, 0); a2.rotation.z = -Math.PI * 0.325;
+    const arcOpts = {
+      tube: S * 0.04,
+      radialSegments: 8,
+      tubularSegments: 32,
+      arc: Math.PI * 0.65,
+    };
+    const a1 = new THREE.Mesh(
+      new THREE.TorusGeometry(
+        S * 0.24,
+        arcOpts.tube,
+        arcOpts.radialSegments,
+        arcOpts.tubularSegments,
+        arcOpts.arc,
+      ),
+      mat(),
+    );
+    a1.position.set(S * 0.08, 0, 0);
+    a1.rotation.z = -Math.PI * 0.325;
+    const a2 = new THREE.Mesh(
+      new THREE.TorusGeometry(
+        S * 0.4,
+        arcOpts.tube,
+        arcOpts.radialSegments,
+        arcOpts.tubularSegments,
+        arcOpts.arc,
+      ),
+      mat(),
+    );
+    a2.position.set(S * 0.08, 0, 0);
+    a2.rotation.z = -Math.PI * 0.325;
     iconGroup.add(a1, a2);
 
     // Sound-OFF state (pauseGroup): body + horn + mute X
     pauseGroup = new THREE.Group();
     buildSpeakerBody(pauseGroup);
-    const xa = capsule(S * 0.06, S * 0.38); xa.rotation.z =  Math.PI / 4; xa.position.set(S * 0.48, 0, 0);
-    const xb = capsule(S * 0.06, S * 0.38); xb.rotation.z = -Math.PI / 4; xb.position.set(S * 0.48, 0, 0);
+    const xa = capsule(S * 0.06, S * 0.38);
+    xa.rotation.z = Math.PI / 4;
+    xa.position.set(S * 0.48, 0, 0);
+    const xb = capsule(S * 0.06, S * 0.38);
+    xb.rotation.z = -Math.PI / 4;
+    xb.position.set(S * 0.48, 0, 0);
     pauseGroup.add(xa, xb);
     pauseGroup.visible = false;
     g.add(pauseGroup);
@@ -209,13 +263,15 @@ function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
   // Invisible hit-area plane — slightly larger clickable zone without neighbour overlap
   const hitbox = new THREE.Mesh(
     new THREE.PlaneGeometry(S * 1.2, S * 1.2),
-    new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide }),
   );
   hitbox.position.z = 0.02;
   g.add(hitbox);
 
   // Cast shadows onto the TV face
-  g.traverse(child => { if (child.isMesh && child !== hitbox) child.castShadow = true; });
+  g.traverse((child) => {
+    if (child.isMesh && child !== hitbox) child.castShadow = true;
+  });
 
   let _isActive = false;
   g.userData = {
@@ -223,14 +279,20 @@ function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
     action,
     updateIcon: (text) => {
       if (!pauseGroup) return;
-      if (text === '⏸' || text === '🔇') { iconGroup.visible = false; pauseGroup.visible = true; }
-      else                               { iconGroup.visible = true;  pauseGroup.visible = false; }
+      if (text === "⏸" || text === "🔇") {
+        iconGroup.visible = false;
+        pauseGroup.visible = true;
+      } else {
+        iconGroup.visible = true;
+        pauseGroup.visible = false;
+      }
     },
     setActive: (on) => {
       _isActive = on;
       const intensity = on ? 1.1 : 0.25;
-      g.traverse(child => {
-        if (!child.isMesh || !child.material?.emissive || child === hitbox) return;
+      g.traverse((child) => {
+        if (!child.isMesh || !child.material?.emissive || child === hitbox)
+          return;
         child.material.emissiveIntensity = intensity;
         // Keep hover-restore in sync so mouse-out doesn't reset the active state
         if (child.userData._origEmissiveI !== undefined) {
@@ -238,12 +300,13 @@ function makeHoloButton(icon, action, xPos, yPos = -0.65, size = 0.10) {
         }
       });
     },
-    get isActive() { return _isActive; },
+    get isActive() {
+      return _isActive;
+    },
   };
 
   return g;
 }
-
 
 function roundedRectShape(w, h, r) {
   const s = new THREE.Shape();
@@ -296,21 +359,26 @@ export function buildTV() {
 
   // Neon cyan glow ring
   const glowMat = new THREE.MeshStandardMaterial({
-    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 6.0,
+    color: 0x00d4ff,
+    emissive: 0x00d4ff,
+    emissiveIntensity: 6.0,
   });
-  const _gw = 1.94, _gh = 1.10, _gr = R;
-  const _hw = _gw / 2, _hh = _gh / 2;
+  const _gw = 1.94,
+    _gh = 1.1,
+    _gr = R;
+  const _hw = _gw / 2,
+    _hh = _gh / 2;
   const _shape = new THREE.Shape();
   _shape.moveTo(-_hw + _gr, -_hh);
-  _shape.lineTo( _hw - _gr, -_hh);
-  _shape.absarc( _hw - _gr, -_hh + _gr, _gr, -Math.PI / 2, 0, false);
-  _shape.lineTo( _hw,  _hh - _gr);
-  _shape.absarc( _hw - _gr,  _hh - _gr, _gr, 0, Math.PI / 2, false);
-  _shape.lineTo(-_hw + _gr,  _hh);
-  _shape.absarc(-_hw + _gr,  _hh - _gr, _gr, Math.PI / 2, Math.PI, false);
+  _shape.lineTo(_hw - _gr, -_hh);
+  _shape.absarc(_hw - _gr, -_hh + _gr, _gr, -Math.PI / 2, 0, false);
+  _shape.lineTo(_hw, _hh - _gr);
+  _shape.absarc(_hw - _gr, _hh - _gr, _gr, 0, Math.PI / 2, false);
+  _shape.lineTo(-_hw + _gr, _hh);
+  _shape.absarc(-_hw + _gr, _hh - _gr, _gr, Math.PI / 2, Math.PI, false);
   _shape.lineTo(-_hw, -_hh + _gr);
   _shape.absarc(-_hw + _gr, -_hh + _gr, _gr, Math.PI, Math.PI * 1.5, false);
-  const _pts = _shape.getPoints(256).map(p => new THREE.Vector3(p.x, p.y, 0));
+  const _pts = _shape.getPoints(256).map((p) => new THREE.Vector3(p.x, p.y, 0));
   const _curve = new THREE.CatmullRomCurve3(_pts, true);
   const glowRing = new THREE.Mesh(
     new THREE.TubeGeometry(_curve, 512, 0.003, 8, true),
@@ -321,80 +389,96 @@ export function buildTV() {
 
   // Centred play/prev/next cluster
   const bottomBtns = [
-    { icon: '|◀', action: 'prevVideo', x: -0.13, y: -0.58, size: 0.10 },
-    { icon: '▶',  action: 'toggleTV',  x:  0.00, y: -0.58, size: 0.10 },
-    { icon: '▶|', action: 'nextVideo', x:  0.13, y: -0.58, size: 0.10 },
+    { icon: "|◀", action: "prevVideo", x: -0.13, y: -0.58, size: 0.1 },
+    { icon: "▶", action: "toggleTV", x: 0.0, y: -0.58, size: 0.1 },
+    { icon: "▶|", action: "nextVideo", x: 0.13, y: -0.58, size: 0.1 },
   ];
   // ⓘ MAG+ — right cluster, symmetric to left
   const rightBtns = [
-    { icon: 'ⓘ',    action: 'showInfo',        x:  0.72, y: -0.58, size: 0.10 },
-    { icon: 'MAG+', action: 'toggleMagnifier', x:  0.85, y: -0.58, size: 0.13 },
+    { icon: "ⓘ", action: "showInfo", x: 0.72, y: -0.58, size: 0.1 },
+    { icon: "MAG+", action: "toggleMagnifier", x: 0.85, y: -0.58, size: 0.13 },
   ];
 
-  let playPauseBtn = null, magBtn = null, infoBtn = null, speakerBtn = null, playlistBtn = null;
+  let playPauseBtn = null,
+    magBtn = null,
+    infoBtn = null,
+    speakerBtn = null,
+    playlistBtn = null;
   const allButtons = [];
   for (const def of bottomBtns) {
     const btn = makeHoloButton(def.icon, def.action, def.x, def.y, def.size);
     group.add(btn);
     allButtons.push(btn);
-    if (def.action === 'toggleTV') playPauseBtn = btn;
+    if (def.action === "toggleTV") playPauseBtn = btn;
   }
   for (const def of rightBtns) {
     const btn = makeHoloButton(def.icon, def.action, def.x, def.y, def.size);
     group.add(btn);
     allButtons.push(btn);
-    if (def.action === 'toggleMagnifier') magBtn  = btn;
-    if (def.action === 'showInfo')        infoBtn = btn;
+    if (def.action === "toggleMagnifier") magBtn = btn;
+    if (def.action === "showInfo") infoBtn = btn;
   }
 
   // 🔊 PL — left cluster, symmetric to right (ⓘ MAG+)
-  playlistBtn = makeHoloButton('PL', 'togglePlaylist', -0.85, -0.58, 0.09);
+  playlistBtn = makeHoloButton("PL", "togglePlaylist", -0.85, -0.58, 0.09);
   group.add(playlistBtn);
   allButtons.push(playlistBtn);
 
-  const speakerBtnLeft = makeHoloButton('🔊', 'toggleSound', -0.72, -0.58, 0.10);
+  const speakerBtnLeft = makeHoloButton("🔊", "toggleSound", -0.72, -0.58, 0.1);
   speakerBtnLeft.visible = false;
   group.add(speakerBtnLeft);
   allButtons.push(speakerBtnLeft);
   speakerBtn = speakerBtnLeft;
 
   // ── Neon "AI Art" sign above the TV ──
-  const signCanvas = document.createElement('canvas');
-  signCanvas.width = 512; signCanvas.height = 160;
-  const sctx = signCanvas.getContext('2d');
+  const signCanvas = document.createElement("canvas");
+  signCanvas.width = 1024;
+  signCanvas.height = 200;
+  const sctx = signCanvas.getContext("2d");
   const signTex = new THREE.CanvasTexture(signCanvas);
   signTex.colorSpace = THREE.SRGBColorSpace;
 
+  // LIM INN DETTE:
   function drawAIArtSign() {
-    const cx = 256, cy = 82;
-    sctx.clearRect(0, 0, 512, 160);
-    sctx.font = "92px 'Octosquares', sans-serif";
-    sctx.textAlign = 'center';
-    sctx.textBaseline = 'middle';
-    // Subtle outer haze
-    sctx.shadowColor = '#aaccff';
-    sctx.shadowBlur = 28; sctx.fillStyle = 'rgba(200,220,255,0.18)'; sctx.fillText('Art & AI', cx, cy);
-    // Tight inner glow — cyan
-    sctx.shadowColor = '#00d4ff';
-    sctx.shadowBlur = 10; sctx.fillStyle = 'rgba(0,180,255,0.75)';   sctx.fillText('Art & AI', cx, cy);
-    // Core — deep saturated blue
-    sctx.shadowBlur =  3; sctx.fillStyle = '#0099ff';                 sctx.fillText('Art & AI', cx, cy);
+    const W = 1024,
+      H = 160; // Mer plass til glød
+    sctx.clearRect(0, 0, W, H);
+    const text = "Art & AI";
+    sctx.font = "bold 82px 'Octosquares', sans-serif"; // Litt mindre enn 92 for å unngå kutt
+    sctx.textAlign = "center";
+    sctx.textBaseline = "middle";
+
+    // 4-lags glød som matcher "The Culture Map"
+    for (const [blur, alpha, fill] of [
+      [95, 0.25, "#00d4ff"], // Kraftigere og bredere ytre glød
+      [55, 0.4, "#00d4ff"], // Mer mettet mellomlag
+      [20, 0.65, "#00d4ff"], // Sterk indre blåfarge
+      [8, 1.0, "#ffffff"], // Hvit kjerne for maksimal "pop"
+    ]) {
+      sctx.shadowColor = "#00d4ff";
+      sctx.shadowBlur = blur;
+      sctx.globalAlpha = alpha;
+      sctx.fillStyle = fill;
+      sctx.fillText(text, W / 2, H / 2);
+    }
+    sctx.globalAlpha = 1.0;
     signTex.needsUpdate = true;
   }
+
   drawAIArtSign();
   document.fonts.load("68px 'Octosquares'").then(() => drawAIArtSign());
 
   // Fixed plane — stays aligned with the TV face, does not billboard
   const signMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.70, 0.22),
+    new THREE.PlaneGeometry(1, 0.22),
     new THREE.MeshBasicMaterial({
       map: signTex,
-      color: 0x888888,
+      //color: 0x888888,
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
-    })
+    }),
   );
   signMesh.position.set(0, 0.88, 0.18); // float in front of TV face
   signMesh.renderOrder = 999;
@@ -409,7 +493,7 @@ export function buildTV() {
 
   group.userData = {
     clickable: true,
-    hotspot: 'tv',
+    hotspot: "tv",
     screenMesh: screen,
     playPauseBtn,
     magBtn,
