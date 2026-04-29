@@ -371,7 +371,7 @@ export function createExteriorRoom(scene) {
   const enterTex = new THREE.CanvasTexture(enterCanvas);
   enterTex.anisotropy = 4;
   const enterLabel = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.6, 0.2),
+    new THREE.PlaneGeometry(2.0, 0.25),
     new THREE.MeshBasicMaterial({
       map: enterTex,
       transparent: true,
