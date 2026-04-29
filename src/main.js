@@ -1895,7 +1895,9 @@ document.getElementById("reset-btn").addEventListener("click", () => {
   fpOverlay.classList.remove("hidden");
   crosshair.classList.add("hidden");
   controls.unlock();
-  transitionToRoom("exterior");
+  // Reset within the current room — used to always teleport to exterior,
+  // which was wrong inside the AI / nature rooms.
+  transitionToRoom(currentRoom);
 });
 
 // Closing the Guide re-locks the cursor instantly (same user gesture, so the

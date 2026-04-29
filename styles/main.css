@@ -160,6 +160,20 @@ body:has(
 }
 #reset-btn:hover { background: #00d4ff; color: #0a0f1a; }
 
+/* Quiet hint: visible at all times so users in pointer-lock know they
+   need ESC to actually click the button. ~10px, light grey, low contrast. */
+#reset-btn::after {
+  content: 'stuck? press esc first';
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  color: rgba(170, 200, 215, 0.55);
+  margin-top: 4px;
+  pointer-events: none;
+}
+#reset-btn:hover::after { color: rgba(10, 15, 26, 0.65); }
+
 #stepback-btn {
   position: fixed;
   bottom: 24px;
