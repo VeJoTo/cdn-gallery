@@ -569,7 +569,7 @@ function drawBtn(canvas, ctx, label, active, hovered) {
   rrect(ctx, b, b, BTN_W - b * 2, BTN_H - b * 2, r);
   ctx.stroke();
   ctx.fillStyle = filled ? '#0a0f1a' : '#00d4ff';
-  ctx.font = '13px Roboto, sans-serif';
+  ctx.font = '24px Roboto, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(label, BTN_W / 2, BTN_H / 2);
@@ -672,7 +672,28 @@ export function handleKartetTextClick(uv) {
   if (getNextBtnAtUV(uv.x, uv.y)) handleKartetBtnClick('next');
 }
 
-export function mountKartetDOMOverlay(mapWrap, textWrap, btnsEl, onClose) {
+export function mountKartetDOMOverlay(mapWrap, textWrap, btnsEl, onClose, initialMode = 'explore') {
+  // Apply mode immediately (no animation — overlay isn't visible yet)
+  if (initialMode !== _mode) {
+    if (_activeFade) { _activeFade.kill(); _activeFade = null; }
+    _textAlpha = 1.0;
+    _mode = initialMode;
+    _selected = null;
+    _hovered = null;
+    if (_mode === 'guesser') {
+      const keys = Object.keys(storiesData);
+      _guessTarget = keys[Math.floor(Math.random() * keys.length)];
+      _guessResult = null;
+      _lastGuessed = null;
+    } else {
+      _guessResult = null;
+      _lastGuessed = null;
+    }
+    drawMap();
+    drawTextPanel();
+    redrawButtons();
+  }
+
   mapWrap.appendChild(_mapCanvas);
   textWrap.appendChild(_textCanvas);
 
@@ -850,6 +871,7 @@ export function createKulturKartet(scene) {
     bMesh.rotation.y = -Math.PI / 2;
     bMesh.userData = {
       clickable: true, action: 'openKulturKartet',
+      btnMode: BTN_MODES[i], btnIdx: i,
       bCanvas, bCtx, bTex,
     };
     scene.add(bMesh);
