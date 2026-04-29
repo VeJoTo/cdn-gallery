@@ -1116,6 +1116,7 @@ export function createUI(camera, renderer, controls, scene) {
   });
 
   function openBook() {
+    import('./achievements.js').then(m => m.unlock('book'));
     bookOverlay.classList.remove('hidden');
     unlockForOverlay();
     spawnBookParticles();
@@ -1248,6 +1249,7 @@ export function createUI(camera, renderer, controls, scene) {
   const fdmClose   = document.getElementById('findumonde-close');
 
   function openFinDuMonde() {
+    import('./achievements.js').then(m => m.unlock('globe'));
     fdmOverlay.classList.remove('hidden');
     unlockForOverlay();
   }
