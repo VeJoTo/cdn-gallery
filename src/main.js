@@ -166,10 +166,10 @@ const moveState = {
 };
 
 // ── Head-bob ────────────────────────────────────────
-// Subtle vertical sway while walking, plus a soft footstep sound on each
-// zero-crossing of the bob (≈ 2 steps/sec at the default frequency).
-const BOB_AMP = 0.035;        // ±3.5 cm vertical sway
-const BOB_FREQ = 1.0;         // Hz — one full sin cycle per second
+// Subtle vertical sway while walking. Amplitude ramps in/out so the
+// camera never snaps when input changes.
+const BOB_AMP = 0.06;         // ±6 cm vertical sway — pronounced but not goofy
+const BOB_FREQ = 1.2;         // Hz — slightly brisker than walking-pace
 const BOB_RAMP = 6.0;         // exp ramp speed when starting/stopping
 const BOB_REDUCED_MOTION =
   typeof window !== "undefined" &&
@@ -177,47 +177,19 @@ const BOB_REDUCED_MOTION =
 
 let _walkPhase = 0;
 let _bobAmpScale = 0; // 0..1, ramps with movement
-let _lastSinSign = 1; // for zero-crossing footstep detection
-const _footstepAudio =
-  typeof Audio !== "undefined"
-    ? new Audio(import.meta.env.BASE_URL + "sounds/footstep.wav")
-    : null;
-if (_footstepAudio) _footstepAudio.volume = 0.25;
-
-function playFootstep() {
-  if (!_footstepAudio) return;
-  try {
-    _footstepAudio.currentTime = 0;
-    _footstepAudio.play().catch(() => {});
-  } catch {
-    /* ignore */
-  }
-}
 
 function updateHeadBob(delta, isMoving) {
-  // Ramp amplitude toward 1 when moving, toward 0 when stopped — keeps the
-  // camera from snapping when input changes.
+  if (BOB_REDUCED_MOTION) {
+    camera.position.y = EYE_HEIGHT;
+    return;
+  }
   const target = isMoving ? 1 : 0;
   _bobAmpScale += (target - _bobAmpScale) * Math.min(1, delta * BOB_RAMP);
 
   if (isMoving) {
     _walkPhase += delta * BOB_FREQ * Math.PI * 2;
   }
-
-  const sinVal = Math.sin(_walkPhase);
-
-  if (!BOB_REDUCED_MOTION) {
-    camera.position.y = EYE_HEIGHT + sinVal * BOB_AMP * _bobAmpScale;
-  } else {
-    camera.position.y = EYE_HEIGHT;
-  }
-
-  // Footstep on zero crossing (twice per cycle ≈ left+right foot landings)
-  if (isMoving && _bobAmpScale > 0.4) {
-    const sign = sinVal >= 0 ? 1 : -1;
-    if (sign !== _lastSinSign) playFootstep();
-    _lastSinSign = sign;
-  }
+  camera.position.y = EYE_HEIGHT + Math.sin(_walkPhase) * BOB_AMP * _bobAmpScale;
 }
 
 document.addEventListener("keydown", (e) => {
