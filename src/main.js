@@ -1852,7 +1852,7 @@ document.addEventListener("mousedown", () => {
   if (action === "resetGlobeScreen") globeScreen.reset();
   if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
   if (action === "rickRoll") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
-  if (action === "radioPower" || action === "radioMode" || action === "radioNext")
+  if (action === "radioPower" || action === "radioPlayPause" || action === "radioNext")
     handleRadioAction(action);
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
   if (action === "exitToExterior")  window.__transitionToRoom("exterior");

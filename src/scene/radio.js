@@ -16,19 +16,16 @@
 import * as THREE from 'three';
 
 // ── Channels ────────────────────────────────────────
-// To add more channels: append to the arrays below. Each entry needs a
-// human-readable `name` (shown on the display) and a YouTube `videoId`
-// (the part after `?v=` in the URL).
+// Flat channel list: cycling Next cycles through every station regardless
+// of source (music or podcast). Mirrors how a real radio works — one
+// dial, no mode switch. To add channels, append entries; YouTube uses
+// `videoId`, Spotify uses `spotifyShowId`.
 
-const MUSIC_CHANNELS = [
-  { name: 'Channel 1', videoId: '7rgG3sboipg' },
-  { name: 'Channel 2', videoId: 'UnCeRajvwps' },
-  { name: 'Channel 3', videoId: 'HIdNZlBKrTA' },
-  // To extend: append { name, videoId } entries.
-];
-
-const PODCAST_CHANNELS = [
-  { name: 'CDN Podcast', spotifyShowId: '0wu2LStxmC2rT8xTSC5ld4' },
+const CHANNELS = [
+  { type: 'music',   name: 'Channel 1',   videoId: '7rgG3sboipg' },
+  { type: 'music',   name: 'Channel 2',   videoId: 'UnCeRajvwps' },
+  { type: 'music',   name: 'Channel 3',   videoId: 'HIdNZlBKrTA' },
+  { type: 'podcast', name: 'CDN Podcast', spotifyShowId: '0wu2LStxmC2rT8xTSC5ld4' },
 ];
 
 // ── Persistence ─────────────────────────────────────
@@ -51,20 +48,25 @@ function saveState() {
   try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ on: state.on, mode: state.mode, musicChannel: state.musicChannel, podcastChannel: state.podcastChannel })
+      JSON.stringify({ channel: state.channel })
     );
   } catch {
     /* ignore quota / privacy errors */
   }
 }
 
+// State model:
+//   on        — whether the radio is powered on at all
+//   playing   — whether audio is actively playing (vs paused)
+//   channel   — index into CHANNELS
 const state = Object.assign(
-  { on: false, mode: 'music', musicChannel: 0, podcastChannel: 0 },
+  { on: false, playing: false, channel: 0 },
   loadState() ?? {}
 );
-// Don't auto-resume audio on page load (autoplay would be blocked anyway,
-// and silent visits to the gallery shouldn't suddenly start playing music).
+// Boot state: always silent. Channel persists, but never autoplay on load.
 state.on = false;
+state.playing = false;
+if (state.channel >= CHANNELS.length || state.channel < 0) state.channel = 0;
 
 // ── Audio iframe ────────────────────────────────────
 
@@ -115,7 +117,7 @@ function ensureSpotifyController() {
   document.head.appendChild(script);
 
   window.onSpotifyIframeApiReady = (IFrameAPI) => {
-    const showId = PODCAST_CHANNELS[0]?.spotifyShowId;
+    const showId = CHANNELS.find(c => c.spotifyShowId)?.spotifyShowId;
     if (!showId) return;
     IFrameAPI.createController(
       container,
@@ -167,23 +169,24 @@ function spotifyPause() {
 
 function applyAudio() {
   const yt = ensureYouTubeFrame();
+  const ch = CHANNELS[state.channel];
 
-  // Off — silence both sides
-  if (!state.on) {
+  // Off OR paused — silence both sides
+  if (!state.on || !state.playing) {
     yt.src = '';
     spotifyPause();
     return;
   }
 
-  if (state.mode === 'music') {
-    const ch = MUSIC_CHANNELS[state.musicChannel];
-    yt.src = ch?.videoId
-      ? `https://www.youtube.com/embed/${ch.videoId}?autoplay=1`
-      : '';
+  if (ch?.type === 'music' && ch.videoId) {
+    yt.src = `https://www.youtube.com/embed/${ch.videoId}?autoplay=1`;
     spotifyPause();
-  } else if (state.mode === 'podcast') {
-    yt.src = ''; // stop YouTube
+  } else if (ch?.type === 'podcast' && ch.spotifyShowId) {
+    yt.src = '';
     spotifyPlay();
+  } else {
+    yt.src = '';
+    spotifyPause();
   }
 }
 
@@ -367,20 +370,20 @@ function drawDisplay() {
       break;
   }
 
-  // Mode-specific decoration
-  if (state.mode === 'podcast') {
+  // Channel-type decoration: EQ bars while a podcast plays
+  const ch = CHANNELS[state.channel];
+  if (ch?.type === 'podcast' && state.playing) {
     _drawEqBars(ctx);
   }
 
-  // Mode + channel label, small along the bottom
+  // Channel label along the bottom
   ctx.fillStyle = FACE.inkDim;
   ctx.font = 'bold 9px "Roboto", monospace';
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
-  const list = state.mode === 'music' ? MUSIC_CHANNELS : PODCAST_CHANNELS;
-  const idx = state.mode === 'music' ? state.musicChannel : state.podcastChannel;
-  const ch = list[idx];
-  ctx.fillText(`${state.mode.toUpperCase()} · ${ch?.name ?? '—'}`, 8, DISPLAY_H - 12);
+  const typeLabel = ch?.type ? ch.type.toUpperCase() : '—';
+  const playLabel = state.playing ? '' : ' [PAUSED]';
+  ctx.fillText(`${typeLabel} · ${ch?.name ?? '—'}${playLabel}`, 8, DISPLAY_H - 12);
 
   _displayTex.needsUpdate = true;
 }
@@ -406,6 +409,7 @@ _startFaceLoop();
 // ── Build the radio mesh ────────────────────────────
 
 let _powerLight = null; // updated when on/off
+let _radioNeedle = null; // { mesh, baseX, stepX } — moved when channel changes
 
 export function createRadio(scene) {
   const root = new THREE.Group();
@@ -588,50 +592,105 @@ export function createRadio(scene) {
   antennaTip.position.set(bodyW / 2 - 0.04, PED_H + bodyH + ANT_H + 0.005, -bodyD / 2 + 0.04);
   root.add(antennaTip);
 
-  // ── Display panel (canvas-on-mesh on the front face) ──
-  const dispW = bodyW * 0.7, dispH = bodyH * 0.55;
-  const display = new THREE.Mesh(
-    new THREE.PlaneGeometry(dispW, dispH),
-    new THREE.MeshBasicMaterial({ map: _displayTex })
-  );
-  display.position.set(-bodyW * 0.07, PED_H + bodyH * 0.55, bodyD / 2 + 0.001);
-  root.add(display);
-
-  // ── Speaker grille (small dark circle on the right side of the body) ──
+  // ── Speaker grille — BIG, on the LEFT half of the front face ──
+  // Classic boombox-style radio look: speaker dominates one side.
   const grilleMat = new THREE.MeshStandardMaterial({
     color: 0x05101a,
     roughness: 0.95,
   });
+  const grilleR = bodyH * 0.42;
+  const grilleX = -bodyW * 0.27;
+  const grilleY = PED_H + bodyH * 0.5;
   const grille = new THREE.Mesh(
-    new THREE.CircleGeometry(0.115, 32),
+    new THREE.CircleGeometry(grilleR, 40),
     grilleMat
   );
-  grille.position.set(bodyW * 0.34, PED_H + bodyH * 0.5, bodyD / 2 + 0.002);
+  grille.position.set(grilleX, grilleY, bodyD / 2 + 0.002);
   root.add(grille);
-  // Cyan glow ring around the speaker grille — futuristic accent
+  // Cyan rim around the speaker — futuristic accent
   const grilleRing = new THREE.Mesh(
-    new THREE.RingGeometry(0.118, 0.128, 32),
-    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.7 })
+    new THREE.RingGeometry(grilleR + 0.005, grilleR + 0.015, 40),
+    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.75 })
   );
-  grilleRing.position.set(bodyW * 0.34, PED_H + bodyH * 0.5, bodyD / 2 + 0.003);
+  grilleRing.position.set(grilleX, grilleY, bodyD / 2 + 0.003);
   root.add(grilleRing);
-  // Decorative hole pattern on the speaker
+  // Concentric inner ring for visual interest
+  const grilleInner = new THREE.Mesh(
+    new THREE.RingGeometry(grilleR * 0.42, grilleR * 0.46, 32),
+    new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.4 })
+  );
+  grilleInner.position.set(grilleX, grilleY, bodyD / 2 + 0.0035);
+  root.add(grilleInner);
+  // Centre dust cap (the dark dome in the middle of a real speaker)
+  const grilleCenter = new THREE.Mesh(
+    new THREE.CircleGeometry(grilleR * 0.18, 24),
+    new THREE.MeshStandardMaterial({ color: 0x0a1419, roughness: 0.5, metalness: 0.5 })
+  );
+  grilleCenter.position.set(grilleX, grilleY, bodyD / 2 + 0.004);
+  root.add(grilleCenter);
+  // Hole pattern (smaller now, denser, scaled to the bigger grille)
   const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  for (let i = 0; i < 5; i++) {
-    for (let j = 0; j < 5; j++) {
-      if ((i - 2) ** 2 + (j - 2) ** 2 > 4) continue; // disc shape
+  for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+      const dx = (i - 4) * 0.025;
+      const dy = (j - 4) * 0.025;
+      const r = Math.hypot(dx, dy);
+      if (r > grilleR * 0.85 || r < grilleR * 0.22) continue; // ring band
       const hole = new THREE.Mesh(
-        new THREE.CircleGeometry(0.011, 8),
+        new THREE.CircleGeometry(0.006, 8),
         holeMat
       );
-      hole.position.set(
-        bodyW * 0.34 + (i - 2) * 0.036,
-        PED_H + bodyH * 0.5 + (j - 2) * 0.036,
-        bodyD / 2 + 0.004
-      );
+      hole.position.set(grilleX + dx, grilleY + dy, bodyD / 2 + 0.0042);
       root.add(hole);
     }
   }
+
+  // ── Display panel — RIGHT half of the front face, smaller ──
+  const dispW = bodyW * 0.42, dispH = bodyH * 0.55;
+  const display = new THREE.Mesh(
+    new THREE.PlaneGeometry(dispW, dispH),
+    new THREE.MeshBasicMaterial({ map: _displayTex })
+  );
+  display.position.set(bodyW * 0.26, PED_H + bodyH * 0.62, bodyD / 2 + 0.002);
+  root.add(display);
+
+  // ── Tuning strip — horizontal cyan slot below the display showing the
+  // ── current channel position. Classic dial-radio touch.
+  const stripBgMat = new THREE.MeshStandardMaterial({
+    color: 0x05101a,
+    metalness: 0.3,
+    roughness: 0.4,
+  });
+  const stripW = bodyW * 0.42;
+  const stripH = 0.025;
+  const stripBg = new THREE.Mesh(
+    new THREE.PlaneGeometry(stripW, stripH),
+    stripBgMat
+  );
+  stripBg.position.set(bodyW * 0.26, PED_H + bodyH * 0.22, bodyD / 2 + 0.0015);
+  root.add(stripBg);
+  // Tick marks along the strip
+  const tickMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.55 });
+  const TICKS = CHANNELS.length;
+  for (let i = 0; i < TICKS; i++) {
+    const tick = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.003, stripH * 0.7),
+      tickMat
+    );
+    const tx = bodyW * 0.26 - stripW / 2 + (stripW / (TICKS - 1 || 1)) * i;
+    tick.position.set(tx, PED_H + bodyH * 0.22, bodyD / 2 + 0.0025);
+    root.add(tick);
+  }
+  // The needle — a cyan vertical bar that we'll move per-channel
+  const needleMat = new THREE.MeshBasicMaterial({ color: 0xff8d8d });
+  const needle = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.006, stripH * 1.1),
+    needleMat
+  );
+  needle.position.set(bodyW * 0.26 - stripW / 2, PED_H + bodyH * 0.22, bodyD / 2 + 0.003);
+  root.add(needle);
+  // Expose for runtime updates
+  _radioNeedle = { mesh: needle, baseX: bodyW * 0.26 - stripW / 2, stepX: stripW / Math.max(1, TICKS - 1) };
 
   // ── Buttons (clickable) — three big, futuristic pads on top of the body ──
   // Each button is a tall cap with a glowing ring at its base. The whole
@@ -685,7 +744,7 @@ export function createRadio(scene) {
   powerBtn.position.set(-btnSpacing, btnY, btnZ);
   root.add(powerBtn);
 
-  const modeBtn = makeButton('radioMode', 0x8df0c8, 'Switch mode (music ↔ podcast)');
+  const modeBtn = makeButton('radioPlayPause', 0x5ee0ff, 'Play / Pause');
   modeBtn.position.set(0, btnY, btnZ);
   root.add(modeBtn);
 
@@ -715,18 +774,19 @@ export function createRadio(scene) {
 
 export function handleRadioAction(action) {
   if (action === 'radioPower') {
+    // Hard power. When turning off, also stop playback so nothing lingers.
     state.on = !state.on;
-  } else if (action === 'radioMode') {
-    if (!state.on) state.on = true; // switching mode also turns it on
-    state.mode = state.mode === 'music' ? 'podcast' : 'music';
+    if (!state.on) state.playing = false;
+    if (state.on) state.playing = true; // power-on starts playing the current station
+  } else if (action === 'radioPlayPause') {
+    // Independent play/pause: don't toggle power, just the audio state.
+    if (!state.on) state.on = true; // pressing play also turns the radio on
+    state.playing = !state.playing;
     _triggerExpression('wink');
   } else if (action === 'radioNext') {
     if (!state.on) state.on = true;
-    if (state.mode === 'music') {
-      state.musicChannel = (state.musicChannel + 1) % MUSIC_CHANNELS.length;
-    } else {
-      state.podcastChannel = (state.podcastChannel + 1) % PODCAST_CHANNELS.length;
-    }
+    state.channel = (state.channel + 1) % CHANNELS.length;
+    state.playing = true; // changing channel resumes playback
     _triggerExpression('wide');
   } else {
     return; // unknown action
@@ -735,5 +795,9 @@ export function handleRadioAction(action) {
   saveState();
   drawDisplay();
   if (_powerLight) _powerLight.material.opacity = state.on ? 1.0 : 0;
+  if (_radioNeedle) {
+    _radioNeedle.mesh.position.x =
+      _radioNeedle.baseX + state.channel * _radioNeedle.stepX;
+  }
   applyAudio();
 }
