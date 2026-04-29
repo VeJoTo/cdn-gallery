@@ -414,12 +414,12 @@ let _radioChannelDots = null; // { refresh() } — relights the active channel d
 
 export function createRadio(scene) {
   const root = new THREE.Group();
-  // Tucked into a room corner so it reads as a deliberate listening
-  // station rather than a floating object in open space. AI room spans
-  // X ∈ [-8, +8], Z ∈ [-11, +11]; place the radio in the back-left
-  // corner (sofa-side, opposite the TV) and face it diagonally inward.
-  root.position.set(-7.2, 0, 9.5);
-  root.rotation.y = (3 * Math.PI) / 4; // front faces diagonally into the room
+  // Beside the sofa as a side-table piece. Sofa is at (-4, ?, 2.75)
+  // facing -X; place the radio to its +Z end (the sitter's right when
+  // facing the TV) and rotate it 180° so the display points back toward
+  // the sofa for easy listening + viewing.
+  root.position.set(-3.5, 0, 4.4);
+  root.rotation.y = Math.PI;
   scene.add(root);
 
   // ── Glass side table the radio sits on ────────────────────────────
