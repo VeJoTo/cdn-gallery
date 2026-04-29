@@ -41,7 +41,7 @@ const canvas = document.getElementById("gallery-canvas");
 
 // ── Renderer ─────────────────────────────────────
 export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -73,7 +73,7 @@ camera.lookAt(-20, 1.6, 2);
 
 // ── Resize ────────────────────────────────────────
 window.addEventListener("resize", () => {
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -165,6 +165,33 @@ const moveState = {
   right: false,
 };
 
+// ── Head-bob ────────────────────────────────────────
+// Subtle vertical sway while walking. Amplitude ramps in/out so the
+// camera never snaps when input changes.
+const BOB_AMP = 0.06;         // ±6 cm vertical sway — pronounced but not goofy
+const BOB_FREQ = 1.2;         // Hz — slightly brisker than walking-pace
+const BOB_RAMP = 6.0;         // exp ramp speed when starting/stopping
+const BOB_REDUCED_MOTION =
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+let _walkPhase = 0;
+let _bobAmpScale = 0; // 0..1, ramps with movement
+
+function updateHeadBob(delta, isMoving) {
+  if (BOB_REDUCED_MOTION) {
+    camera.position.y = EYE_HEIGHT;
+    return;
+  }
+  const target = isMoving ? 1 : 0;
+  _bobAmpScale += (target - _bobAmpScale) * Math.min(1, delta * BOB_RAMP);
+
+  if (isMoving) {
+    _walkPhase += delta * BOB_FREQ * Math.PI * 2;
+  }
+  camera.position.y = EYE_HEIGHT + Math.sin(_walkPhase) * BOB_AMP * _bobAmpScale;
+}
+
 document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT") return;
   if (e.key === "Escape") {
@@ -242,25 +269,30 @@ function updateMovement(delta) {
   if (moveState.backward) fwd -= 1;
   if (moveState.right) strafe += 1;
   if (moveState.left) strafe -= 1;
-  if (fwd === 0 && strafe === 0) return;
 
-  // Diagonal movement should not be faster than axis-aligned.
-  const len = Math.hypot(fwd, strafe);
-  const step = (MOVE_SPEED * delta) / len;
-  if (fwd !== 0) controls.moveForward(fwd * step);
-  if (strafe !== 0) controls.moveRight(strafe * step);
+  const isMoving = fwd !== 0 || strafe !== 0;
 
-  // Clamp to current room bounds + pin eye height.
-  const b = ROOM_BOUNDS[currentRoom];
-  camera.position.x = Math.max(
-    b.cx - b.halfW,
-    Math.min(b.cx + b.halfW, camera.position.x),
-  );
-  camera.position.z = Math.max(
-    b.cz - b.halfD,
-    Math.min(b.cz + b.halfD, camera.position.z),
-  );
-  camera.position.y = EYE_HEIGHT;
+  if (isMoving) {
+    // Diagonal movement should not be faster than axis-aligned.
+    const len = Math.hypot(fwd, strafe);
+    const step = (MOVE_SPEED * delta) / len;
+    if (fwd !== 0) controls.moveForward(fwd * step);
+    if (strafe !== 0) controls.moveRight(strafe * step);
+
+    // Clamp to current room bounds.
+    const b = ROOM_BOUNDS[currentRoom];
+    camera.position.x = Math.max(
+      b.cx - b.halfW,
+      Math.min(b.cx + b.halfW, camera.position.x),
+    );
+    camera.position.z = Math.max(
+      b.cz - b.halfD,
+      Math.min(b.cz + b.halfD, camera.position.z),
+    );
+  }
+
+  // Always run the bob update so amplitude can decay smoothly when input stops.
+  updateHeadBob(delta, isMoving);
 }
 
 // ── Render loop ───────────────────────────────────
