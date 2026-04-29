@@ -852,6 +852,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   }
 
   function start() {
+    _started = true;
     screen.userData.state = 'default';
     screen.userData.screenMesh.userData.action = 'openGlobeVideos';
     screen.userData.screenMesh.userData.hotspot = 'screen';
@@ -891,6 +892,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   const _css3dQuat = new THREE.Quaternion();
 
   let _isDragging = false;
+  let _started = false;
 
   function startDrag() { _isDragging = true; }
   function drag(movementX) { if (_isDragging) globe.rotation.y += movementX * 0.008; }
@@ -900,6 +902,11 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   function update(delta) {
     elapsed += delta;
     if (!_isDragging) globe.rotation.y += delta * 0.06;
+
+    // Keep CSS3D overlay in sync with room visibility — the 3D screen mesh is hidden
+    // by setRoomVisibility when leaving the AI room, but CSS3D is a separate HTML layer
+    // that doesn't respect Three.js visibility. Sync it here every frame.
+    if (css3dObj && _started) css3dObj.visible = screen.visible;
 
     if (css3dObj && css3dObj.visible) {
       screen.userData.screenMesh.getWorldPosition(_css3dPos);
