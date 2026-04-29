@@ -347,39 +347,110 @@ export function createRadio(scene) {
   root.rotation.y = (3 * Math.PI) / 4; // front faces diagonally into the room
   scene.add(root);
 
-  // ── Pedestal — short, wide stand instead of a thin pole ──
-  const pedMat = new THREE.MeshStandardMaterial({
-    color: 0xaaffff,
-    emissive: 0x00ffee,
-    emissiveIntensity: 2.5,
-    transparent: true,
-    opacity: 0.5,
-    roughness: 0.1,
-    metalness: 0.0,
-  });
+  // ── Alien tractor beam: octagonal landing pad + flared light beam ──
+  // The radio sits at the top of the beam as if abducted / hovering.
   const PED_H = 0.85;
-  // Wider base (foot) for stability, narrow waist, then a top plate the
-  // radio sits on. Reads as a side-table stand.
-  const pedFoot = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.22, 0.04, 16),
-    pedMat
-  );
-  pedFoot.position.y = 0.02;
-  root.add(pedFoot);
 
-  const pedStem = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08, 0.1, PED_H - 0.08, 12),
-    pedMat
+  // Landing pad — octagonal flat disc on the floor, glowing rim
+  const padMat = new THREE.MeshStandardMaterial({
+    color: 0x0d2230,
+    emissive: 0x00d4ff,
+    emissiveIntensity: 0.6,
+    metalness: 0.55,
+    roughness: 0.35,
+  });
+  const pad = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.42, 0.46, 0.04, 8),
+    padMat
   );
-  pedStem.position.y = (PED_H - 0.08) / 2 + 0.04;
-  root.add(pedStem);
+  pad.position.y = 0.02;
+  root.add(pad);
 
-  const pedTop = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.22, 0.20, 0.04, 16),
-    pedMat
+  // Cyan ring of light around the pad rim — alien landing-strip vibe
+  const padRimMat = new THREE.MeshBasicMaterial({
+    color: 0x5ee0ff,
+    transparent: true,
+    opacity: 0.85,
+  });
+  const padRim = new THREE.Mesh(
+    new THREE.RingGeometry(0.42, 0.48, 32),
+    padRimMat
   );
-  pedTop.position.y = PED_H - 0.02;
-  root.add(pedTop);
+  padRim.rotation.x = -Math.PI / 2;
+  padRim.position.y = 0.041;
+  root.add(padRim);
+
+  // Inner concentric ring on the pad — more "runway markings"
+  const padInner = new THREE.Mesh(
+    new THREE.RingGeometry(0.27, 0.30, 24),
+    new THREE.MeshBasicMaterial({ color: 0x5ee0ff, transparent: true, opacity: 0.55 })
+  );
+  padInner.rotation.x = -Math.PI / 2;
+  padInner.position.y = 0.042;
+  root.add(padInner);
+
+  // Tractor beam — tapered cylinder, wider at the bottom, translucent
+  // cyan with additive blending so it reads as light, not solid glass.
+  const beamMat = new THREE.MeshBasicMaterial({
+    color: 0x5ee0ff,
+    transparent: true,
+    opacity: 0.18,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const beamH = PED_H - 0.08;
+  const beam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.32, beamH, 32, 1, true),
+    beamMat
+  );
+  beam.position.y = 0.04 + beamH / 2;
+  root.add(beam);
+
+  // Inner "core" beam — denser, narrower, brighter
+  const beamCore = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.18, beamH, 24, 1, true),
+    new THREE.MeshBasicMaterial({
+      color: 0x5ee0ff,
+      transparent: true,
+      opacity: 0.32,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    })
+  );
+  beamCore.position.y = 0.04 + beamH / 2;
+  root.add(beamCore);
+
+  // Anti-grav disc — thin disc the radio appears to float on top of
+  const antigrav = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.18, 0.16, 0.025, 16),
+    new THREE.MeshStandardMaterial({
+      color: 0x0d2230,
+      emissive: 0x00d4ff,
+      emissiveIntensity: 1.4,
+      metalness: 0.7,
+      roughness: 0.25,
+    })
+  );
+  antigrav.position.y = PED_H - 0.012;
+  root.add(antigrav);
+
+  // Cyan halo just under the antigrav disc — the "lift force" glow
+  const liftHalo = new THREE.Mesh(
+    new THREE.RingGeometry(0.16, 0.22, 32),
+    new THREE.MeshBasicMaterial({
+      color: 0x5ee0ff,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    })
+  );
+  liftHalo.rotation.x = -Math.PI / 2;
+  liftHalo.position.y = PED_H - 0.001;
+  root.add(liftHalo);
 
   // ── Radio body — even bigger now (1.5× larger again) ──
   const bodyW = 0.85, bodyH = 0.42, bodyD = 0.32;
