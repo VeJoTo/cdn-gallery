@@ -2398,7 +2398,12 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 .hud-actions {
   flex-direction: row;
   align-items: flex-end;
-  gap: 8px;
+  gap: 14px;
+}
+
+.hud-actions .hud-key-wrap {
+  width: auto;
+  min-width: 44px;
 }
 
 .hud-row {
