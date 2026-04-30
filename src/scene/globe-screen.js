@@ -609,7 +609,7 @@ function buildGlobe(screenRef) {
     };
     markers.push(markerGroup);
 
-    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup, dotMat, btnMesh });
+    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup, dotMat, btnMesh, textMesh });
   }
 
   // Inner point light
@@ -905,12 +905,13 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   let unlocked = false;
   let unlockProgress = 1; // 0 = animating unlock, 1 = done
 
-  for (const { lineMesh, lineMat, markerGroup, dotMat, btnMesh } of globe.userData.billboardData) {
+  for (const { lineMesh, lineMat, markerGroup, dotMat, btnMesh, textMesh } of globe.userData.billboardData) {
     markerGroup.userData.clickable = false;
     markerGroup.visible = false;
     lineMesh.visible = false;
     btnMesh.material.opacity = 0;
     btnMesh.material.color.set(0x777777);
+    textMesh.material.opacity = 0;
     lineMat.opacity = 0;
     dotMat.visible = false;
   }
@@ -1006,8 +1007,9 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     // Unlock fade animation (0.5s)
     if (unlocked && unlockProgress < 1) {
       unlockProgress = Math.min(1, unlockProgress + delta * 2);
-      for (const { lineMat, dotMat, btnMesh } of globe.userData.billboardData) {
+      for (const { lineMat, dotMat, btnMesh, textMesh } of globe.userData.billboardData) {
         btnMesh.material.opacity = unlockProgress;
+        textMesh.material.opacity = unlockProgress;
         _tmpCol.copy(_grey).lerp(_white, unlockProgress);
         btnMesh.material.color.copy(_tmpCol);
         dotMat.emissiveIntensity = 3.5 * unlockProgress;
