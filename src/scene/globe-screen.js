@@ -469,15 +469,36 @@ function buildGlobe(screenRef) {
   const markers = [];
   const up = new THREE.Vector3(0, 1, 0);
 
+  // Draws a button exactly matching the culture-map button style.
+  // normal: dark bg + cyan border + cyan text
+  // hovered: filled cyan + dark text
+  const _BW = 630, _BH = 165, _BB = 4, _BR = 8;
+  function drawGlobeBtn(ctx, label, hovered) {
+    ctx.clearRect(0, 0, _BW, _BH);
+    ctx.fillStyle = hovered ? '#00d4ff' : '#0a0f1a';
+    ctx.beginPath();
+    ctx.roundRect(_BB, _BB, _BW - _BB * 2, _BH - _BB * 2, _BR);
+    ctx.fill();
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth   = _BB;
+    ctx.beginPath();
+    ctx.roundRect(_BB, _BB, _BW - _BB * 2, _BH - _BB * 2, _BR);
+    ctx.stroke();
+    ctx.fillStyle    = hovered ? '#0a0f1a' : '#00d4ff';
+    ctx.font         = '52px Roboto, sans-serif';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, _BW / 2, _BH / 2);
+  }
+
   for (const c of COUNTRIES) {
     const lr       = c.labelRadius;
     const dir      = latLonToVec3(c.lat, c.lon, 1).normalize();
     const dotPos   = dir.clone().multiplyScalar(0.52);
-    const colorHex = '#' + c.color.toString(16).padStart(6, '0');
 
     // Surface dot — child of globe, rotates with it
     const dotMat = new THREE.MeshStandardMaterial({
-      color: c.color, emissive: c.color, emissiveIntensity: 3.5,
+      color: CDN.cyan, emissive: CDN.cyan, emissiveIntensity: 3.5,
     });
     const dot = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), dotMat);
     dot.position.copy(dotPos);
@@ -486,7 +507,7 @@ function buildGlobe(screenRef) {
     // Pointer line — will be added to scene, positioned in update()
     const lineLength = lr - 0.06 - 0.52;
     const lineMat    = new THREE.MeshStandardMaterial({
-      color: c.color, emissive: c.color, emissiveIntensity: 2.0,
+      color: CDN.cyan, emissive: CDN.cyan, emissiveIntensity: 2.0,
       transparent: true, opacity: 0.9,
     });
     const lineMesh = new THREE.Mesh(
@@ -494,122 +515,40 @@ function buildGlobe(screenRef) {
       lineMat
     );
 
-    // Button 1 style — will be added to scene, billboarded in update()
-    const BW = 630, BH = 165, R = 33;
-    const lc  = document.createElement('canvas');
-    lc.width  = BW;
-    lc.height = BH;
-    const lx  = lc.getContext('2d');
+    // Single canvas button — MeshBasicMaterial so colours appear exactly as drawn
+    const bc  = document.createElement('canvas');
+    bc.width  = _BW;
+    bc.height = _BH;
+    const bx  = bc.getContext('2d');
+    const bTex = new THREE.CanvasTexture(bc);
+    drawGlobeBtn(bx, c.name, false);
 
-    const cr = (c.color >> 16) & 0xff;
-    const cg = (c.color >> 8)  & 0xff;
-    const cb =  c.color        & 0xff;
-
-    // Background + border canvas (no text)
-    lx.shadowBlur = 0;
-    lx.fillStyle  = `rgba(${cr}, ${cg}, ${cb}, 0.12)`;
-    lx.beginPath();
-    lx.roundRect(10, 10, BW - 20, BH - 20, R);
-    lx.fill();
-
-    lx.strokeStyle = colorHex;
-    lx.lineWidth   = 6;
-    lx.beginPath();
-    lx.roundRect(10, 10, BW - 20, BH - 20, R);
-    lx.stroke();
-
-    // Border emissive map — grey interior so hover brightens whole label, white border glow
-    const ec = document.createElement('canvas');
-    ec.width = BW; ec.height = BH;
-    const ex = ec.getContext('2d');
-    ex.fillStyle = 'rgba(60, 60, 60, 1)';
-    ex.fillRect(0, 0, BW, BH);
-    ex.beginPath();
-    ex.roundRect(10, 10, BW - 20, BH - 20, R);
-    ex.fill();
-    ex.shadowColor = 'white';
-    ex.shadowBlur  = 50;
-    ex.strokeStyle = 'white';
-    ex.lineWidth   = 8;
-    ex.beginPath();
-    ex.roundRect(10, 10, BW - 20, BH - 20, R);
-    ex.stroke();
-
-    // Background + border mesh — accent emissive so border glows in country color
-    const btnMesh = new THREE.Mesh(
+    const combinedMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1.05, 0.30),
-      new THREE.MeshStandardMaterial({
-        map:          new THREE.CanvasTexture(lc),
-        emissiveMap:  new THREE.CanvasTexture(ec),
-        emissive:     new THREE.Color(c.color),
-        emissiveIntensity: 2.0,
-        transparent: true, depthWrite: false,
-        roughness: 1, metalness: 0,
-      })
+      new THREE.MeshBasicMaterial({ map: bTex, transparent: true, depthWrite: false })
     );
 
-    // Text canvas — white text with canvas glow, transparent background
-    const tc = document.createElement('canvas');
-    tc.width = BW; tc.height = BH;
-    const tx = tc.getContext('2d');
-    tx.font         = 'bold 66px "Octosquares", sans-serif';
-    tx.shadowColor  = '#ffffff';
-    tx.shadowBlur   = 22;
-    tx.fillStyle    = '#ffffff';
-    tx.textAlign    = 'center';
-    tx.textBaseline = 'middle';
-    tx.fillText(c.name, BW / 2, BH / 2);
-    tx.shadowBlur   = 0;
-
-    // Text emissive map — white text so it glows in 3D (emissive = white → white glow)
-    const te = document.createElement('canvas');
-    te.width = BW; te.height = BH;
-    const tx2 = te.getContext('2d');
-    tx2.fillStyle = 'black';
-    tx2.fillRect(0, 0, BW, BH);
-    tx2.font         = 'bold 66px "Octosquares", sans-serif';
-    tx2.shadowColor  = 'white';
-    tx2.shadowBlur   = 30;
-    tx2.fillStyle    = 'white';
-    tx2.textAlign    = 'center';
-    tx2.textBaseline = 'middle';
-    tx2.fillText(c.name, BW / 2, BH / 2);
-
-    // Text mesh — white emissive so text glows white regardless of accent color
-    const textMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.05, 0.30),
-      new THREE.MeshStandardMaterial({
-        map:          new THREE.CanvasTexture(tc),
-        emissiveMap:  new THREE.CanvasTexture(te),
-        emissive:     new THREE.Color(0xffffff),
-        emissiveIntensity: 2.0,
-        transparent: true, depthWrite: false,
-        roughness: 1, metalness: 0,
-      })
-    );
-    textMesh.position.z = 0.002;
-
-    // Invisible hit plane slightly in front of button
+    // Invisible hit plane slightly in front
     const hitMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1.13, 0.38),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
     );
-    hitMesh.position.z = 0.003;
+    hitMesh.position.z = 0.002;
 
-    // Group them so traverse in applyHoverGlow reaches all meshes
     const markerGroup = new THREE.Group();
-    markerGroup.add(btnMesh);
-    markerGroup.add(textMesh);
+    markerGroup.add(combinedMesh);
     markerGroup.add(hitMesh);
     markerGroup.userData = {
       clickable: true,
       action: 'selectCountry',
       country: c.name,
       screenRef,
+      onHover: () => { drawGlobeBtn(bx, c.name, true);  bTex.needsUpdate = true; },
+      onBlur:  () => { drawGlobeBtn(bx, c.name, false); bTex.needsUpdate = true; },
     };
     markers.push(markerGroup);
 
-    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup, dotMat, btnMesh });
+    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup, dotMat, combinedMesh });
   }
 
   // Inner point light
@@ -904,12 +843,13 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   let unlocked = false;
   let unlockProgress = 1; // 0 = animating unlock, 1 = done
 
-  for (const { lineMat, markerGroup, dotMat, btnMesh } of globe.userData.billboardData) {
+  for (const { lineMesh, lineMat, markerGroup, dotMat, combinedMesh } of globe.userData.billboardData) {
     markerGroup.userData.clickable = false;
-    btnMesh.material.opacity = 0.25;
-    btnMesh.material.color.set(0x777777);
-    lineMat.opacity = 0.12;
-    dotMat.emissiveIntensity = 0.4;
+    markerGroup.visible = false;
+    lineMesh.visible = false;
+    combinedMesh.material.opacity = 0;
+    lineMat.opacity = 0;
+    dotMat.visible = false;
   }
 
   // Fetch Vimeo thumbnails — redraw default screen once started and thumbnails arrive
@@ -926,8 +866,11 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     if (unlocked) return;
     unlocked = true;
     unlockProgress = 0;
-    for (const { markerGroup } of globe.userData.billboardData) {
+    for (const { lineMesh, markerGroup, dotMat } of globe.userData.billboardData) {
       markerGroup.userData.clickable = true;
+      markerGroup.visible = true;
+      lineMesh.visible = true;
+      dotMat.visible = true;
     }
     drawDefaultScreen(screen.userData.canvas, false);
     screen.userData.texture.needsUpdate = true;
@@ -1000,11 +943,9 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     // Unlock fade animation (0.5s)
     if (unlocked && unlockProgress < 1) {
       unlockProgress = Math.min(1, unlockProgress + delta * 2);
-      for (const { lineMat, dotMat, btnMesh } of globe.userData.billboardData) {
-        btnMesh.material.opacity = 0.25 + 0.75 * unlockProgress;
-        _tmpCol.copy(_grey).lerp(_white, unlockProgress);
-        btnMesh.material.color.copy(_tmpCol);
-        dotMat.emissiveIntensity = 0.4 + 3.1 * unlockProgress;
+      for (const { dotMat, combinedMesh } of globe.userData.billboardData) {
+        combinedMesh.material.opacity = unlockProgress;
+        dotMat.emissiveIntensity = 3.5 * unlockProgress;
       }
     }
 
@@ -1017,10 +958,10 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
 
       lineMesh.position.copy(dotWorld.clone().lerp(lineEndW, 0.5));
       lineMesh.quaternion.setFromUnitVectors(_up, worldDir);
-      // Locked: fixed dim opacity. Unlocked: animated pulse
+      // Hidden until unlocked, then animated pulse
       lineMat.opacity = unlocked
         ? 0.6 + Math.sin(elapsed * 2.5) * 0.35
-        : 0.12;
+        : 0;
 
       markerGroup.position.copy(labelWorld);
       markerGroup.lookAt(camera.position);

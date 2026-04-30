@@ -17,7 +17,7 @@
   <canvas id="gallery-canvas"></canvas>
 
   <div id="fade-overlay"></div>
-  <div id="fp-overlay">
+  <div id="fp-overlay" class="hidden">
     <div id="fp-instructions">
       <h2>Click to explore</h2>
       <p>WASD to move · Shift to sprint · Mouse to look · Click objects to interact · ESC to release cursor</p>
@@ -57,7 +57,7 @@
     <div class="hud-cluster hud-actions">
       <div class="hud-key-wrap">
         <div class="hud-key" data-hud-key="e">E</div>
-        <span class="hud-key-label">Inventory</span>
+        <span class="hud-key-label">Field notes</span>
       </div>
       <div class="hud-key-wrap">
         <div class="hud-key" data-hud-key="g">G</div>
@@ -264,7 +264,6 @@
   <div id="proximity-hint" class="hidden">
     <img id="proximity-hint-portrait" alt="Jason" />
     <div id="proximity-hint-dialog">
-      <button id="proximity-hint-close">×</button>
       <div id="proximity-hint-header">
         <div>
           <div id="proximity-hint-name">Jason</div>

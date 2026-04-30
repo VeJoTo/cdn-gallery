@@ -213,7 +213,7 @@ export const INTRO_SCRIPT = [
   { text: 'Hi! I am Jason. I work as a researcher at CDN, and will be your Guide through this interactive 3D room.' },
   { text: 'CDN is the Centre for Digital Narrative at the University of Bergen. We research the intersection of technology and storytelling, from AI to interactive media to the future of narrative itself.' },
   { text: "Right now you are outside the building of CDN at the University of Bergen. Once you step into the room you are free to explore some of CDN's research! I will guide you through this process." },
-  { text: 'Go ahead and explore!' }
+  { text: 'Press WASD to walk, G to open the guide and E to check the inventory. Go ahead and explore!' }
 ];
 
 // Safe localStorage readers — browser private mode / quota issues never break the app.
@@ -336,6 +336,7 @@ export function createUI(camera, renderer, controls, scene) {
 
   // ── Panel drawer ─────────────────────────────────
   function openPanelDrawer(panelId, title) {
+    window.__dismissProximityHint?.();
     const safeTitle = escapeHtml(title);
     let content = '';
 
@@ -470,6 +471,7 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function openGatekeeperChat() {
+    window.__dismissProximityHint?.();
     chatMessages.innerHTML = '';
     appendChatMessage("Hey Kids! Welcome to the CDN gallery! What are you curious about?", 'gatekeeper');
 
@@ -490,7 +492,11 @@ export function createUI(camera, renderer, controls, scene) {
     setTimeout(() => gatekeeperChat.classList.add('hidden'), 300);
   }
 
+  window.__closeGatekeeperChat = closeGatekeeperChat;
   chatClose.addEventListener('click', closeGatekeeperChat);
+  gatekeeperChat.addEventListener('click', (e) => {
+    if (e.target === gatekeeperChat) closeGatekeeperChat();
+  });
 
   // ── Intro sequence (first-visit welcome; see docs/superpowers/specs/…) ──
   let isIntroPlaying = false;
@@ -517,6 +523,11 @@ export function createUI(camera, renderer, controls, scene) {
     requestAnimationFrame(() => gatekeeperChat.classList.add('open'));
 
     await runIntroDialogue({ script: INTRO_SCRIPT });
+
+    // Lock controls immediately while still in the user-gesture context so the
+    // player can walk straight away without needing to click "Click to explore".
+    window.__hideFPOverlay?.();
+    try { controls.lock(); } catch { window.__showFPOverlay?.(); }
 
     // Fade out while still in intro-mode so the normal guide chat doesn't
     // flash during the 300ms opacity transition. Reset after hidden.
@@ -680,6 +691,7 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   async function openInventory() {
+    window.__dismissProximityHint?.();
     await renderInventoryWithTab(_activeInventoryTab);
     inventoryOverlay.classList.remove('hidden');
   }
@@ -1377,6 +1389,7 @@ export function createUI(camera, renderer, controls, scene) {
   });
 
   function openBook() {
+    window.__dismissProximityHint?.();
     import('./achievements.js').then(m => m.unlock('book'));
     bookOverlay.classList.remove('hidden');
     unlockForOverlay();
@@ -1451,6 +1464,7 @@ export function createUI(camera, renderer, controls, scene) {
   const reportClose   = document.getElementById('report-close');
 
   function openReport() {
+    window.__dismissProximityHint?.();
     reportOverlay.classList.remove('hidden');
     unlockForOverlay();
   }
@@ -1475,6 +1489,7 @@ export function createUI(camera, renderer, controls, scene) {
   let _globeStarted = false;
 
   function openGlobeVideos(onStart) {
+    window.__dismissProximityHint?.();
     import('./achievements.js').then(m => m.unlock('globe'));
     _onGlobeStart = onStart || null;
     if (_globeStarted) {
@@ -1511,6 +1526,7 @@ export function createUI(camera, renderer, controls, scene) {
   const fdmClose   = document.getElementById('findumonde-close');
 
   function openFinDuMonde() {
+    window.__dismissProximityHint?.();
     import('./achievements.js').then(m => m.unlock('globe'));
     fdmOverlay.classList.remove('hidden');
     unlockForOverlay();
@@ -1532,6 +1548,7 @@ export function createUI(camera, renderer, controls, scene) {
   let rhAchievementUnlocked = false;
 
   function openRabbitHole() {
+    window.__dismissProximityHint?.();
     rhOverlay.classList.remove('hidden');
     rhOverlay.scrollTop = 0;
     unlockForOverlay();
