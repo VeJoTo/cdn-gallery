@@ -32,7 +32,7 @@ function* visibleChars(str) {
   for (const ch of str) yield ch;
 }
 
-const DEFAULT_CHAR_DELAY_MS = 25;
+const DEFAULT_CHAR_DELAY_MS = 12;
 
 /**
  * Play the intro dialogue sequence inside #gatekeeper-chat's #chat-messages.
