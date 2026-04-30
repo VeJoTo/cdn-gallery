@@ -94,7 +94,7 @@ controls.maxPolarAngle = Math.PI - 0.05;
 const fpOverlay = document.getElementById("fp-overlay");
 const crosshair = document.getElementById("crosshair");
 const hoverLabelEl = document.getElementById("hover-label");
-fpOverlay.classList.remove("hidden");
+fpOverlay.classList.add("hidden");
 crosshair.classList.add("hidden");
 
 fpOverlay.addEventListener("click", () => controls.lock());

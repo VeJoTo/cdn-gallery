@@ -527,7 +527,7 @@ export function createUI(camera, renderer, controls, scene) {
     // Lock controls immediately while still in the user-gesture context so the
     // player can walk straight away without needing to click "Click to explore".
     window.__hideFPOverlay?.();
-    try { controls.lock(); } catch { /* browser may refuse; fp-overlay remains */ }
+    try { controls.lock(); } catch { window.__showFPOverlay?.(); }
 
     // Fade out while still in intro-mode so the normal guide chat doesn't
     // flash during the 300ms opacity transition. Reset after hidden.
