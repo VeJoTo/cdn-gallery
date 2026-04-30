@@ -150,7 +150,7 @@ function buildPortal() {
 function buildPedestal() {
   const group = new THREE.Group();
   group.position.set(-7.0, -0.9, -2.75);
-  group.scale.setScalar(2.4);
+  group.scale.set(2.4, 2.16, 2.4); // Y = 2.4 * 0.9 → 10% shorter
 
   // ── Pointed oval arc bookstand ───────────────────────────────────────────
 
