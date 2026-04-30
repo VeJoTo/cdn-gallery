@@ -206,6 +206,11 @@ document.addEventListener("keydown", (e) => {
       e.stopImmediatePropagation();
       return;
     } // × button handles TV exit
+    const chat = document.getElementById('gatekeeper-chat');
+    if (chat && !chat.classList.contains('hidden')) {
+      window.__closeGatekeeperChat?.();
+      return;
+    }
     const hint = document.getElementById('proximity-hint');
     if (hint && !hint.classList.contains('hidden')) return; // let hint handler dismiss it
     fpOverlay.classList.remove("hidden");
@@ -436,6 +441,7 @@ const kulturkartetTextWrap = document.getElementById('kulturkartet-text-wrap');
 const kulturkartetBtnsEl   = document.getElementById('kulturkartet-btns');
 
 function openKulturKartet(mode = 'explore') {
+  window.__dismissProximityHint?.();
   kulturkartetOverlay.classList.remove('hidden');
   mountKartetDOMOverlay(kulturkartetMapWrap, kulturkartetTextWrap, kulturkartetBtnsEl, closeKulturKartet, mode);
 }
@@ -1419,6 +1425,7 @@ function _stopMagHint() {
 }
 
 function enterTVMode() {
+  window.__dismissProximityHint?.();
   unlock("tv");
   _cancelRelockOnKey();
   _freeCursorAfterTV = false;
@@ -2138,7 +2145,7 @@ document.addEventListener('mouseup', (e) => {
     {
       id: 'book',
       pos: new THREE.Vector3(-7.0, 1.0, -2.75),
-      radius: 3.0,
+      radius: 4.5,
       pages: [
         "How generalising is AI?",
         "This is a research project that asked an AI to retell a dark Norwegian folktale called The Sweetheart in the Forest, a story about a young woman who outwits a murderer in the woods. Take a look at how AI interpret the folklore!"
@@ -2161,6 +2168,7 @@ document.addEventListener('mouseup', (e) => {
     activePage = 0;
     if (hintEl) hintEl.classList.add('hidden');
   }
+  window.__dismissProximityHint = dismiss;
 
   function showPage(hint, idx) {
     if (!hintBody) return;
@@ -2187,10 +2195,14 @@ document.addEventListener('mouseup', (e) => {
     }
   }
 
-  if (hintClose) hintClose.addEventListener('click', dismiss);
-  if (hintEl) hintEl.addEventListener('click', (e) => {
+  const hintDialog = document.getElementById('proximity-hint-dialog');
+  if (hintClose) hintClose.addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+  if (hintDialog) hintDialog.addEventListener('click', (e) => {
     if (e.target !== hintClose) advance();
+    e.stopPropagation();
   });
+  if (hintEl) hintEl.addEventListener('click', dismiss); // click outside dialog dismisses
+
   document.addEventListener('keydown', (e) => {
     if (!active) return;
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); advance(); }
@@ -2198,7 +2210,11 @@ document.addEventListener('mouseup', (e) => {
   });
 
   addUpdateCallback(() => {
-    if (currentRoom !== 'ai' || active) return;
+    if (currentRoom !== 'ai') return;
+    if (active) {
+      if (camera.position.distanceTo(active.pos) > active.radius * 1.1) dismiss();
+      return;
+    }
     for (const hint of HINTS) {
       if (shown.has(hint.id)) continue;
       if (camera.position.distanceTo(hint.pos) < hint.radius) {

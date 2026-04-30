@@ -336,6 +336,7 @@ export function createUI(camera, renderer, controls, scene) {
 
   // ── Panel drawer ─────────────────────────────────
   function openPanelDrawer(panelId, title) {
+    window.__dismissProximityHint?.();
     const safeTitle = escapeHtml(title);
     let content = '';
 
@@ -470,6 +471,7 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   function openGatekeeperChat() {
+    window.__dismissProximityHint?.();
     chatMessages.innerHTML = '';
     appendChatMessage("Hey Kids! Welcome to the CDN gallery! What are you curious about?", 'gatekeeper');
 
@@ -490,7 +492,11 @@ export function createUI(camera, renderer, controls, scene) {
     setTimeout(() => gatekeeperChat.classList.add('hidden'), 300);
   }
 
+  window.__closeGatekeeperChat = closeGatekeeperChat;
   chatClose.addEventListener('click', closeGatekeeperChat);
+  gatekeeperChat.addEventListener('click', (e) => {
+    if (e.target === gatekeeperChat) closeGatekeeperChat();
+  });
 
   // ── Intro sequence (first-visit welcome; see docs/superpowers/specs/…) ──
   let isIntroPlaying = false;
@@ -680,6 +686,7 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   async function openInventory() {
+    window.__dismissProximityHint?.();
     await renderInventoryWithTab(_activeInventoryTab);
     inventoryOverlay.classList.remove('hidden');
   }
@@ -1377,6 +1384,7 @@ export function createUI(camera, renderer, controls, scene) {
   });
 
   function openBook() {
+    window.__dismissProximityHint?.();
     import('./achievements.js').then(m => m.unlock('book'));
     bookOverlay.classList.remove('hidden');
     unlockForOverlay();
@@ -1451,6 +1459,7 @@ export function createUI(camera, renderer, controls, scene) {
   const reportClose   = document.getElementById('report-close');
 
   function openReport() {
+    window.__dismissProximityHint?.();
     reportOverlay.classList.remove('hidden');
     unlockForOverlay();
   }
@@ -1475,6 +1484,7 @@ export function createUI(camera, renderer, controls, scene) {
   let _globeStarted = false;
 
   function openGlobeVideos(onStart) {
+    window.__dismissProximityHint?.();
     import('./achievements.js').then(m => m.unlock('globe'));
     _onGlobeStart = onStart || null;
     if (_globeStarted) {
@@ -1511,6 +1521,7 @@ export function createUI(camera, renderer, controls, scene) {
   const fdmClose   = document.getElementById('findumonde-close');
 
   function openFinDuMonde() {
+    window.__dismissProximityHint?.();
     import('./achievements.js').then(m => m.unlock('globe'));
     fdmOverlay.classList.remove('hidden');
     unlockForOverlay();
@@ -1532,6 +1543,7 @@ export function createUI(camera, renderer, controls, scene) {
   let rhAchievementUnlocked = false;
 
   function openRabbitHole() {
+    window.__dismissProximityHint?.();
     rhOverlay.classList.remove('hidden');
     rhOverlay.scrollTop = 0;
     unlockForOverlay();
