@@ -100,24 +100,46 @@ function buildPortal() {
     group.add(node);
   }
 
-  // "PORTAL" label above
+  // "ENTER PORTAL" label — glowing pill above the portal
   const labelCanvas = document.createElement("canvas");
-  labelCanvas.width = 256;
-  labelCanvas.height = 48;
+  labelCanvas.width = 512;
+  labelCanvas.height = 128;
   const lctx = labelCanvas.getContext("2d");
-  lctx.clearRect(0, 0, 256, 48);
+  lctx.clearRect(0, 0, 512, 128);
+
+  // Pill backdrop (drawn first so text sits on top)
+  const pillInset = 8;
   lctx.shadowColor = "#00d4ff";
-  lctx.shadowBlur = 8;
-  lctx.font = "bold 24px 'Octosquares', sans-serif";
-  lctx.fillStyle = "#00d4ff";
+  lctx.shadowBlur = 20;
+  lctx.fillStyle = "rgba(5, 10, 20, 0.85)";
+  lctx.strokeStyle = "#00d4ff";
+  lctx.lineWidth = 3;
+  lctx.beginPath();
+  lctx.roundRect(
+    pillInset,
+    pillInset,
+    512 - pillInset * 2,
+    128 - pillInset * 2,
+    16,
+  );
+  lctx.fill();
+  lctx.stroke();
+
+  // Text on top
+  lctx.shadowColor = "#00d4ff";
+  lctx.shadowBlur = 16;
+  lctx.font = "bold 44px 'Octosquares', sans-serif";
+  lctx.fillStyle = "#ffffff";
   lctx.textAlign = "center";
-  lctx.fillText("▸ ENTER PORTAL ◂", 128, 32);
+  lctx.textBaseline = "middle";
+  lctx.fillText("▸ ENTER PORTAL ◂", 256, 64);
+
   const labelTex = new THREE.CanvasTexture(labelCanvas);
   const label = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.8, 0.15),
+    new THREE.PlaneGeometry(1.2, 0.3),
     new THREE.MeshBasicMaterial({ map: labelTex, transparent: true }),
   );
-  label.position.set(0, 1.35, 0.01);
+  label.position.set(0, 1.45, 0.01);
   group.add(label);
 
   // Point light from the portal center
@@ -142,6 +164,7 @@ function buildPortal() {
     action: "enterNatureRoom",
     rings,
     innerGlow,
+    label,
   };
 
   return group;
@@ -1126,6 +1149,8 @@ export function createObjects(scene) {
     }
     portal.userData.innerGlow.material.emissiveIntensity =
       0.15 + Math.sin(elapsed * 2) * 0.1;
+    portal.userData.label.material.opacity =
+      0.85 + Math.sin(elapsed * 1.5) * 0.15;
 
     pedestal.userData.updateSmoke(delta);
     pedestal.userData.updateCubeSmoke(delta);
