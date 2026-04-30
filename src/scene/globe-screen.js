@@ -912,7 +912,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     btnMesh.material.opacity = 0;
     btnMesh.material.color.set(0x777777);
     lineMat.opacity = 0;
-    dotMat.emissiveIntensity = 0;
+    dotMat.visible = false;
   }
 
   // Fetch Vimeo thumbnails — redraw default screen once started and thumbnails arrive
@@ -929,10 +929,11 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     if (unlocked) return;
     unlocked = true;
     unlockProgress = 0;
-    for (const { lineMesh, markerGroup } of globe.userData.billboardData) {
+    for (const { lineMesh, markerGroup, dotMat } of globe.userData.billboardData) {
       markerGroup.userData.clickable = true;
       markerGroup.visible = true;
       lineMesh.visible = true;
+      dotMat.visible = true;
     }
     drawDefaultScreen(screen.userData.canvas, false);
     screen.userData.texture.needsUpdate = true;
@@ -1022,10 +1023,10 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
 
       lineMesh.position.copy(dotWorld.clone().lerp(lineEndW, 0.5));
       lineMesh.quaternion.setFromUnitVectors(_up, worldDir);
-      // Locked: fixed dim opacity. Unlocked: animated pulse
+      // Hidden until unlocked, then animated pulse
       lineMat.opacity = unlocked
         ? 0.6 + Math.sin(elapsed * 2.5) * 0.35
-        : 0.12;
+        : 0;
 
       markerGroup.position.copy(labelWorld);
       markerGroup.lookAt(camera.position);
