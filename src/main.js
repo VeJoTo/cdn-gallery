@@ -264,6 +264,51 @@ const ROOM_BOUNDS = {
   nature: { cx: NATURE_CENTER_X, cz: 0, halfW: 3, halfD: 2.5 },
 };
 
+// Per-object collision boxes (XZ plane). hw/hd = half-width/depth.
+// Player is treated as a circle with radius PLAYER_R; boxes are inflated by
+// that radius before the overlap test so corners feel natural.
+const PLAYER_R = 0.3;
+const OBJECT_OBSTACLES = {
+  ai: [
+    { cx: -4.0,  cz:  2.75, hw: 0.7,  hd: 1.4  }, // sofa
+    { cx: -5.5,  cz:  2.75, hw: 0.6,  hd: 0.85 }, // chess table (rotated π/2)
+    { cx:  5.5,  cz:  9.5,  hw: 0.55, hd: 0.7  }, // arcade cabinet
+    { cx: -1.75, cz: -9.5,  hw: 0.45, hd: 0.45 }, // Fin du Monde — screen pedestal
+    { cx:  1.75, cz: -9.5,  hw: 0.45, hd: 0.45 }, // Fin du Monde — globe pedestal
+    { cx: -7.0,  cz: -2.75, hw: 0.45, hd: 0.45 }, // book pedestal
+    { cx: -3.6,  cz:  5.0,  hw: 0.25, hd: 0.2  }, // radio
+  ],
+  exterior: [
+    { cx: -23.0, cz:  7.0,  hw: 0.25, hd: 0.25 }, // tree (left-back)
+    { cx: -16.0, cz:  8.0,  hw: 0.25, hd: 0.25 }, // tree (right-back)
+    { cx: -22.9, cz:  1.0,  hw: 0.9,  hd: 0.35 }, // left hedge
+    { cx: -17.1, cz:  1.0,  hw: 0.9,  hd: 0.35 }, // right hedge
+  ],
+  nature: [
+    { cx: NATURE_CENTER_X, cz: 0.0, hw: 1.3, hd: 1.3 }, // fountain basin
+  ],
+};
+
+// Push the camera out of any overlapping obstacle box.
+function resolveObstacles(room) {
+  const obs = OBJECT_OBSTACLES[room];
+  if (!obs) return;
+  for (const { cx, cz, hw, hd } of obs) {
+    const dx = camera.position.x - cx;
+    const dz = camera.position.z - cz;
+    const ox = hw + PLAYER_R - Math.abs(dx);
+    const oz = hd + PLAYER_R - Math.abs(dz);
+    if (ox > 0 && oz > 0) {
+      // Push along the axis of least penetration.
+      if (ox < oz) {
+        camera.position.x += ox * Math.sign(dx || 1);
+      } else {
+        camera.position.z += oz * Math.sign(dz || 1);
+      }
+    }
+  }
+}
+
 function updateMovement(delta) {
   if (!controls.isLocked) return;
 
@@ -293,6 +338,9 @@ function updateMovement(delta) {
       b.cz - b.halfD,
       Math.min(b.cz + b.halfD, camera.position.z),
     );
+
+    // Push player out of any object they walked into.
+    resolveObstacles(currentRoom);
   }
 
   // Always run the bob update so amplitude can decay smoothly when input stops.
