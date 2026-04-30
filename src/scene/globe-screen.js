@@ -498,7 +498,7 @@ function buildGlobe(screenRef) {
 
     // Surface dot — child of globe, rotates with it
     const dotMat = new THREE.MeshStandardMaterial({
-      color: c.color, emissive: c.color, emissiveIntensity: 3.5,
+      color: CDN.cyan, emissive: CDN.cyan, emissiveIntensity: 3.5,
     });
     const dot = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), dotMat);
     dot.position.copy(dotPos);
@@ -507,7 +507,7 @@ function buildGlobe(screenRef) {
     // Pointer line — will be added to scene, positioned in update()
     const lineLength = lr - 0.06 - 0.52;
     const lineMat    = new THREE.MeshStandardMaterial({
-      color: c.color, emissive: c.color, emissiveIntensity: 2.0,
+      color: CDN.cyan, emissive: CDN.cyan, emissiveIntensity: 2.0,
       transparent: true, opacity: 0.9,
     });
     const lineMesh = new THREE.Mesh(
