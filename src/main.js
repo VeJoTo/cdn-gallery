@@ -2158,7 +2158,6 @@ document.addEventListener('mouseup', (e) => {
   const hintEl       = document.getElementById('proximity-hint');
   const hintPortrait = document.getElementById('proximity-hint-portrait');
   const hintBody     = document.getElementById('proximity-hint-body');
-  const hintClose    = document.getElementById('proximity-hint-close');
 
   const shown = new Set();
   let active = null;
@@ -2198,9 +2197,8 @@ document.addEventListener('mouseup', (e) => {
   }
 
   const hintDialog = document.getElementById('proximity-hint-dialog');
-  if (hintClose) hintClose.addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
   if (hintDialog) hintDialog.addEventListener('click', (e) => {
-    if (e.target !== hintClose) advance();
+    advance();
     e.stopPropagation();
   });
   if (hintEl) hintEl.addEventListener('click', dismiss); // click outside dialog dismisses
