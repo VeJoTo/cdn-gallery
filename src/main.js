@@ -206,6 +206,8 @@ document.addEventListener("keydown", (e) => {
       e.stopImmediatePropagation();
       return;
     } // × button handles TV exit
+    const hint = document.getElementById('proximity-hint');
+    if (hint && !hint.classList.contains('hidden')) return; // let hint handler dismiss it
     fpOverlay.classList.remove("hidden");
     crosshair.classList.add("hidden");
     return;
