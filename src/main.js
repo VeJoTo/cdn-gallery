@@ -660,8 +660,8 @@ window.__openBookWithAnimation = (openBookFn) => {
     // Fade sign back in — scale from 0 back to normal size
     if (signSprite)
       gsap.to(signSprite.scale, {
-        x: 0.72,
-        y: 0.12,
+        x: 1,
+        y: 1,
         z: 1,
         duration: 0.6,
         ease: "power2.out",

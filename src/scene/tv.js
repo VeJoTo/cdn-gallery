@@ -430,57 +430,50 @@ export function buildTV() {
   allButtons.push(speakerBtnLeft);
   speakerBtn = speakerBtnLeft;
 
-  // ── Neon "AI Art" sign above the TV ──
+  // ── Neon "Art & AI" sign above the TV ──
   const signCanvas = document.createElement("canvas");
   signCanvas.width = 1024;
-  signCanvas.height = 200;
+  signCanvas.height = 140;
   const sctx = signCanvas.getContext("2d");
   const signTex = new THREE.CanvasTexture(signCanvas);
   signTex.colorSpace = THREE.SRGBColorSpace;
 
-  // LIM INN DETTE:
   function drawAIArtSign() {
-    const W = 1024,
-      H = 160; // Mer plass til glød
-    sctx.clearRect(0, 0, W, H);
-    const text = "Art & AI";
-    sctx.font = "bold 82px 'Octosquares', sans-serif"; // Litt mindre enn 92 for å unngå kutt
+    sctx.clearRect(0, 0, 1024, 140);
+    sctx.font = "104px 'Octosquares', sans-serif";
     sctx.textAlign = "center";
     sctx.textBaseline = "middle";
-
-    // 4-lags glød som matcher "The Culture Map"
     for (const [blur, alpha, fill] of [
-      [95, 0.25, "#00d4ff"], // Kraftigere og bredere ytre glød
-      [55, 0.4, "#00d4ff"], // Mer mettet mellomlag
-      [20, 0.65, "#00d4ff"], // Sterk indre blåfarge
-      [8, 1.0, "#ffffff"], // Hvit kjerne for maksimal "pop"
+      [90, 0.20, "#00d4ff"],
+      [50, 0.35, "#00d4ff"],
+      [20, 0.60, "#00d4ff"],
+      [ 8, 1.00, "#ffffff"],
     ]) {
       sctx.shadowColor = "#00d4ff";
       sctx.shadowBlur = blur;
       sctx.globalAlpha = alpha;
       sctx.fillStyle = fill;
-      sctx.fillText(text, W / 2, H / 2);
+      sctx.fillText("Art & AI".toUpperCase(), 512, 70);
     }
     sctx.globalAlpha = 1.0;
     signTex.needsUpdate = true;
   }
 
   drawAIArtSign();
-  document.fonts.load("68px 'Octosquares'").then(() => drawAIArtSign());
+  document.fonts.load("104px 'Octosquares'").then(() => drawAIArtSign());
 
-  // Fixed plane — stays aligned with the TV face, does not billboard
+  // Fixed plane mounted on wall above TV, does not billboard
+  const SIGN_W = 1.4;
   const signMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(1, 0.22),
+    new THREE.PlaneGeometry(SIGN_W, SIGN_W * (140 / 1024)),
     new THREE.MeshBasicMaterial({
       map: signTex,
-      //color: 0x888888,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
     }),
   );
-  signMesh.position.set(0, 0.88, 0.18); // float in front of TV face
+  signMesh.position.set(0, 1.067, 0.01);
   signMesh.renderOrder = 999;
   signMesh.raycast = () => {};
   group.add(signMesh);
