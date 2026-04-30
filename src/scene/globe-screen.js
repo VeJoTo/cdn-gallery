@@ -609,7 +609,7 @@ function buildGlobe(screenRef) {
     };
     markers.push(markerGroup);
 
-    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup, dotMat, btnMesh });
+    billboardData.push({ dir, labelRadius: lr, lineLength, lineMesh, lineMat, markerGroup, dotMat, btnMesh, textMesh });
   }
 
   // Inner point light
@@ -905,12 +905,15 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   let unlocked = false;
   let unlockProgress = 1; // 0 = animating unlock, 1 = done
 
-  for (const { lineMat, markerGroup, dotMat, btnMesh } of globe.userData.billboardData) {
+  for (const { lineMesh, lineMat, markerGroup, dotMat, btnMesh, textMesh } of globe.userData.billboardData) {
     markerGroup.userData.clickable = false;
-    btnMesh.material.opacity = 0.25;
+    markerGroup.visible = false;
+    lineMesh.visible = false;
+    btnMesh.material.opacity = 0;
     btnMesh.material.color.set(0x777777);
-    lineMat.opacity = 0.12;
-    dotMat.emissiveIntensity = 0.4;
+    textMesh.material.opacity = 0;
+    lineMat.opacity = 0;
+    dotMat.visible = false;
   }
 
   // Fetch Vimeo thumbnails — redraw default screen once started and thumbnails arrive
@@ -927,8 +930,11 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     if (unlocked) return;
     unlocked = true;
     unlockProgress = 0;
-    for (const { markerGroup } of globe.userData.billboardData) {
+    for (const { lineMesh, markerGroup, dotMat } of globe.userData.billboardData) {
       markerGroup.userData.clickable = true;
+      markerGroup.visible = true;
+      lineMesh.visible = true;
+      dotMat.visible = true;
     }
     drawDefaultScreen(screen.userData.canvas, false);
     screen.userData.texture.needsUpdate = true;
@@ -1001,11 +1007,12 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     // Unlock fade animation (0.5s)
     if (unlocked && unlockProgress < 1) {
       unlockProgress = Math.min(1, unlockProgress + delta * 2);
-      for (const { lineMat, dotMat, btnMesh } of globe.userData.billboardData) {
-        btnMesh.material.opacity = 0.25 + 0.75 * unlockProgress;
+      for (const { lineMat, dotMat, btnMesh, textMesh } of globe.userData.billboardData) {
+        btnMesh.material.opacity = unlockProgress;
+        textMesh.material.opacity = unlockProgress;
         _tmpCol.copy(_grey).lerp(_white, unlockProgress);
         btnMesh.material.color.copy(_tmpCol);
-        dotMat.emissiveIntensity = 0.4 + 3.1 * unlockProgress;
+        dotMat.emissiveIntensity = 3.5 * unlockProgress;
       }
     }
 
@@ -1018,10 +1025,10 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
 
       lineMesh.position.copy(dotWorld.clone().lerp(lineEndW, 0.5));
       lineMesh.quaternion.setFromUnitVectors(_up, worldDir);
-      // Locked: fixed dim opacity. Unlocked: animated pulse
+      // Hidden until unlocked, then animated pulse
       lineMat.opacity = unlocked
         ? 0.6 + Math.sin(elapsed * 2.5) * 0.35
-        : 0.12;
+        : 0;
 
       markerGroup.position.copy(labelWorld);
       markerGroup.lookAt(camera.position);
