@@ -494,94 +494,87 @@ function buildGlobe(screenRef) {
       lineMat
     );
 
-    // Button 1 style — will be added to scene, billboarded in update()
-    const BW = 630, BH = 165, R = 33;
+    // Culture-map button style — dark navy bg, cyan border, cyan Roboto text
+    const BW = 630, BH = 165;
     const lc  = document.createElement('canvas');
     lc.width  = BW;
     lc.height = BH;
     const lx  = lc.getContext('2d');
 
-    const cr = (c.color >> 16) & 0xff;
-    const cg = (c.color >> 8)  & 0xff;
-    const cb =  c.color        & 0xff;
-
-    // Background + border canvas (no text)
-    lx.shadowBlur = 0;
-    lx.fillStyle  = `rgba(${cr}, ${cg}, ${cb}, 0.12)`;
+    // Background: dark navy
+    lx.fillStyle = '#0a0f1a';
     lx.beginPath();
-    lx.roundRect(10, 10, BW - 20, BH - 20, R);
+    lx.roundRect(4, 4, BW - 8, BH - 8, 10);
     lx.fill();
 
-    lx.strokeStyle = colorHex;
-    lx.lineWidth   = 6;
+    // Border: cyan
+    lx.strokeStyle = '#00d4ff';
+    lx.lineWidth   = 4;
     lx.beginPath();
-    lx.roundRect(10, 10, BW - 20, BH - 20, R);
+    lx.roundRect(4, 4, BW - 8, BH - 8, 10);
     lx.stroke();
 
-    // Border emissive map — grey interior so hover brightens whole label, white border glow
+    // Emissive map — grey interior, white border glow for subtle 3-D neon edge
     const ec = document.createElement('canvas');
     ec.width = BW; ec.height = BH;
     const ex = ec.getContext('2d');
-    ex.fillStyle = 'rgba(60, 60, 60, 1)';
+    ex.fillStyle = 'rgba(40, 40, 40, 1)';
     ex.fillRect(0, 0, BW, BH);
     ex.beginPath();
-    ex.roundRect(10, 10, BW - 20, BH - 20, R);
+    ex.roundRect(4, 4, BW - 8, BH - 8, 10);
     ex.fill();
     ex.shadowColor = 'white';
-    ex.shadowBlur  = 50;
+    ex.shadowBlur  = 40;
     ex.strokeStyle = 'white';
-    ex.lineWidth   = 8;
+    ex.lineWidth   = 6;
     ex.beginPath();
-    ex.roundRect(10, 10, BW - 20, BH - 20, R);
+    ex.roundRect(4, 4, BW - 8, BH - 8, 10);
     ex.stroke();
 
-    // Background + border mesh — accent emissive so border glows in country color
+    // Background + border mesh
     const btnMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1.05, 0.30),
       new THREE.MeshStandardMaterial({
         map:          new THREE.CanvasTexture(lc),
         emissiveMap:  new THREE.CanvasTexture(ec),
-        emissive:     new THREE.Color(c.color),
+        emissive:     new THREE.Color(0x00d4ff),
         emissiveIntensity: 2.0,
         transparent: true, depthWrite: false,
         roughness: 1, metalness: 0,
       })
     );
 
-    // Text canvas — white text with canvas glow, transparent background
+    // Text canvas — cyan Roboto text, transparent background
     const tc = document.createElement('canvas');
     tc.width = BW; tc.height = BH;
     const tx = tc.getContext('2d');
-    tx.font         = 'bold 66px "Octosquares", sans-serif';
-    tx.shadowColor  = '#ffffff';
-    tx.shadowBlur   = 22;
-    tx.fillStyle    = '#ffffff';
+    tx.font         = '52px Roboto, sans-serif';
+    tx.fillStyle    = '#00d4ff';
     tx.textAlign    = 'center';
     tx.textBaseline = 'middle';
     tx.fillText(c.name, BW / 2, BH / 2);
-    tx.shadowBlur   = 0;
 
-    // Text emissive map — white text so it glows in 3D (emissive = white → white glow)
+    // Text emissive map — cyan glow in 3D
     const te = document.createElement('canvas');
     te.width = BW; te.height = BH;
     const tx2 = te.getContext('2d');
     tx2.fillStyle = 'black';
     tx2.fillRect(0, 0, BW, BH);
-    tx2.font         = 'bold 66px "Octosquares", sans-serif';
+    tx2.font         = '52px Roboto, sans-serif';
     tx2.shadowColor  = 'white';
-    tx2.shadowBlur   = 30;
+    tx2.shadowBlur   = 24;
     tx2.fillStyle    = 'white';
     tx2.textAlign    = 'center';
     tx2.textBaseline = 'middle';
     tx2.fillText(c.name, BW / 2, BH / 2);
 
-    // Text mesh — white emissive so text glows white regardless of accent color
+    // Text mesh — cyan emissive glow
     const textMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1.05, 0.30),
       new THREE.MeshStandardMaterial({
         map:          new THREE.CanvasTexture(tc),
         emissiveMap:  new THREE.CanvasTexture(te),
-        emissive:     new THREE.Color(0xffffff),
+        emissive:     new THREE.Color(0x00d4ff),
         emissiveIntensity: 2.0,
         transparent: true, depthWrite: false,
         roughness: 1, metalness: 0,
@@ -910,7 +903,6 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     markerGroup.visible = false;
     lineMesh.visible = false;
     btnMesh.material.opacity = 0;
-    btnMesh.material.color.set(0x777777);
     textMesh.material.opacity = 0;
     lineMat.opacity = 0;
     dotMat.visible = false;
@@ -1010,8 +1002,6 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
       for (const { lineMat, dotMat, btnMesh, textMesh } of globe.userData.billboardData) {
         btnMesh.material.opacity = unlockProgress;
         textMesh.material.opacity = unlockProgress;
-        _tmpCol.copy(_grey).lerp(_white, unlockProgress);
-        btnMesh.material.color.copy(_tmpCol);
         dotMat.emissiveIntensity = 3.5 * unlockProgress;
       }
     }
