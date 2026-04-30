@@ -273,8 +273,8 @@ const OBJECT_OBSTACLES = {
     { cx: -4.0,  cz:  2.75, hw: 0.7,  hd: 1.4  }, // sofa
     { cx: -5.5,  cz:  2.75, hw: 0.6,  hd: 0.85 }, // chess table (rotated π/2)
     { cx:  5.5,  cz:  9.5,  hw: 0.55, hd: 0.7  }, // arcade cabinet
-    { cx: -1.75, cz: -9.5,  hw: 0.45, hd: 0.45 }, // Fin du Monde — screen pedestal
-    { cx:  1.75, cz: -9.5,  hw: 0.45, hd: 0.45 }, // Fin du Monde — globe pedestal
+    { cx: -1.75, cz: -9.5,  hw: 1.55, hd: 0.5  }, // Fin du Monde — screen (FW=2.9m wide)
+    { cx:  1.75, cz: -9.5,  hw: 1.25, hd: 1.25 }, // Fin du Monde — globe pedestal (base r=1.17m)
     { cx: -7.0,  cz: -2.75, hw: 0.45, hd: 0.45 }, // book pedestal
     { cx: -3.6,  cz:  5.0,  hw: 0.25, hd: 0.2  }, // radio
   ],
