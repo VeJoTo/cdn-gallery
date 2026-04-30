@@ -320,8 +320,10 @@ function animate() {
     _bookGroup.userData.updatePageBend?.();
   }
   if (_bookGroup && !_bookGroup.userData.isAnimating) {
+    const _bwp = new THREE.Vector3();
+    _bookGroup.getWorldPosition(_bwp);
     _bookGroup.rotation.y =
-      Math.atan2(camera.position.x - -6.5, camera.position.z - -9.0) +
+      Math.atan2(camera.position.x - _bwp.x, camera.position.z - _bwp.z) +
       Math.PI / 2;
     _bookGroup.position.y = 1.28 + Math.sin(Date.now() * 0.0015) * 0.025;
   }
@@ -1171,8 +1173,10 @@ nav.goTo = (id) => {
     setTimeout(() => {
       const bookGroup = pedestal?.userData?.bookGroup;
       if (!bookGroup || bookGroup.userData.isAnimating) return;
+      const _bwp2 = new THREE.Vector3();
+      bookGroup.getWorldPosition(_bwp2);
       const targetY =
-        Math.atan2(camera.position.x - -6.5, camera.position.z - -9.0) +
+        Math.atan2(camera.position.x - _bwp2.x, camera.position.z - _bwp2.z) +
         Math.PI / 2;
       gsap.to(bookGroup.rotation, {
         y: targetY,
