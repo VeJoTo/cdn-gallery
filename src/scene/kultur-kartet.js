@@ -816,19 +816,7 @@ export function createKulturKartet(scene) {
   const SIGN_H = SIGN_W * (140 / 1024); // preserve canvas aspect ratio ≈ 0.465
   const SIGN_Y = 3.65, SIGN_Z = 3.0;
 
-  // Dark navy backing board — thin box sits flush on the wall, protrudes slightly
-  const backingMat = new THREE.MeshStandardMaterial({
-    color: 0x0a0f1a, metalness: 0.0, roughness: 0.9,
-  });
-  const backingBoard = new THREE.Mesh(
-    new THREE.BoxGeometry(SIGN_W + 0.22, SIGN_H + 0.14, 0.02),
-    backingMat
-  );
-  backingBoard.position.set(WALL_X - 0.01, SIGN_Y, SIGN_Z);
-  backingBoard.rotation.y = -Math.PI / 2;
-  scene.add(backingBoard);
-
-  // Neon text canvas — transparent, rendered in front of the backing board
+  // Neon text canvas — transparent, no backing board
   _titleCanvas = document.createElement('canvas');
   _titleCanvas.width = 1024; _titleCanvas.height = 140;
   _titleCtx = _titleCanvas.getContext('2d');

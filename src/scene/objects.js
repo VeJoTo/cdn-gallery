@@ -664,57 +664,56 @@ function buildPedestal() {
     imgPlane.position.set(0, CT / 2 + 0.002, coverZ / 2);
     frontCoverPivot.add(imgPlane);
   });
-  // ── Neon "AI Storytelling" sign above the book — THREE.Sprite auto-faces the camera ──
-  // Canvas width matches sprite aspect ratio (0.72 / 0.12 = 6:1 → 768×128)
+  // ── "AI Storytelling" neon sign — wall-mounted on the left wall above the pedestal ──
   const neonCanvas = document.createElement("canvas");
-  neonCanvas.width = 768;
-  neonCanvas.height = 128;
+  neonCanvas.width = 1024; neonCanvas.height = 140;
   const nctx = neonCanvas.getContext("2d");
-
   const neonTex = new THREE.CanvasTexture(neonCanvas);
   neonTex.colorSpace = THREE.SRGBColorSpace;
 
   function drawNeonSign() {
-    const NEON = "#0066ff";
-    const cx = 384, cy = 66;
-    nctx.clearRect(0, 0, 768, 128);
-    nctx.font = "68px 'Octosquares', sans-serif";
+    nctx.clearRect(0, 0, 1024, 140);
+    nctx.font = "99px 'Octosquares', sans-serif";
     nctx.textAlign = "center";
     nctx.textBaseline = "middle";
-    nctx.shadowColor = NEON;
-    nctx.shadowBlur = 48; nctx.fillStyle = "rgba(0,102,255,0.18)"; nctx.fillText("AI Storytelling", cx, cy);
-    nctx.shadowBlur = 28; nctx.fillStyle = "rgba(0,102,255,0.45)"; nctx.fillText("AI Storytelling", cx, cy);
-    nctx.shadowBlur = 10; nctx.fillStyle = "rgba(0,102,255,0.85)"; nctx.fillText("AI Storytelling", cx, cy);
-    nctx.shadowBlur =  4; nctx.fillStyle = "#eef0ff";               nctx.fillText("AI Storytelling", cx, cy);
+    for (const [blur, alpha, fill] of [
+      [90, 0.20, "#00d4ff"],
+      [50, 0.35, "#00d4ff"],
+      [20, 0.60, "#00d4ff"],
+      [ 8, 1.00, "#ffffff"],
+    ]) {
+      nctx.shadowColor = "#00d4ff";
+      nctx.shadowBlur = blur;
+      nctx.globalAlpha = alpha;
+      nctx.fillStyle = fill;
+      nctx.fillText("AI Storytelling".toUpperCase(), 512, 70);
+    }
+    nctx.globalAlpha = 1;
     neonTex.needsUpdate = true;
   }
   drawNeonSign();
-  document.fonts.load("68px 'Octosquares'").then(() => drawNeonSign());
+  document.fonts.load("99px 'Octosquares'").then(() => drawNeonSign());
 
-  // Sprite always faces the camera — no manual billboard needed
-  const signSprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({
+  const SIGN_W = 2.2;
+  const SIGN_H = SIGN_W * (140 / 1024);
+  const signMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(SIGN_W, SIGN_H),
+    new THREE.MeshBasicMaterial({
       map: neonTex,
       transparent: true,
       depthWrite: false,
-      depthTest: false,
       blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
     })
   );
-  signSprite.scale.set(0.72, 0.12, 1);
-  signSprite.position.set(0, 1.62, 0);
-  signSprite.renderOrder = 999;
-  signSprite.raycast = () => {};
-  group.userData.signGroup = signSprite;
-
-  // Neon point light blooming around the sign
-  const neonLight = new THREE.PointLight(0x0066ff, 1.4, 0.7);
-  neonLight.position.set(0, 1.62, 0.05);
-  group.userData.signLight = neonLight;
+  // World position: flush on left wall (x ≈ -7.95), above the pedestal
+  signMesh.position.set(-7.95, 3.5, -2.75);
+  signMesh.rotation.y = Math.PI / 2;
+  signMesh.renderOrder = 999;
+  signMesh.raycast = () => {};
+  group.userData.signGroup = signMesh;
 
   group.add(bookGroup);
-  group.add(signSprite);
-  group.add(neonLight);
 
   // ── Smoke rising from the book ────────────────────────────────────────────
   const SMOKE_COUNT = 70;
@@ -915,6 +914,7 @@ function buildPedestal() {
     updateSmoke,
     cubeSmokePoints,
     updateCubeSmoke,
+    signGroup: signMesh,
   };
 
   return group;
@@ -1114,6 +1114,7 @@ export function createObjects(scene) {
   scene.add(pedestal);
   scene.add(pedestal.userData.smokePoints);
   scene.add(pedestal.userData.cubeSmokePoints);
+  scene.add(pedestal.userData.signGroup);
 
   scene.add(portal, tv);
 
