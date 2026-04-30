@@ -1148,6 +1148,8 @@ export function createObjects(scene) {
     }
     portal.userData.innerGlow.material.emissiveIntensity =
       0.15 + Math.sin(elapsed * 2) * 0.1;
+    portal.userData.label.material.opacity =
+      0.85 + Math.sin(elapsed * 1.5) * 0.15;
 
     pedestal.userData.updateSmoke(delta);
     pedestal.userData.updateCubeSmoke(delta);
