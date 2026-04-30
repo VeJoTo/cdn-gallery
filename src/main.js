@@ -1807,6 +1807,7 @@ function insideChildClickable(mesh, rootGroup) {
 }
 
 function applyHoverGlow(group) {
+  if (group.userData?.onHover) { group.userData.onHover(); return; }
   group.traverse((child) => {
     if (!child.isMesh || !child.material) return;
     if (insideChildClickable(child, group)) return;
@@ -1827,6 +1828,7 @@ function applyHoverGlow(group) {
 }
 
 function clearHoverGlow(group) {
+  if (group.userData?.onBlur) { group.userData.onBlur(); return; }
   group.traverse((child) => {
     if (!child.isMesh || !child.material) return;
     if (insideChildClickable(child, group)) return;
