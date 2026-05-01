@@ -2028,9 +2028,10 @@ body:has(
 
 #globe-videos-start-title {
   font-family: 'Octosquares', sans-serif;
-  font-size: 48px;
-  color: #1b7ab8;
-  text-shadow: 0 0 20px rgba(27,122,184,0.8);
+  font-size: 24px;
+  font-weight: normal;
+  color: #00e5ff;
+  text-shadow: none;
   margin: 0;
 }
 
@@ -2097,10 +2098,10 @@ body:has(
 
 #globe-videos-title {
   font-family: 'Octosquares', sans-serif;
-  font-size: 36px;
-  font-weight: bold;
-  color: #1b7ab8;
-  text-shadow: 0 0 14px #1b7ab8;
+  font-size: 24px;
+  font-weight: normal;
+  color: #00e5ff;
+  text-shadow: none;
   margin-bottom: 10px;
 }
 
