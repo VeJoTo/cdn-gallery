@@ -103,12 +103,10 @@ function drawStartScreen(canvas) {
   ctx.textAlign = 'center';
 
   // Heading
-  ctx.font = 'bold 54px "Octosquares", sans-serif';
-  ctx.fillStyle = '#7dd4f8';
-  ctx.shadowColor = '#00d4ff';
-  ctx.shadowBlur = 32;
-  ctx.fillText('Fin du Monde', W / 2, H / 2 - 80);
+  ctx.font = '72px "Octosquares", sans-serif';
+  ctx.fillStyle = '#00e5ff';
   ctx.shadowBlur = 0;
+  ctx.fillText('Fin du Monde', W / 2, H / 2 - 80);
 
   // Start button — CDN Button 1 style
   const BW = 461, BH = 115, BR = 29;
