@@ -180,7 +180,11 @@ const BOB_REDUCED_MOTION =
 let _walkPhase = 0;
 let _bobAmpScale = 0; // 0..1, ramps with movement
 
+// ── Jump ────────────────────────────────────────────
+let _isJumping = false;
+
 function updateHeadBob(delta, isMoving) {
+  if (_isJumping) return; // GSAP owns camera.y during jump
   if (BOB_REDUCED_MOTION) {
     camera.position.y = EYE_HEIGHT;
     return;
@@ -238,6 +242,30 @@ document.addEventListener("keydown", (e) => {
       controls.unlock();
       ui.openGatekeeperChat();
       break;
+    case "Space": {
+      if (_isJumping) break;
+      const gatekeeperChat = document.getElementById('gatekeeper-chat');
+      if (gatekeeperChat && !gatekeeperChat.classList.contains('hidden')) break;
+      const proximityHint = document.getElementById('proximity-hint');
+      if (proximityHint && !proximityHint.classList.contains('hidden')) break;
+      e.preventDefault();
+      _isJumping = true;
+      const groundY = camera.position.y;
+      gsap.to(camera.position, {
+        y: groundY + 0.96,
+        duration: 0.22,
+        ease: 'power2.out',
+        onComplete() {
+          gsap.to(camera.position, {
+            y: groundY,
+            duration: 0.20,
+            ease: 'power2.in',
+            onComplete() { _isJumping = false; }
+          });
+        }
+      });
+      break;
+    }
   }
 });
 
@@ -315,7 +343,10 @@ function resolveObstacles(room) {
 }
 
 function updateMovement(delta) {
-  if (!controls.isLocked) return;
+  if (!controls.isLocked) {
+    updateHeadBob(delta, false);
+    return;
+  }
 
   let fwd = 0,
     strafe = 0;
