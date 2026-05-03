@@ -351,7 +351,7 @@ export function createRoom(scene) {
   const centFillMat = new THREE.MeshStandardMaterial({
     color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0,
     roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide,
-    transparent: true, opacity: 0,
+    transparent: true, opacity: 0, depthWrite: false,
   });
   const centFill = new THREE.Mesh(new THREE.CircleGeometry(CENTER_R - 0.10, 64), centFillMat);
   centFill.rotation.x = -Math.PI / 2;

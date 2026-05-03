@@ -2175,6 +2175,14 @@ document.addEventListener('mouseup', (e) => {
   const BASE = import.meta.env.BASE_URL;
   const HINTS = [
     {
+      id: 'arcade',
+      pos: new THREE.Vector3(5.5, 1.5, 8.5),
+      radius: 3.0,
+      pages: [
+        "This research project is not finished yet. Come back at a later time to find out what it is about!"
+      ]
+    },
+    {
       id: 'fin-du-monde',
       pos: new THREE.Vector3(0, 1.5, -8.0),
       radius: 3.5,
@@ -2185,7 +2193,7 @@ document.addEventListener('mouseup', (e) => {
     {
       id: 'culture-map',
       pos: new THREE.Vector3(7.9, 1.6, 5.3),
-      radius: 5.0,
+      radius: 4.0,
       pages: [
         "What happens when AI tries to tell stories set in different countries? Does it actually succeed in capturing the different cultures?",
         "This is a research project that asked an AI to write a unique story for every country in the world, expecting 236 different tales shaped by different cultures and traditions. Instead, every single one had the exact same plot, proving that AI doesn't actually understand culture, it just repeats the same story with different names and places."
