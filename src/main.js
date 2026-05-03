@@ -1981,6 +1981,18 @@ document.addEventListener("mousedown", () => {
   if (action === "exitToExterior")  window.__transitionToRoom("exterior");
   if (action === "returnToAIRoom") window.__transitionToRoom("ai");
   if (action === "enterAIRoom") window.__transitionToRoom("ai");
+  if (action === "teleport") {
+    const { teleportX, teleportZ } = obj.userData;
+    const flash = document.createElement("div");
+    flash.style.cssText = "position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9999";
+    document.body.appendChild(flash);
+    gsap.to(flash, { opacity: 1, duration: 0.12, ease: "power1.in", onComplete: () => {
+      camera.position.set(teleportX, EYE_HEIGHT, teleportZ);
+      _walkPhase = 0;
+      _bobAmpScale = 0;
+      gsap.to(flash, { opacity: 0, duration: 0.2, ease: "power1.out", onComplete: () => flash.remove() });
+    }});
+  }
   // TV button actions only fire when the user is at the TV hotspot
   if (atTV) {
     if (action === "nextVideo") window.__nextVideo?.();
