@@ -213,7 +213,7 @@ export const INTRO_SCRIPT = [
   { text: 'Hi! I am Jason. I work as a researcher at CDN, and will be your Guide through this interactive 3D room.' },
   { text: 'CDN is the Centre for Digital Narrative at the University of Bergen. We research the intersection of technology and storytelling, from AI to interactive media to the future of narrative itself.' },
   { text: "Right now you are outside the building of CDN at the University of Bergen. Once you step into the room you are free to explore some of CDN's research! I will guide you through this process." },
-  { text: 'Press WASD to walk, G to open the guide and E to check the inventory. Go ahead and explore!' }
+  { html: true, text: 'Press <span class="kbd-group"><span class="kbd-row"><span class="kbd">W</span></span><span class="kbd-row"><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span></span></span> to walk, <span class="kbd">G</span> to open the guide and <span class="kbd">E</span> to check the inventory. Go ahead and explore!' }
 ];
 
 // Safe localStorage readers — browser private mode / quota issues never break the app.

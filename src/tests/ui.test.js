@@ -67,12 +67,12 @@ describe('Intro script', () => {
     expect(INTRO_SCRIPT[1].text).toMatch(/University of Bergen/);
   });
 
-  it('bubble 4 carries inline strong markup for the key names', () => {
+  it('bubble 4 carries inline kbd markup for the key names', () => {
     const b4 = INTRO_SCRIPT[3];
     expect(b4.html).toBe(true);
-    expect(b4.text).toContain('<strong>WASD</strong>');
-    expect(b4.text).toContain('<strong>mouse</strong>');
-    expect(b4.text).toContain('<strong>G</strong>');
+    expect(b4.text).toContain('kbd-group');
+    expect(b4.text).toContain('<span class="kbd">G</span>');
+    expect(b4.text).toContain('<span class="kbd">E</span>');
   });
 
   it('only bubble 4 uses html markup', () => {
