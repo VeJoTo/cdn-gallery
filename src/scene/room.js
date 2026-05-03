@@ -338,26 +338,13 @@ export function createRoom(scene) {
     roughness: 0.3, metalness: 0.2, side: THREE.DoubleSide,
   });
   const LOGO_Y = 0.005;
-  const teleportClickables = [];
 
-  // Invisible material for upright hit cylinders above each circle
-  const hitMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
-
-  // Central ring — larger hub, teleports back to room centre
+  // Central ring — larger hub
   const CENTER_R = 1.6;
   const centRing = new THREE.Mesh(new THREE.RingGeometry(CENTER_R - 0.10, CENTER_R, 64), logoMat);
   centRing.rotation.x = -Math.PI / 2;
   centRing.position.y = LOGO_Y;
-  centRing.userData = { clickable: true, action: 'teleport', teleportX: 0, teleportZ: 0 };
   scene.add(centRing);
-  teleportClickables.push(centRing);
-
-  // Invisible upright cylinder above the central hub
-  const centHit = new THREE.Mesh(new THREE.CylinderGeometry(CENTER_R, CENTER_R, 2.0, 16), hitMat);
-  centHit.position.set(0, 1.0, 0);
-  centHit.userData = { clickable: true, action: 'teleport', teleportX: 0, teleportZ: 0 };
-  scene.add(centHit);
-  teleportClickables.push(centHit);
 
   // Satellite circles — neon cyan ring with a coloured fill from the CDN logo palette
   const SAT_R = 0.90;
@@ -379,9 +366,7 @@ export function createRoom(scene) {
     const fill = new THREE.Mesh(new THREE.CircleGeometry(SAT_R - SAT_W, 48), fillMat);
     fill.rotation.x = -Math.PI / 2;
     fill.position.set(x, LOGO_Y, z);
-    fill.userData = { clickable: true, action: 'teleport', teleportX: x, teleportZ: z };
     scene.add(fill);
-    teleportClickables.push(fill);
 
     // Neon cyan ring outline on top
     const ring = new THREE.Mesh(new THREE.RingGeometry(SAT_R - SAT_W, SAT_R, 48), logoMat);
@@ -403,14 +388,7 @@ export function createRoom(scene) {
     connector.position.set(midX, LOGO_Y, midZ);
     connector.rotation.y = Math.atan2(nx, nz);
     scene.add(connector);
-
-    // Invisible upright cylinder above the circle — easy to aim at from eye level
-    const hitCyl = new THREE.Mesh(new THREE.CylinderGeometry(SAT_R, SAT_R, 2.0, 16), hitMat);
-    hitCyl.position.set(x, 1.0, z);
-    hitCyl.userData = { clickable: true, action: 'teleport', teleportX: x, teleportZ: z };
-    scene.add(hitCyl);
-    teleportClickables.push(hitCyl);
   }
 
-  return { clickables: [doorClickTarget, ...teleportClickables] };
+  return { clickables: [doorClickTarget] };
 }
