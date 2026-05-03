@@ -1764,6 +1764,11 @@ function transitionToRoom(targetRoom) {
           fadeOverlay.style.transition = "";
           fadeOverlay.style.opacity = "";
           fadeOverlay.style.pointerEvents = "none";
+          if (currentRoom === "nature") {
+            window.__showGuideMessage?.(
+              "This garden is just an example of how this 3D gallery can expand in the future. With several rooms highlighting different research in a visual and engaging way."
+            );
+          }
         }, 400);
       });
     }),

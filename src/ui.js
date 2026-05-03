@@ -510,7 +510,8 @@ export function createUI(camera, renderer, controls, scene) {
     });
   }
 
-  async function playIntro() {
+  async function playIntro(customScript = null) {
+    const script = customScript ?? INTRO_SCRIPT;
     const chatHeaderName = document.getElementById('chat-header-name');
     const originalName = chatHeaderName?.textContent ?? 'The Guide';
 
@@ -522,7 +523,7 @@ export function createUI(camera, renderer, controls, scene) {
     gatekeeperChat.classList.remove('hidden');
     requestAnimationFrame(() => gatekeeperChat.classList.add('open'));
 
-    await runIntroDialogue({ script: INTRO_SCRIPT });
+    await runIntroDialogue({ script });
 
     // Lock controls immediately while still in the user-gesture context so the
     // player can walk straight away without needing to click "Click to explore".
@@ -540,6 +541,8 @@ export function createUI(camera, renderer, controls, scene) {
       renderIntroChips();
     }, 300);
   }
+
+  window.__showGuideMessage = (text) => playIntro([{ text }]);
 
   chatSend.addEventListener('click', () => {
     if (isIntroPlaying) return;
