@@ -339,12 +339,39 @@ export function createRoom(scene) {
   });
   const LOGO_Y = 0.005;
 
-  // Central ring — larger hub
+  // Central ring — larger hub (own material so hover glow is isolated)
   const CENTER_R = 1.6;
-  const centRing = new THREE.Mesh(new THREE.RingGeometry(CENTER_R - 0.10, CENTER_R, 64), logoMat);
+  const centRingMat = logoMat.clone();
+  const centRing = new THREE.Mesh(new THREE.RingGeometry(CENTER_R - 0.10, CENTER_R, 64), centRingMat);
   centRing.rotation.x = -Math.PI / 2;
   centRing.position.y = LOGO_Y;
   scene.add(centRing);
+
+  // Filled disc inside the central hub
+  const centFillMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00d4ff, emissiveIntensity: 0,
+    roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide,
+    transparent: true, opacity: 0,
+  });
+  const centFill = new THREE.Mesh(new THREE.CircleGeometry(CENTER_R - 0.10, 64), centFillMat);
+  centFill.rotation.x = -Math.PI / 2;
+  centFill.position.y = LOGO_Y;
+  scene.add(centFill);
+
+  // Invisible click target for the central hub (thin disc + short cylinder flush with floor)
+  const centClickMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+  const centClick = new THREE.Mesh(new THREE.CircleGeometry(CENTER_R, 64), centClickMat);
+  centClick.rotation.x = -Math.PI / 2;
+  centClick.position.y = LOGO_Y + 0.002;
+  const _centOnHover = () => { centFillMat.opacity = 1; centFillMat.emissiveIntensity = 4.5; centRingMat.emissiveIntensity = 6.0; };
+  const _centOnBlur  = () => { centFillMat.opacity = 0; centFillMat.emissiveIntensity = 0;   centRingMat.emissiveIntensity = 2.5; };
+  centClick.userData = { clickable: true, action: 'teleport', teleportX: 0, teleportZ: 0, onHover: _centOnHover, onBlur: _centOnBlur };
+  scene.add(centClick);
+  const centCylMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+  const centCyl = new THREE.Mesh(new THREE.CylinderGeometry(CENTER_R, CENTER_R, 0.3, 48), centCylMat);
+  centCyl.position.set(0, 0.15, 0);
+  centCyl.userData = { clickable: true, action: 'teleport', teleportX: 0, teleportZ: 0, onHover: _centOnHover, onBlur: _centOnBlur };
+  scene.add(centCyl);
 
   // Satellite circles — neon cyan ring with a coloured fill from the CDN logo palette
   const SAT_R = 0.90;
@@ -357,6 +384,8 @@ export function createRoom(scene) {
     { x:  6.0, z:  3.0,  hex: 0x1ca2ba }, // Culture map
   ];
 
+  const teleportClickables = [];
+
   for (const { x, z, hex } of logoSats) {
     // Filled coloured disc (inside)
     const fillMat = new THREE.MeshStandardMaterial({
@@ -366,7 +395,19 @@ export function createRoom(scene) {
     const fill = new THREE.Mesh(new THREE.CircleGeometry(SAT_R - SAT_W, 48), fillMat);
     fill.rotation.x = -Math.PI / 2;
     fill.position.set(x, LOGO_Y, z);
+    const _onHover = () => { fillMat.emissiveIntensity = 4.5; };
+    const _onBlur  = () => { fillMat.emissiveIntensity = 1.4; };
+    fill.userData = { clickable: true, action: 'teleport', teleportX: x, teleportZ: z, onHover: _onHover, onBlur: _onBlur };
+    teleportClickables.push(fill);
     scene.add(fill);
+
+    // Short invisible cylinder — allows clicking from a low angle without blocking wall items
+    const cylMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(SAT_R - SAT_W, SAT_R - SAT_W, 0.3, 32), cylMat);
+    cyl.position.set(x, 0.15, z);
+    cyl.userData = { clickable: true, action: 'teleport', teleportX: x, teleportZ: z, onHover: _onHover, onBlur: _onBlur };
+    teleportClickables.push(cyl);
+    scene.add(cyl);
 
     // Neon cyan ring outline on top
     const ring = new THREE.Mesh(new THREE.RingGeometry(SAT_R - SAT_W, SAT_R, 48), logoMat);
@@ -390,5 +431,6 @@ export function createRoom(scene) {
     scene.add(connector);
   }
 
-  return { clickables: [doorClickTarget] };
+  teleportClickables.push(centClick, centCyl);
+  return { clickables: [doorClickTarget, ...teleportClickables] };
 }

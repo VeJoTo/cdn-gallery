@@ -1909,17 +1909,6 @@ document.addEventListener("mouseup", () => {
   }
 });
 
-// Teleport circles — checked against the floor plane before any clickable-object logic.
-const _teleportFloorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-const _teleportFloorPt    = new THREE.Vector3();
-const _teleportCircles = [
-  { x:  0.0, z:  0.0,  r: 1.5  },
-  { x: -5.5, z: -2.75, r: 0.82 },
-  { x: -6.0, z:  2.75, r: 0.82 },
-  { x:  5.5, z:  8.0,  r: 0.82 },
-  { x:  0.0, z: -8.0,  r: 0.82 },
-  { x:  6.0, z:  3.0,  r: 0.82 },
-];
 function _doTeleport(x, z) {
   const flash = document.createElement("div");
   flash.style.cssText = "position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9999";
@@ -1937,24 +1926,18 @@ document.addEventListener("mousedown", () => {
   if (!controls.isLocked) return;
   centerRaycaster.setFromCamera(screenCenter, camera);
 
-  // Check floor circles before the clickable-object early-return.
-  if (currentRoom === "ai" && centerRaycaster.ray.intersectPlane(_teleportFloorPlane, _teleportFloorPt)) {
-    for (const c of _teleportCircles) {
-      const dx = _teleportFloorPt.x - c.x, dz = _teleportFloorPt.z - c.z;
-      if (dx * dx + dz * dz < c.r * c.r) {
-        _doTeleport(c.x, c.z);
-        return;
-      }
-    }
-  }
-
   const hits = centerRaycaster.intersectObjects(clickableObjects, true);
   if (!hits.length) return;
 
   const obj = findClickable(hits[0]);
   if (!obj) return;
 
-  const { hotspot, action, panelId, panelTitle } = obj.userData;
+  const { hotspot, action, panelId, panelTitle, teleportX, teleportZ } = obj.userData;
+
+  if (action === "teleport") {
+    _doTeleport(teleportX, teleportZ);
+    return;
+  }
 
   // Capture whether we're already at this hotspot before nav changes state
   const alreadyAtHotspot =
