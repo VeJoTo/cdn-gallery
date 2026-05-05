@@ -28,6 +28,7 @@ export const HOTSPOTS = {
   'seat-chair':         { position: { x: 1.8, y: 1.6, z: -2.3 }, target: { x: 1.8, y: 1.3, z: -3.0 }, label: 'Seated at desk' },
   'seat-bench':         { position: { x: 21.9, y: 0.65, z: 1.5 }, target: { x: 20, y: 1.0, z: 0 }, label: 'Enjoying the garden...' },
   screen:               { position: { x: -1.75, y: 1.6,  z: -7.5  }, target: { x: -1.75, y: 1.5, z: -9.5  }, label: 'Screen' },
+  'fin-du-monde-globe': { position: { x: 1.0,  y: 1.6,  z: -7.5  }, target: { x: 1.75,  y: 1.2, z: -9.5  }, label: 'Globe' },
   'seat-sofa':          { position: { x: -4.0, y: 1.1,  z: 2.75 }, target: { x: -7.9,  y: 2.05, z: 2.75 }, label: 'Sitting on sofa', duration: 0.8 }
 };
 

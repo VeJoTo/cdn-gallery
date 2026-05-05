@@ -1272,6 +1272,18 @@ nav.goTo = (id) => {
   }
 };
 
+// "Go to the globe" button in Fin du Monde overlay
+document.getElementById('findumonde-goto-globe').addEventListener('click', () => {
+  ui.closeFinDuMonde();
+  nav.goTo('fin-du-monde-globe');
+});
+
+// "Go to the globe" button in globe videos overlay left panel
+document.getElementById('globe-videos-goto-globe').addEventListener('click', () => {
+  ui.closeGlobeVideos();
+  nav.goTo('fin-du-monde-globe');
+});
+
 // Open panel drawer with current video's moreInfo text
 window.__openVideoMoreInfo = () => {
   const video = aiArtVideos[currentVideoIndex];
@@ -1942,6 +1954,17 @@ document.addEventListener("mousedown", () => {
   if (action === "teleport") {
     _doTeleport(teleportX, teleportZ);
     return;
+  }
+
+  // "Go to the globe" button drawn on the Fin du Monde screen canvas
+  if (action === "openGlobeVideos" && obj.userData.gotoBtnBounds && hits[0].uv) {
+    const b = obj.userData.gotoBtnBounds;
+    const px = hits[0].uv.x * 1024;  // canvas width
+    const py = (1 - hits[0].uv.y) * 640;  // canvas height, UV v=0 is bottom
+    if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
+      nav.goTo('fin-du-monde-globe');
+      return;
+    }
   }
 
   // Capture whether we're already at this hotspot before nav changes state

@@ -165,17 +165,20 @@
   </div>
 
   <div id="findumonde-overlay" class="hidden">
-    <div id="findumonde-content">
+    <div id="findumonde-wrap">
       <button id="findumonde-close" class="report-close-btn">×</button>
-      <h2 id="findumonde-title">Fin du Monde</h2>
-      <p id="findumonde-subtitle">An interactive digital narrative from the CDN Collection</p>
-      <div id="findumonde-video">
-        <iframe src="https://player.vimeo.com/video/890586293?h=1c04276214" width="100%" height="360" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen></iframe>
+      <div id="findumonde-content">
+        <h2 id="findumonde-title">Fin du Monde</h2>
+        <p id="findumonde-subtitle">An interactive digital narrative from the CDN Collection</p>
+        <div id="findumonde-video">
+          <iframe src="https://player.vimeo.com/video/890586293?h=1c04276214" width="100%" height="360" frameborder="0" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" allowfullscreen></iframe>
+        </div>
+        <a id="findumonde-link" href="https://collection.cdn.uib.no/files/fin-du-monde/index.html" target="_blank" rel="noopener">
+          Experience Fin du Monde →
+        </a>
+        <p id="findumonde-desc">Explore themes of endings and new beginnings in this interactive work from the Centre for Digital Narrative collection.</p>
+        <button id="findumonde-goto-globe" class="kk-mode-btn">Go to the globe</button>
       </div>
-      <a id="findumonde-link" href="https://collection.cdn.uib.no/files/fin-du-monde/index.html" target="_blank" rel="noopener">
-        Experience Fin du Monde →
-      </a>
-      <p id="findumonde-desc">Explore themes of endings and new beginnings in this interactive work from the Centre for Digital Narrative collection.</p>
     </div>
   </div>
 
@@ -202,6 +205,7 @@
           <p class="globe-videos-body">"Fin du Monde" is an AI-generated dark comedy about the apocalypse. By clicking on different parts of the globe, situated to the right of this screen, you will be shown dramatic, AI-generated images of meteor showers striking the selected country.</p>
           <p class="globe-videos-body">Beside this text, a sequence of videos plays out in chronological order. You can see AI news anchors still broadcasting into the void, their voices reaching no one. They did not choose this. They're simply lost, carrying out the only purpose they were ever given; telling the news.</p>
           <p class="globe-videos-cta">Press one of the highlighted parts on the globe to begin exploring!</p>
+          <button id="globe-videos-goto-globe" class="kk-mode-btn">Go to the globe</button>
         </div>
         <div class="globe-videos-col-divider"></div>
         <div id="globe-videos-grid">
@@ -247,15 +251,17 @@
   </div>
 
   <div id="kulturkartet-overlay" class="hidden">
-    <div id="kulturkartet-content">
+    <div id="kulturkartet-wrap">
       <button id="kulturkartet-close" class="report-close-btn">×</button>
-      <div id="kulturkartet-canvases">
-        <div id="kulturkartet-map-wrap"></div>
-        <div id="kulturkartet-text-wrap"></div>
-      </div>
-      <div id="kulturkartet-btns">
-        <button data-kk-btn="explore" class="kk-mode-btn">Explore the map</button>
-        <button data-kk-btn="guesser" class="kk-mode-btn">Quiz mode</button>
+      <div id="kulturkartet-content">
+        <div id="kulturkartet-canvases">
+          <div id="kulturkartet-map-wrap"></div>
+          <div id="kulturkartet-text-wrap"></div>
+        </div>
+        <div id="kulturkartet-btns">
+          <button data-kk-btn="explore" class="kk-mode-btn">Explore the map</button>
+          <button data-kk-btn="guesser" class="kk-mode-btn">Quiz mode</button>
+        </div>
       </div>
     </div>
   </div>
