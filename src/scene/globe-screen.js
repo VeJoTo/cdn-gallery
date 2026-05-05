@@ -212,22 +212,49 @@ function drawDefaultScreen(canvas, locked = false) {
     ty += 14;
   }
 
-  // CTA
+  // CTA hint text — sits directly below body text with margin-top: 32px
   ctx.font = 'bold 17px "Roboto", sans-serif';
+  let hintEndY;
   if (locked) {
     ctx.fillStyle = '#00d4ff';
     ctx.shadowColor = '#00d4ff';
     ctx.shadowBlur = 12;
-    wrapText(ctx, '← Click the screen to unlock the globe', 28, ty + 6, mid - 52, 24);
+    hintEndY = wrapText(ctx, '← Click the screen to unlock the globe', 28, ty + 32, mid - 52, 24);
   } else {
     ctx.fillStyle = '#3dd6c0';
     ctx.shadowColor = '#3dd6c0';
     ctx.shadowBlur = 8;
-    wrapText(ctx, 'Press one of the highlighted parts on the globe to begin exploring!', 28, ty + 6, mid - 52, 24);
+    hintEndY = wrapText(ctx, 'Press one of the highlighted parts on the globe to begin exploring!', 28, ty + 32, mid - 52, 24);
   }
   ctx.shadowBlur = 0;
 
+  // "Go to the globe" button — drawn below hint text, only in unlocked state
+  let gotoBtnBounds = null;
+  if (!locked) {
+    const BX = 28, BY = hintEndY + 16, BW = 240, BH = 36;
+    ctx.fillStyle = '#0a0f1a';
+    ctx.beginPath();
+    ctx.rect(BX, BY, BW, BH);
+    ctx.fill();
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.rect(BX, BY, BW, BH);
+    ctx.stroke();
+    ctx.font = '13px "Roboto", sans-serif';
+    ctx.fillStyle = '#00d4ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Go to the globe', BX + BW / 2, BY + BH / 2);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    gotoBtnBounds = { x: BX, y: BY, w: BW, h: BH };
+  }
+
   ctx.restore();
+
+  // Pass bounds back to caller so they can be stored for UV click detection
+  canvas._gotoBtnBounds = gotoBtnBounds;
 
   // ── Divider line ──────────────────────────────────
   ctx.strokeStyle = 'rgba(0,212,255,0.2)';
@@ -854,6 +881,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   loadVimeoThumbnails(() => {
     if (unlocked && screen.userData.state === 'default') {
       drawDefaultScreen(screen.userData.canvas, false);
+      screen.userData.screenMesh.userData.gotoBtnBounds = screen.userData.canvas._gotoBtnBounds;
       screen.userData.texture.needsUpdate = true;
     }
   });
@@ -871,6 +899,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
       dotMat.visible = true;
     }
     drawDefaultScreen(screen.userData.canvas, false);
+    screenMesh.userData.gotoBtnBounds = screen.userData.canvas._gotoBtnBounds;
     screen.userData.texture.needsUpdate = true;
   }
 
@@ -895,6 +924,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
       screen.userData.texture.needsUpdate = true;
       screen.userData.state = 'country';
       screen.userData.screenMesh.userData.action = 'resetGlobeScreen';
+      screenMesh.userData.gotoBtnBounds = null;
     }
   }
 
@@ -902,6 +932,7 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
     if (screen.userData.state === 'default') return;
     if (css3dObj) css3dObj.visible = true;
     drawDefaultScreen(screen.userData.canvas, false);
+    screenMesh.userData.gotoBtnBounds = screen.userData.canvas._gotoBtnBounds;
     screen.userData.texture.needsUpdate = true;
     screen.userData.state = 'default';
     screen.userData.screenMesh.userData.action = 'openGlobeVideos';

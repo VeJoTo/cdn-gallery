@@ -1909,9 +1909,16 @@ body:has(
 }
 #findumonde-overlay.hidden { display: none; }
 
+#findumonde-wrap {
+  position: relative;
+  overflow: visible;
+}
+
 #findumonde-content {
   position: relative;
   width: min(740px, 90vw);
+  max-height: 90vh;
+  overflow-y: auto;
   background: #111828;
   border: 1px solid #00d4ff;
   border-radius: 12px;
@@ -1959,6 +1966,7 @@ body:has(
 #findumonde-desc {
   font-size: 13px;
   color: rgba(224,232,240,0.5);
+  margin-bottom: 16px;
 }
 
 /* ── Country video overlay ──────────────────────── */
@@ -2121,6 +2129,7 @@ body:has(
 
 .globe-videos-cta {
   margin-top: auto;
+  margin-bottom: 16px;
   font-family: 'Roboto', sans-serif;
   font-size: 16px;
   font-weight: bold;
@@ -3240,6 +3249,11 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 #kulturkartet-overlay.hidden { display: none; }
 
+#kulturkartet-wrap {
+  position: relative;
+  overflow: visible;
+}
+
 #kulturkartet-content {
   position: relative;
   display: flex;
@@ -3252,6 +3266,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   border-radius: 12px;
   box-shadow: 0 0 40px rgba(0,212,255,0.12);
   max-height: 95vh;
+  overflow-y: auto;
 }
 
 #kulturkartet-canvases {
@@ -3264,8 +3279,8 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 #kulturkartet-map-wrap canvas,
 #kulturkartet-text-wrap canvas {
   display: block;
-  height: clamp(300px, 72vh, 680px);
-  width: auto;
+  width: min(calc(50vw - 43px), calc(72vh * 512 / 620), 560px);
+  height: auto;
   border-radius: 4px;
 }
 

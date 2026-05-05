@@ -58,6 +58,8 @@ let _hovered        = null;
 let _guessTarget    = null;
 let _guessResult    = null;
 let _lastGuessed    = null;
+let _shuffledKeys   = [];
+let _guessIdx       = 0;
 let _textAlpha      = 1.0;
 let _activeFade     = null;
 let _neonAlpha      = 1.0;
@@ -66,6 +68,22 @@ let _hoveredBtn     = -1;
 let _nextBtnBounds  = null;   // { x, y, w, h } in canvas pixels when correct; null otherwise
 let _nextBtnHovered = false;
 let _domCleanup     = null;
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function startGuesserSession() {
+  _shuffledKeys = shuffle(Object.keys(storiesData).slice());
+  _guessIdx = 0;
+  _guessTarget = _shuffledKeys[0];
+  _guessResult = null;
+  _lastGuessed = null;
+}
 
 // Geo rendering state (populated after async data load)
 let _pathGen   = null;   // geoPath generator (no canvas context → returns SVG strings)
@@ -173,11 +191,22 @@ function buildHitCanvas() {
 
 function getCountryAtUV(u, v) {
   if (!_hitCtx) return null;
-  const px = Math.floor(u * MAP_W);
-  const py = Math.floor((1 - v) * MAP_H); // Three.js UV: v=0 is bottom
-  if (px < 0 || px >= MAP_W || py < 0 || py >= MAP_H) return null;
-  const r = _hitCtx.getImageData(px, py, 1, 1).data[0];
-  return HIT_TO_KEY[r] || null;
+  const cx = Math.floor(u * MAP_W);
+  const cy = Math.floor((1 - v) * MAP_H); // Three.js UV: v=0 is bottom
+  if (cx < 0 || cx >= MAP_W || cy < 0 || cy >= MAP_H) return null;
+  const x0 = Math.max(0, cx - 1), y0 = Math.max(0, cy - 1);
+  const x1 = Math.min(MAP_W - 1, cx + 1), y1 = Math.min(MAP_H - 1, cy + 1);
+  const data = _hitCtx.getImageData(x0, y0, x1 - x0 + 1, y1 - y0 + 1).data;
+  const votes = {};
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    if (r > 0) votes[r] = (votes[r] || 0) + 1;
+  }
+  let bestId = 0, bestCount = 0;
+  for (const [id, count] of Object.entries(votes)) {
+    if (count > bestCount) { bestId = +id; bestCount = count; }
+  }
+  return HIT_TO_KEY[bestId] || null;
 }
 
 function getNextBtnAtUV(u, v) {
@@ -618,11 +647,10 @@ export function handleKartetMapClick(uv) {
 
 export function handleKartetBtnClick(modeKey) {
   if (modeKey === 'next') {
-    // Advance to a new random story without leaving guesser mode
-    const keys = Object.keys(storiesData);
-    let next;
-    do { next = keys[Math.floor(Math.random() * keys.length)]; }
-    while (next === _guessTarget && keys.length > 1);
+    _guessIdx = (_guessIdx + 1) % _shuffledKeys.length;
+    // Re-shuffle when the sequence wraps so the next round is different
+    if (_guessIdx === 0) shuffle(_shuffledKeys);
+    const next = _shuffledKeys[_guessIdx];
     _nextBtnHovered = false;
     fadeAndSwitch(() => {
       _guessTarget = next; _guessResult = null; _lastGuessed = null; _hovered = null;
@@ -632,9 +660,7 @@ export function handleKartetBtnClick(modeKey) {
     _nextBtnHovered = false;
     fadeAndSwitch(() => {
       _mode = 'guesser'; _selected = null; _hovered = null;
-      const keys = Object.keys(storiesData);
-      _guessTarget = keys[Math.floor(Math.random() * keys.length)];
-      _guessResult = null; _lastGuessed = null;
+      startGuesserSession();
       drawMap(); redrawButtons();
     });
   } else {
@@ -681,10 +707,7 @@ export function mountKartetDOMOverlay(mapWrap, textWrap, btnsEl, onClose, initia
     _selected = null;
     _hovered = null;
     if (_mode === 'guesser') {
-      const keys = Object.keys(storiesData);
-      _guessTarget = keys[Math.floor(Math.random() * keys.length)];
-      _guessResult = null;
-      _lastGuessed = null;
+      startGuesserSession();
     } else {
       _guessResult = null;
       _lastGuessed = null;
@@ -709,6 +732,7 @@ export function mountKartetDOMOverlay(mapWrap, textWrap, btnsEl, onClose, initia
   _mapCanvas.addEventListener('mouseleave', onMapLeave);
   _mapCanvas.addEventListener('click', onMapClick);
   _mapCanvas.style.cursor = 'crosshair';
+  _mapCanvas.style.touchAction = 'none';
 
   function onTextMove(e)  { updateKartetTextHover(uvFromEvent(e, _textCanvas)); }
   function onTextLeave()  { updateKartetTextHover(null); }
@@ -730,6 +754,7 @@ export function mountKartetDOMOverlay(mapWrap, textWrap, btnsEl, onClose, initia
     _mapCanvas.removeEventListener('mouseleave', onMapLeave);
     _mapCanvas.removeEventListener('click', onMapClick);
     _mapCanvas.style.cursor = '';
+    _mapCanvas.style.touchAction = '';
     _textCanvas.removeEventListener('mousemove', onTextMove);
     _textCanvas.removeEventListener('mouseleave', onTextLeave);
     _textCanvas.removeEventListener('click', onTextClick);
@@ -761,6 +786,7 @@ export function createKulturKartet(scene) {
   // Reset all state (safe for hot-reload)
   _mode = 'explore'; _selected = null; _hovered = null;
   _guessTarget = null; _guessResult = null; _lastGuessed = null;
+  _shuffledKeys = []; _guessIdx = 0;
   _textAlpha = 1.0; _activeFade = null;
   _neonAlpha = 1.0; _neonFlTimer = 0;
   _hoveredBtn = -1; _nextBtnBounds = null; _nextBtnHovered = false; _domCleanup = null;
