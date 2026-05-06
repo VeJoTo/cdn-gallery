@@ -40,29 +40,6 @@ export function createDoNotPressButton(scene) {
   highlight.position.set(-0.05, 0.08, 0.22);
   group.add(highlight);
 
-  // ── "DO NOT PRESS" sign above ────────────────────────────────────────
-  const signCanvas = document.createElement('canvas');
-  signCanvas.width = 768; signCanvas.height = 160;
-  const ctx = signCanvas.getContext('2d');
-  ctx.font = "bold 78px 'Octosquares', sans-serif";
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#cc0000';
-  ctx.shadowColor = '#cc0000';
-  ctx.shadowBlur = 28;
-  ctx.fillText('DO NOT PRESS', 384, 80);
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 0.88;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText('DO NOT PRESS', 384, 80);
-  ctx.globalAlpha = 1;
-
-  const sign = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.65, 0.14),
-    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(signCanvas), transparent: true, depthWrite: false })
-  );
-  sign.position.set(0, 0.42, 0.01);
-  group.add(sign);
 
   // ── Red glow light ───────────────────────────────────────────────────
   const light = new THREE.PointLight(0xcc0000, 2.0, 2.5);
