@@ -1378,6 +1378,13 @@ body:has(
   flex: 1;
   gap: 22px;
 }
+.bk-topics-inline {
+  flex: none;
+  justify-content: flex-start;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(10,22,40,0.12);
+}
 .bk-topics-h {
   font-family: 'Roboto', sans-serif;
   font-size: 24px;
