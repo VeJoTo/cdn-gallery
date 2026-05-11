@@ -235,20 +235,6 @@ export function markIntroSeen(storage = (typeof localStorage !== 'undefined' ? l
   }
 }
 
-export const BOOK_PAGES = [
-  { image: 'bok-1.jpg'  },
-  { image: 'bok-2.jpg'  },
-  { image: 'bok-3.jpg'  },
-  { image: 'bok-4.jpg'  },
-  { image: 'bok-5.jpg'  },
-  { image: 'bok-6.jpg'  },
-  { image: 'bok-7.jpg'  },
-  { image: 'bok-8.jpg'  },
-  { image: 'bok-9.jpg'  },
-  { image: 'bok-10.jpg' },
-  { image: 'bok-11.jpg' },
-  { image: 'bok-12.jpg' }
-];
 
 // Detailed content for each "dive deeper" point on the deviation page
 export const DIVE_DEEPER_CONTENT = {
@@ -295,13 +281,6 @@ export function answer(question) {
   return "I'm still learning about that one. Try asking about XP, CDN, the arcades, or the magical book!";
 }
 
-export function getNextPageIndex(current) {
-  return Math.min(current + 1, BOOK_PAGES.length - 1);
-}
-
-export function getPrevPageIndex(current) {
-  return Math.max(current - 1, 0);
-}
 
 export function createUI(camera, renderer, controls, scene) {
   // Helper: unlock pointer when opening overlays, re-lock when closing
@@ -744,11 +723,8 @@ export function createUI(camera, renderer, controls, scene) {
   const bookOverlay  = document.getElementById('book-overlay');
   const bookPageL    = document.getElementById('book-page-left');
   const bookPageR    = document.getElementById('book-page-right');
-  const bookPrev     = document.getElementById('book-prev');
-  const bookNext     = document.getElementById('book-next');
   const bookClose    = document.getElementById('book-close');
 
-  let bookPageIndex = 0;
   let bkPage = null;        // current logical page id
   let bkMistakesKey = null; // current mistakes sub-page key
   const BASE = import.meta.env.BASE_URL || '/';
@@ -898,12 +874,12 @@ export function createUI(camera, renderer, controls, scene) {
 
   function bkTopicButtons() {
     const topics = [
-      { id: 'summary',  label: 'A summary of The Sweetheart of the Forest',        action: 'go-summary1' },
-      { id: 'mistakes', label: 'What mistakes does AI do when retelling the folklore?', action: 'go-mistakes1' },
-      { id: 'research', label: 'How was the research done?',                        action: 'go-research' },
+      { label: 'A summary of The Sweetheart of the Forest',        action: 'go-summary1',  active: bkPage?.startsWith('summary') },
+      { label: 'What mistakes does AI do when retelling the folklore?', action: 'go-mistakes1', active: bkPage?.startsWith('mistakes') },
+      { label: 'How was the research done?',                        action: 'go-research',  active: bkPage === 'research' },
     ];
     return topics.map(t =>
-      `<button class="bk-btn" data-bk-action="${t.action}">${t.label}</button>`
+      `<button class="bk-btn${t.active ? ' is-inactive' : ''}" data-bk-action="${t.action}">${t.label}</button>`
     ).join('');
   }
 
@@ -975,8 +951,11 @@ export function createUI(camera, renderer, controls, scene) {
       ${bkFrameR()}
       <div class="bk-content-r bk-summary">
         <p class="bk-body">She proceeds to tell everyone of the skeletons and dead bodies and the whole scene with the maiden he undressed and killed. When she comes to the chopped off finger and the ring that went under the bed, she pulls out the finger as evidence. And so "they took him and killed him and burned both him and the house in the forest" (p. 64). Balance is restored, and the girl is safe.</p>
-      </div>
-      ${bkArrowFwd('go-summary3')}`;
+        <div class="bk-topics bk-topics-inline">
+          <h2 class="bk-topics-h">Choose a topic to explore further</h2>
+          ${bkTopicButtons()}
+        </div>
+      </div>`;
   }
 
   function renderSummary3() {
@@ -1276,87 +1255,6 @@ export function createUI(camera, renderer, controls, scene) {
     `;
   }
 
-  function renderDeviationPage(selectedKey) {
-    bookPageL.classList.remove('book-page-alive');
-    bookPageR.classList.remove('book-page-alive');
-    clearPageBackgrounds();
-    const points = [
-      { key: 'creepier', label: 'The AI version is told in a "creepier" way.' },
-      { key: 'explicit', label: 'The AI version has a tendency to make the implicit more explicit.' },
-      { key: 'scenic',   label: 'The AI is less ambiguous when describing the scenic elements.' },
-      { key: 'floating', label: 'The use of "Floating motifs" and imagery.' }
-    ];
-
-    const rowsHTML = points.map(p => `
-      <div class="dive-row">
-        <p class="dive-label">${p.label}</p>
-        <button class="dive-btn ${selectedKey === p.key ? 'active' : ''}" data-action="dive" data-key="${p.key}">Dive deeper</button>
-      </div>
-    `).join('');
-
-    bookPageL.innerHTML = `
-      <div class="book-deviation">
-        <h2>What makes the AI version of the story deviate from the original?</h2>
-        <div class="dive-rows">${rowsHTML}</div>
-        <button class="book-back-btn" data-action="go-start">Go back</button>
-      </div>
-    `;
-
-    const content = selectedKey && DIVE_DEEPER_CONTENT[selectedKey]
-      ? `<div class="dive-content"><h3>${DIVE_DEEPER_CONTENT[selectedKey].title}</h3>${DIVE_DEEPER_CONTENT[selectedKey].body}</div>`
-      : `<div class="dive-placeholder">Choose a point to dive deeper into…</div>`;
-    bookPageR.innerHTML = `<div class="book-deviation-right">${content}</div>`;
-  }
-
-  function renderMethodologyPage() {
-    bookPageL.classList.remove('book-page-alive');
-    bookPageR.classList.remove('book-page-alive');
-    clearPageBackgrounds();
-    bookPageL.innerHTML = `
-      <div class="book-deviation">
-        <h2>How was the research done?</h2>
-        <p class="book-body">32 Tales where generated using different LLM&rsquo;s, at different times, without any prior context. The prompts used where simple and short, as to not cause interference with how the LLM would tell the stories. The prompts were as follows:</p>
-        <ul class="book-bullets">
-          <li>&ldquo;Fortell eventyret &lsquo;Kjæresten i skogen&rsquo;&rdquo;, or the relatively similar &ldquo;Fortell det norske folkeeventyret &lsquo;Kjæresten i skogen&rsquo;&rdquo; (Literal translation: &ldquo;Tell the folktale &lsquo;The Sweetheart in the forest&rsquo;&rdquo;, &ldquo;Tell the Norwegian folktale &lsquo;The Sweetheart in the Forest&rsquo;&rdquo;).</li>
-        </ul>
-        <button class="book-back-btn" data-action="go-start">Go back</button>
-      </div>
-    `;
-    bookPageR.innerHTML = `
-      <div class="book-deviation-right book-methodology-right">
-        <ul class="book-bullets">
-          <li>&ldquo;Fortell en norsk versjon av eventyrtypen ATU 955&rdquo; (Literal translation: &ldquo;Tell a Norwegian version of the folktale type ATU 955&rdquo;).</li>
-        </ul>
-      </div>
-    `;
-  }
-
-  function renderBookPage() {
-    const imgPath = (import.meta.env.BASE_URL || '/') + 'book/' + BOOK_PAGES[bookPageIndex].image;
-    bookPageL.innerHTML = '';
-    bookPageR.innerHTML = '';
-    bookPageL.style.backgroundImage = `url("${imgPath}")`;
-    bookPageL.style.backgroundSize = '200% 100%';
-    bookPageL.style.backgroundPosition = 'left center';
-    bookPageL.style.backgroundRepeat = 'no-repeat';
-    bookPageR.style.backgroundImage = `url("${imgPath}")`;
-    bookPageR.style.backgroundSize = '200% 100%';
-    bookPageR.style.backgroundPosition = 'right center';
-    bookPageR.style.backgroundRepeat = 'no-repeat';
-    bookPrev.disabled = bookPageIndex === 0;
-    bookNext.disabled = bookPageIndex === BOOK_PAGES.length - 1;
-  }
-
-  function goToInteractive(topic, direction = 'next') {
-    const idx = BOOK_PAGES.findIndex(p => p.type === 'interactive');
-    if (idx >= 0) bookPageIndex = idx;
-    animatePageFlip(direction, () => {
-      bookTopic = topic;
-      deviationSelectedKey = null;
-      renderBookPage();
-    });
-  }
-
   function handleBookPageClick(e) {
     const btn = e.target.closest('[data-bk-action]');
     if (!btn) return;
@@ -1448,19 +1346,14 @@ export function createUI(camera, renderer, controls, scene) {
     }, PHASE_MS * 2);
   }
 
-  function flipPage(direction) {
-    const newIndex = direction === 'next' ? getNextPageIndex(bookPageIndex) : getPrevPageIndex(bookPageIndex);
-    if (newIndex === bookPageIndex) return;
-    animatePageFlip(direction, () => {
-      bookPageIndex = newIndex;
-      renderBookPage();
-    });
-  }
-
-  bookPrev.addEventListener('click', () => flipPage('prev'));
-  bookNext.addEventListener('click', () => flipPage('next'));
   bookClose.addEventListener('click', closeBook);
   bookOverlay.addEventListener('click', (e) => { if (e.target === bookOverlay) closeBook(); });
+
+  document.addEventListener('keydown', (e) => {
+    if (bookOverlay.classList.contains('hidden')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); bookOverlay.querySelector('.bk-arrow-fwd')?.click(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); bookOverlay.querySelector('.bk-arrow-back')?.click(); }
+  });
 
   // ── PDF Report viewer ───────────────────────────
   const reportOverlay = document.getElementById('report-overlay');
