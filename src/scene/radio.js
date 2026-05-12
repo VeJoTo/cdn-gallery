@@ -15,6 +15,7 @@
 
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { drawEyes, drawMouth } from './face-primitives.js';
 
 // ── Channels ────────────────────────────────────────
 // Flat channel list: cycling Next cycles through every station regardless
@@ -210,8 +211,6 @@ const _displayTex = new THREE.CanvasTexture(_displayCanvas);
 //   transient: 'wide'    → big eyes + "o" mouth (briefly, on Next click)
 //   blink                → eyes closed for ~150ms, scheduled at random intervals
 
-const FACE_INK_DIM = 'rgba(94, 224, 255, 0.55)';
-
 const FACE = {
   // Pixel size — chunky CRT feel
   px: 6,
@@ -220,7 +219,7 @@ const FACE = {
   cy: DISPLAY_H / 2,
   // Cyan glow color
   ink: '#5ee0ff',
-  inkDim: FACE_INK_DIM,
+  inkDim: 'rgba(94, 224, 255, 0.55)',
 };
 
 // transient face state — these timers drive what's rendered each frame
@@ -231,67 +230,6 @@ const _face = {
   exprUntil: 0,
   lastTickEq: 0,    // for the EQ bars in podcast mode
 };
-
-function _drawPixel(ctx, gx, gy, w = 1, h = 1, color, face = FACE) {
-  ctx.fillStyle = color ?? face.ink;
-  ctx.fillRect(
-    Math.round(face.cx + gx * face.px - (w * face.px) / 2),
-    Math.round(face.cy + gy * face.px - (h * face.px) / 2),
-    w * face.px,
-    h * face.px
-  );
-}
-
-function _drawEyes(ctx, kind, face = FACE) {
-  const lx = -5;
-  const rx = 5;
-  const ey = -2;
-  if (kind === 'open') {
-    _drawPixel(ctx, lx, ey, 2, 3, undefined, face);
-    _drawPixel(ctx, rx, ey, 2, 3, undefined, face);
-  } else if (kind === 'closed') {
-    _drawPixel(ctx, lx, ey, 3, 1, undefined, face);
-    _drawPixel(ctx, rx, ey, 3, 1, undefined, face);
-  } else if (kind === 'wide') {
-    _drawPixel(ctx, lx, ey, 4, 4, undefined, face);
-    _drawPixel(ctx, rx, ey, 4, 4, undefined, face);
-    _drawPixel(ctx, lx, ey, 2, 2, '#0a1419', face);
-    _drawPixel(ctx, rx, ey, 2, 2, '#0a1419', face);
-  } else if (kind === 'wink') {
-    _drawPixel(ctx, lx, ey, 3, 1, undefined, face);
-    _drawPixel(ctx, rx, ey, 2, 3, undefined, face);
-  }
-}
-
-function _drawMouth(ctx, kind, face = FACE) {
-  const my = 3;
-  if (kind === 'smile') {
-    _drawPixel(ctx, -4, my,     1, 1, undefined, face);
-    _drawPixel(ctx, -3, my + 1, 1, 1, undefined, face);
-    _drawPixel(ctx, -2, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx, -1, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  0, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  1, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  2, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  3, my + 1, 1, 1, undefined, face);
-    _drawPixel(ctx,  4, my,     1, 1, undefined, face);
-  } else if (kind === 'flat') {
-    _drawPixel(ctx, 0, my + 1, 5, 1, undefined, face);
-  } else if (kind === 'oh') {
-    _drawPixel(ctx, -1, my,     3, 1, undefined, face);
-    _drawPixel(ctx, -2, my + 1, 1, 1, undefined, face);
-    _drawPixel(ctx,  2, my + 1, 1, 1, undefined, face);
-    _drawPixel(ctx, -1, my + 2, 3, 1, undefined, face);
-  } else if (kind === 'smirk') {
-    _drawPixel(ctx, -3, my,     1, 1, undefined, face);
-    _drawPixel(ctx, -2, my + 1, 1, 1, undefined, face);
-    _drawPixel(ctx, -1, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  0, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  1, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  2, my + 2, 1, 1, undefined, face);
-    _drawPixel(ctx,  3, my + 2, 1, 1, undefined, face);
-  }
-}
 
 function _drawEqBars(ctx) {
   // Little EQ bars to the right of the face — only when podcast is playing
@@ -324,8 +262,8 @@ function drawDisplay() {
   ctx.imageSmoothingEnabled = false;
 
   if (!state.on) {
-    _drawEyes(ctx, 'closed');
-    _drawMouth(ctx, 'flat');
+    drawEyes(ctx, 'closed', FACE);
+    drawMouth(ctx, 'flat', FACE);
     // Tiny "Z" sleep indicator next to the face
     ctx.fillStyle = FACE.inkDim;
     ctx.font = 'bold 14px "Roboto", monospace';
@@ -352,20 +290,20 @@ function drawDisplay() {
 
   switch (expression) {
     case 'wink':
-      _drawEyes(ctx, 'wink');
-      _drawMouth(ctx, 'smirk');
+      drawEyes(ctx, 'wink', FACE);
+      drawMouth(ctx, 'smirk', FACE);
       break;
     case 'wide':
-      _drawEyes(ctx, 'wide');
-      _drawMouth(ctx, 'oh');
+      drawEyes(ctx, 'wide', FACE);
+      drawMouth(ctx, 'oh', FACE);
       break;
     case 'blink':
-      _drawEyes(ctx, 'closed');
-      _drawMouth(ctx, 'smile');
+      drawEyes(ctx, 'closed', FACE);
+      drawMouth(ctx, 'smile', FACE);
       break;
     default:
-      _drawEyes(ctx, 'open');
-      _drawMouth(ctx, 'smile');
+      drawEyes(ctx, 'open', FACE);
+      drawMouth(ctx, 'smile', FACE);
       break;
   }
 
@@ -757,10 +695,3 @@ export function handleRadioAction(action) {
   applyAudio();
 }
 
-// Public face renderer — used by the AI room loading screen.
-// Lets callers draw the radio face on any canvas at any size.
-export function drawRadioFace(ctx, { eyes, mouth, cx, cy, px = 6, ink = '#5ee0ff' }) {
-  const face = { px, cx, cy, ink, inkDim: FACE_INK_DIM };
-  if (eyes) _drawEyes(ctx, eyes, face);
-  if (mouth) _drawMouth(ctx, mouth, face);
-}

@@ -1,6 +1,7 @@
 // src/loading-ai.js
 // Plays the AI-room entrance loading animation. See
 // docs/superpowers/specs/2026-05-12-ai-room-loading-screen-design.md
+import { drawRadioFace } from './scene/face-primitives.js';
 
 const OVERLAY_ID = 'ai-loading-overlay';
 const TOTAL_MS = 2500;
@@ -37,11 +38,4 @@ export function playAiLoadingScreen() {
       resolve();
     }, TOTAL_MS);
   });
-}
-
-// Used internally by the wrapper that adds the radio + face content.
-// Imported lazily so radio.js canvas side-effects don't run at module load time.
-export async function _getInternals() {
-  const { drawRadioFace } = await import('./scene/radio.js');
-  return { drawRadioFace };
 }
