@@ -210,6 +210,8 @@ const _displayTex = new THREE.CanvasTexture(_displayCanvas);
 //   transient: 'wide'    → big eyes + "o" mouth (briefly, on Next click)
 //   blink                → eyes closed for ~150ms, scheduled at random intervals
 
+const FACE_INK_DIM = 'rgba(94, 224, 255, 0.55)';
+
 const FACE = {
   // Pixel size — chunky CRT feel
   px: 6,
@@ -218,7 +220,7 @@ const FACE = {
   cy: DISPLAY_H / 2,
   // Cyan glow color
   ink: '#5ee0ff',
-  inkDim: 'rgba(94, 224, 255, 0.55)',
+  inkDim: FACE_INK_DIM,
 };
 
 // transient face state — these timers drive what's rendered each frame
@@ -758,7 +760,7 @@ export function handleRadioAction(action) {
 // Public face renderer — used by the AI room loading screen.
 // Lets callers draw the radio face on any canvas at any size.
 export function drawRadioFace(ctx, { eyes, mouth, cx, cy, px = 6, ink = '#5ee0ff' }) {
-  const face = { px, cx, cy, ink, inkDim: 'rgba(94, 224, 255, 0.55)' };
+  const face = { px, cx, cy, ink, inkDim: FACE_INK_DIM };
   if (eyes) _drawEyes(ctx, eyes, face);
   if (mouth) _drawMouth(ctx, mouth, face);
 }
