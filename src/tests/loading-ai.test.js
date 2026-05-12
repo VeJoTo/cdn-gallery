@@ -35,4 +35,15 @@ describe('playAiLoadingScreen', () => {
     await vi.advanceTimersByTimeAsync(2600);
     await promise;
   });
+
+  it('resolves immediately under prefers-reduced-motion', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+    const { playAiLoadingScreen } = await import('../loading-ai.js');
+    const promise = playAiLoadingScreen();
+    let resolved = false;
+    promise.then(() => { resolved = true; });
+    await vi.advanceTimersByTimeAsync(20);
+    expect(resolved).toBe(true);
+    expect(document.getElementById('ai-loading-overlay')).toBeNull();
+  });
 });

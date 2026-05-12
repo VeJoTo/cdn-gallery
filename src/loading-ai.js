@@ -146,6 +146,12 @@ function _drawFace(canvas, eyes, mouth) {
 }
 
 export function playAiLoadingScreen() {
+  const reduce = typeof window !== 'undefined'
+    && window.matchMedia
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) {
+    return Promise.resolve();
+  }
   const overlay = _ensureOverlay();
   const { _stage, _faceCanvas, _caption, _dials } = overlay;
 
