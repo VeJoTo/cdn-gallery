@@ -15,6 +15,7 @@
 
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { drawEyes, drawMouth } from './face-primitives.js';
 
 // ── Channels ────────────────────────────────────────
 // Flat channel list: cycling Next cycles through every station regardless
@@ -230,71 +231,6 @@ const _face = {
   lastTickEq: 0,    // for the EQ bars in podcast mode
 };
 
-function _drawPixel(ctx, gx, gy, w = 1, h = 1, color = FACE.ink) {
-  ctx.fillStyle = color;
-  ctx.fillRect(
-    Math.round(FACE.cx + gx * FACE.px - (w * FACE.px) / 2),
-    Math.round(FACE.cy + gy * FACE.px - (h * FACE.px) / 2),
-    w * FACE.px,
-    h * FACE.px
-  );
-}
-
-function _drawEyes(ctx, kind) {
-  const lx = -5; // left eye grid X (negative = left of center)
-  const rx = 5;
-  const ey = -2; // eye row (above center)
-  if (kind === 'open') {
-    _drawPixel(ctx, lx, ey, 2, 3);
-    _drawPixel(ctx, rx, ey, 2, 3);
-  } else if (kind === 'closed') {
-    _drawPixel(ctx, lx, ey, 3, 1);
-    _drawPixel(ctx, rx, ey, 3, 1);
-  } else if (kind === 'wide') {
-    // big eyes — outer + inner pupil
-    _drawPixel(ctx, lx, ey, 4, 4);
-    _drawPixel(ctx, rx, ey, 4, 4);
-    _drawPixel(ctx, lx, ey, 2, 2, '#0a1419'); // inner dark dot
-    _drawPixel(ctx, rx, ey, 2, 2, '#0a1419');
-  } else if (kind === 'wink') {
-    _drawPixel(ctx, lx, ey, 3, 1); // closed
-    _drawPixel(ctx, rx, ey, 2, 3); // open
-  }
-}
-
-function _drawMouth(ctx, kind) {
-  const my = 3; // mouth baseline (below center)
-  if (kind === 'smile') {
-    // Three-segment smile curve, pixel-art style
-    _drawPixel(ctx, -4, my,     1, 1);
-    _drawPixel(ctx, -3, my + 1, 1, 1);
-    _drawPixel(ctx, -2, my + 2, 1, 1);
-    _drawPixel(ctx, -1, my + 2, 1, 1);
-    _drawPixel(ctx,  0, my + 2, 1, 1);
-    _drawPixel(ctx,  1, my + 2, 1, 1);
-    _drawPixel(ctx,  2, my + 2, 1, 1);
-    _drawPixel(ctx,  3, my + 1, 1, 1);
-    _drawPixel(ctx,  4, my,     1, 1);
-  } else if (kind === 'flat') {
-    _drawPixel(ctx, 0, my + 1, 5, 1);
-  } else if (kind === 'oh') {
-    // Small "o" — a 3×3 ring
-    _drawPixel(ctx, -1, my,     3, 1);
-    _drawPixel(ctx, -2, my + 1, 1, 1);
-    _drawPixel(ctx,  2, my + 1, 1, 1);
-    _drawPixel(ctx, -1, my + 2, 3, 1);
-  } else if (kind === 'smirk') {
-    // Asymmetric — left side goes up, right side flat
-    _drawPixel(ctx, -3, my,     1, 1);
-    _drawPixel(ctx, -2, my + 1, 1, 1);
-    _drawPixel(ctx, -1, my + 2, 1, 1);
-    _drawPixel(ctx,  0, my + 2, 1, 1);
-    _drawPixel(ctx,  1, my + 2, 1, 1);
-    _drawPixel(ctx,  2, my + 2, 1, 1);
-    _drawPixel(ctx,  3, my + 2, 1, 1);
-  }
-}
-
 function _drawEqBars(ctx) {
   // Little EQ bars to the right of the face — only when podcast is playing
   const baseX = DISPLAY_W - 36;
@@ -326,8 +262,8 @@ function drawDisplay() {
   ctx.imageSmoothingEnabled = false;
 
   if (!state.on) {
-    _drawEyes(ctx, 'closed');
-    _drawMouth(ctx, 'flat');
+    drawEyes(ctx, 'closed', FACE);
+    drawMouth(ctx, 'flat', FACE);
     // Tiny "Z" sleep indicator next to the face
     ctx.fillStyle = FACE.inkDim;
     ctx.font = 'bold 14px "Roboto", monospace';
@@ -354,20 +290,20 @@ function drawDisplay() {
 
   switch (expression) {
     case 'wink':
-      _drawEyes(ctx, 'wink');
-      _drawMouth(ctx, 'smirk');
+      drawEyes(ctx, 'wink', FACE);
+      drawMouth(ctx, 'smirk', FACE);
       break;
     case 'wide':
-      _drawEyes(ctx, 'wide');
-      _drawMouth(ctx, 'oh');
+      drawEyes(ctx, 'wide', FACE);
+      drawMouth(ctx, 'oh', FACE);
       break;
     case 'blink':
-      _drawEyes(ctx, 'closed');
-      _drawMouth(ctx, 'smile');
+      drawEyes(ctx, 'closed', FACE);
+      drawMouth(ctx, 'smile', FACE);
       break;
     default:
-      _drawEyes(ctx, 'open');
-      _drawMouth(ctx, 'smile');
+      drawEyes(ctx, 'open', FACE);
+      drawMouth(ctx, 'smile', FACE);
       break;
   }
 
@@ -758,3 +694,4 @@ export function handleRadioAction(action) {
   if (_radioChannelDots) _radioChannelDots.refresh();
   applyAudio();
 }
+
