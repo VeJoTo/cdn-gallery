@@ -1768,14 +1768,16 @@ function transitionToRoom(targetRoom) {
         applySkyMode(scene, getSkyMode());
       }
       setGuidePortrait(currentRoom);
-      isTransitioning = false;
 
       // Show the AI-room loading screen on first entry, then fade in normally.
+      // Keep isTransitioning=true across the loading-screen await so a re-entrant
+      // transitionToRoom call during the 2.5s gag is blocked by the existing gate.
       (async () => {
         if (shouldPlayAiLoading(targetRoom, _hasPlayedAiLoading)) {
           _hasPlayedAiLoading = true;
           await playAiLoadingScreen();
         }
+        isTransitioning = false;
         requestAnimationFrame(() => {
           fadeOverlay.style.transition = "opacity 0.4s ease";
           fadeOverlay.style.opacity = "0";
