@@ -31,6 +31,7 @@ import {
 } from "./achievements.js";
 import { EffectComposer, RenderPass } from "postprocessing";
 import { GodraysPass } from "three-good-godrays";
+import { playAiLoadingScreen, shouldPlayAiLoading } from './loading-ai.js';
 
 // TEMPORARY (playtest feedback): wipe achievement state on every page load
 // so testers see the toast on every visit. Remove resetAchievements() to
@@ -1705,6 +1706,7 @@ addUpdateCallback((delta) => {
 const fadeOverlay = document.getElementById("fade-overlay");
 let currentRoom = "exterior"; // 'exterior', 'ai', or 'nature'
 let isTransitioning = false;
+let _hasPlayedAiLoading = false;
 
 const GUIDE_PORTRAITS = {
   exterior: import.meta.env.BASE_URL + 'guide.png',
@@ -1768,21 +1770,27 @@ function transitionToRoom(targetRoom) {
       setGuidePortrait(currentRoom);
       isTransitioning = false;
 
-      // Fade the new room in smoothly.
-      requestAnimationFrame(() => {
-        fadeOverlay.style.transition = "opacity 0.4s ease";
-        fadeOverlay.style.opacity = "0";
-        setTimeout(() => {
-          fadeOverlay.style.transition = "";
-          fadeOverlay.style.opacity = "";
-          fadeOverlay.style.pointerEvents = "none";
-          if (currentRoom === "nature") {
-            window.__showGuideMessage?.(
-              "This garden is just an example of how this 3D gallery can expand in the future. With several rooms highlighting different research in a visual and engaging way."
-            );
-          }
-        }, 400);
-      });
+      // Show the AI-room loading screen on first entry, then fade in normally.
+      (async () => {
+        if (shouldPlayAiLoading(targetRoom, _hasPlayedAiLoading)) {
+          _hasPlayedAiLoading = true;
+          await playAiLoadingScreen();
+        }
+        requestAnimationFrame(() => {
+          fadeOverlay.style.transition = "opacity 0.4s ease";
+          fadeOverlay.style.opacity = "0";
+          setTimeout(() => {
+            fadeOverlay.style.transition = "";
+            fadeOverlay.style.opacity = "";
+            fadeOverlay.style.pointerEvents = "none";
+            if (currentRoom === "nature") {
+              window.__showGuideMessage?.(
+                "This garden is just an example of how this 3D gallery can expand in the future. With several rooms highlighting different research in a visual and engaging way."
+              );
+            }
+          }, 400);
+        });
+      })();
     }),
   );
 }
