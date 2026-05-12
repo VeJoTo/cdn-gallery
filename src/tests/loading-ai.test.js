@@ -10,6 +10,24 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe('shouldPlayAiLoading', () => {
+  it('returns true when entering the AI room and not yet played', async () => {
+    const { shouldPlayAiLoading } = await import('../loading-ai.js');
+    expect(shouldPlayAiLoading('ai', false)).toBe(true);
+  });
+
+  it('returns false when entering the AI room but already played', async () => {
+    const { shouldPlayAiLoading } = await import('../loading-ai.js');
+    expect(shouldPlayAiLoading('ai', true)).toBe(false);
+  });
+
+  it('returns false for other room targets', async () => {
+    const { shouldPlayAiLoading } = await import('../loading-ai.js');
+    expect(shouldPlayAiLoading('nature', false)).toBe(false);
+    expect(shouldPlayAiLoading('exterior', false)).toBe(false);
+  });
+});
+
 describe('playAiLoadingScreen', () => {
   it('returns a Promise that resolves after ~2.5s', async () => {
     const { playAiLoadingScreen } = await import('../loading-ai.js');

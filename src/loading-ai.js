@@ -208,3 +208,7 @@ export function playAiLoadingScreen() {
     }, TOTAL_MS);
   });
 }
+
+export function shouldPlayAiLoading(targetRoom, alreadyPlayed) {
+  return targetRoom === 'ai' && !alreadyPlayed;
+}
