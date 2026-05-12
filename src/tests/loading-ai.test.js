@@ -46,4 +46,24 @@ describe('playAiLoadingScreen', () => {
     expect(resolved).toBe(true);
     expect(document.getElementById('ai-loading-overlay')).toBeNull();
   });
+
+  it('does not leak overlay elements across repeated calls', async () => {
+    // Ensure matchMedia returns false so we get the real overlay path
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+    const { playAiLoadingScreen } = await import('../loading-ai.js');
+
+    {
+      const p = playAiLoadingScreen();
+      await vi.advanceTimersByTimeAsync(2600);
+      await p;
+    }
+    {
+      const p = playAiLoadingScreen();
+      await vi.advanceTimersByTimeAsync(2600);
+      await p;
+    }
+
+    const overlays = document.querySelectorAll('#ai-loading-overlay');
+    expect(overlays.length).toBe(0);
+  });
 });
