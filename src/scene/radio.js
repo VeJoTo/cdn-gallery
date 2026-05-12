@@ -230,68 +230,64 @@ const _face = {
   lastTickEq: 0,    // for the EQ bars in podcast mode
 };
 
-function _drawPixel(ctx, gx, gy, w = 1, h = 1, color = FACE.ink) {
-  ctx.fillStyle = color;
+function _drawPixel(ctx, gx, gy, w = 1, h = 1, color, face = FACE) {
+  ctx.fillStyle = color ?? face.ink;
   ctx.fillRect(
-    Math.round(FACE.cx + gx * FACE.px - (w * FACE.px) / 2),
-    Math.round(FACE.cy + gy * FACE.px - (h * FACE.px) / 2),
-    w * FACE.px,
-    h * FACE.px
+    Math.round(face.cx + gx * face.px - (w * face.px) / 2),
+    Math.round(face.cy + gy * face.px - (h * face.px) / 2),
+    w * face.px,
+    h * face.px
   );
 }
 
-function _drawEyes(ctx, kind) {
-  const lx = -5; // left eye grid X (negative = left of center)
+function _drawEyes(ctx, kind, face = FACE) {
+  const lx = -5;
   const rx = 5;
-  const ey = -2; // eye row (above center)
+  const ey = -2;
   if (kind === 'open') {
-    _drawPixel(ctx, lx, ey, 2, 3);
-    _drawPixel(ctx, rx, ey, 2, 3);
+    _drawPixel(ctx, lx, ey, 2, 3, undefined, face);
+    _drawPixel(ctx, rx, ey, 2, 3, undefined, face);
   } else if (kind === 'closed') {
-    _drawPixel(ctx, lx, ey, 3, 1);
-    _drawPixel(ctx, rx, ey, 3, 1);
+    _drawPixel(ctx, lx, ey, 3, 1, undefined, face);
+    _drawPixel(ctx, rx, ey, 3, 1, undefined, face);
   } else if (kind === 'wide') {
-    // big eyes — outer + inner pupil
-    _drawPixel(ctx, lx, ey, 4, 4);
-    _drawPixel(ctx, rx, ey, 4, 4);
-    _drawPixel(ctx, lx, ey, 2, 2, '#0a1419'); // inner dark dot
-    _drawPixel(ctx, rx, ey, 2, 2, '#0a1419');
+    _drawPixel(ctx, lx, ey, 4, 4, undefined, face);
+    _drawPixel(ctx, rx, ey, 4, 4, undefined, face);
+    _drawPixel(ctx, lx, ey, 2, 2, '#0a1419', face);
+    _drawPixel(ctx, rx, ey, 2, 2, '#0a1419', face);
   } else if (kind === 'wink') {
-    _drawPixel(ctx, lx, ey, 3, 1); // closed
-    _drawPixel(ctx, rx, ey, 2, 3); // open
+    _drawPixel(ctx, lx, ey, 3, 1, undefined, face);
+    _drawPixel(ctx, rx, ey, 2, 3, undefined, face);
   }
 }
 
-function _drawMouth(ctx, kind) {
-  const my = 3; // mouth baseline (below center)
+function _drawMouth(ctx, kind, face = FACE) {
+  const my = 3;
   if (kind === 'smile') {
-    // Three-segment smile curve, pixel-art style
-    _drawPixel(ctx, -4, my,     1, 1);
-    _drawPixel(ctx, -3, my + 1, 1, 1);
-    _drawPixel(ctx, -2, my + 2, 1, 1);
-    _drawPixel(ctx, -1, my + 2, 1, 1);
-    _drawPixel(ctx,  0, my + 2, 1, 1);
-    _drawPixel(ctx,  1, my + 2, 1, 1);
-    _drawPixel(ctx,  2, my + 2, 1, 1);
-    _drawPixel(ctx,  3, my + 1, 1, 1);
-    _drawPixel(ctx,  4, my,     1, 1);
+    _drawPixel(ctx, -4, my,     1, 1, undefined, face);
+    _drawPixel(ctx, -3, my + 1, 1, 1, undefined, face);
+    _drawPixel(ctx, -2, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx, -1, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  0, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  1, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  2, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  3, my + 1, 1, 1, undefined, face);
+    _drawPixel(ctx,  4, my,     1, 1, undefined, face);
   } else if (kind === 'flat') {
-    _drawPixel(ctx, 0, my + 1, 5, 1);
+    _drawPixel(ctx, 0, my + 1, 5, 1, undefined, face);
   } else if (kind === 'oh') {
-    // Small "o" — a 3×3 ring
-    _drawPixel(ctx, -1, my,     3, 1);
-    _drawPixel(ctx, -2, my + 1, 1, 1);
-    _drawPixel(ctx,  2, my + 1, 1, 1);
-    _drawPixel(ctx, -1, my + 2, 3, 1);
+    _drawPixel(ctx, -1, my,     3, 1, undefined, face);
+    _drawPixel(ctx, -2, my + 1, 1, 1, undefined, face);
+    _drawPixel(ctx,  2, my + 1, 1, 1, undefined, face);
+    _drawPixel(ctx, -1, my + 2, 3, 1, undefined, face);
   } else if (kind === 'smirk') {
-    // Asymmetric — left side goes up, right side flat
-    _drawPixel(ctx, -3, my,     1, 1);
-    _drawPixel(ctx, -2, my + 1, 1, 1);
-    _drawPixel(ctx, -1, my + 2, 1, 1);
-    _drawPixel(ctx,  0, my + 2, 1, 1);
-    _drawPixel(ctx,  1, my + 2, 1, 1);
-    _drawPixel(ctx,  2, my + 2, 1, 1);
-    _drawPixel(ctx,  3, my + 2, 1, 1);
+    _drawPixel(ctx, -3, my,     1, 1, undefined, face);
+    _drawPixel(ctx, -2, my + 1, 1, 1, undefined, face);
+    _drawPixel(ctx, -1, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  0, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  1, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  2, my + 2, 1, 1, undefined, face);
+    _drawPixel(ctx,  3, my + 2, 1, 1, undefined, face);
   }
 }
 
@@ -757,4 +753,12 @@ export function handleRadioAction(action) {
   if (_powerLight) _powerLight.material.opacity = state.on ? 1.0 : 0;
   if (_radioChannelDots) _radioChannelDots.refresh();
   applyAudio();
+}
+
+// Public face renderer — used by the AI room loading screen.
+// Lets callers draw the radio face on any canvas at any size.
+export function drawRadioFace(ctx, { eyes, mouth, cx, cy, px = 6, ink = '#5ee0ff' }) {
+  const face = { px, cx, cy, ink, inkDim: 'rgba(94, 224, 255, 0.55)' };
+  if (eyes) _drawEyes(ctx, eyes, face);
+  if (mouth) _drawMouth(ctx, mouth, face);
 }
