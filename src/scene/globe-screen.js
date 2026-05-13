@@ -652,13 +652,6 @@ function buildScreen() {
   const stemBot = new THREE.Vector3(0, -1.50, 0.05);
   group.add(makeTube(stemTop, stemBot, 0.055, standMat));
 
-  // Base plate on the floor
-  const basePlate = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.30, 0.34, 0.03, 32),
-    standMat
-  );
-  basePlate.position.set(0, -1.485, 0.05);
-  group.add(basePlate);
 
   // CDN-blue accent ring where stem meets the frame
   const accentMat = new THREE.MeshStandardMaterial({
@@ -687,15 +680,65 @@ function buildPedestal() {
   const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf4f6f8, metalness: 0.15, roughness: 0.55 });
   const cyanMat  = new THREE.MeshStandardMaterial({ color: CDN.cyan,  emissive: CDN.cyan, emissiveIntensity: 1.2 });
 
-  // Just the flat base ring
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.65, 0.08, 48), whiteMat);
-  base.position.y = 0.04;
+  // Rectangle spans globe (local x=0) and screen (local x≈-1.944 at GLOBE_SCALE=1.8)
+  const RCX = -0.85;   // rectangle center x offset
+  const RHW = 2.10;    // half-width  →  x spans [-2.95 .. +1.25] (world: -3.56 .. +4.00)
+  const RHD = 0.65;    // half-depth  →  z spans [-0.65 .. +0.65]
+  const CR  = 0.22;    // corner radius
+  const H   = 0.08;    // slab height
+
+  const x0 = RCX - RHW, x1 = RCX + RHW;
+  const y0 = -RHD,       y1 =  RHD;
+
+  // ── Slab (ExtrudeGeometry, rotated to lie flat in XZ) ────────────────────────
+  const shape = new THREE.Shape();
+  shape.moveTo(x0 + CR, y0);
+  shape.lineTo(x1 - CR, y0);
+  shape.absarc(x1 - CR, y0 + CR, CR, -Math.PI / 2, 0,               false);
+  shape.lineTo(x1, y1 - CR);
+  shape.absarc(x1 - CR, y1 - CR, CR, 0,             Math.PI / 2,    false);
+  shape.lineTo(x0 + CR, y1);
+  shape.absarc(x0 + CR, y1 - CR, CR, Math.PI / 2,   Math.PI,        false);
+  shape.lineTo(x0, y0 + CR);
+  shape.absarc(x0 + CR, y0 + CR, CR, Math.PI,       3 * Math.PI / 2, false);
+
+  const base = new THREE.Mesh(
+    new THREE.ExtrudeGeometry(shape, { depth: H, bevelEnabled: false }),
+    whiteMat
+  );
+  base.rotation.x = -Math.PI / 2;
   group.add(base);
 
-  // Glowing top edge
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.010, 6, 64), cyanMat);
-  rim.rotation.x = Math.PI / 2;
-  rim.position.y = 0.08;
+  // ── Neon rim (TubeGeometry tracing rounded-rect outline at y=H) ──────────────
+  const rimY = H + 0.001;
+  const rimPts = [];
+
+  function addArcPts(cx, cz, a0, a1, segs = 14) {
+    for (let i = 0; i <= segs; i++) {
+      const a = a0 + (i / segs) * (a1 - a0);
+      rimPts.push(new THREE.Vector3(cx + CR * Math.cos(a), rimY, cz + CR * Math.sin(a)));
+    }
+  }
+  function addLinePts(px0, pz0, px1, pz1, segs = 6) {
+    for (let i = 1; i <= segs; i++) {
+      const t = i / segs;
+      rimPts.push(new THREE.Vector3(px0 + t * (px1 - px0), rimY, pz0 + t * (pz1 - pz0)));
+    }
+  }
+
+  addArcPts(x1 - CR,  RHD - CR,  Math.PI / 2, 0);            // front-right corner
+  addLinePts(x1, RHD - CR, x1, -RHD + CR);                   // right edge
+  addArcPts(x1 - CR, -RHD + CR,  0,           -Math.PI / 2); // back-right corner
+  addLinePts(x1 - CR, -RHD, x0 + CR, -RHD);                  // back edge
+  addArcPts(x0 + CR, -RHD + CR, -Math.PI / 2, -Math.PI);     // back-left corner
+  addLinePts(x0, -RHD + CR, x0, RHD - CR);                   // left edge
+  addArcPts(x0 + CR,  RHD - CR,  Math.PI,     Math.PI / 2);  // front-left corner
+  addLinePts(x0 + CR, RHD, x1 - CR, RHD);                    // front edge
+
+  const rim = new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rimPts, true, 'chordal'), 200, 0.012, 8, true),
+    cyanMat
+  );
   group.add(rim);
 
   return group;
@@ -794,17 +837,17 @@ export function createGlobeScreenInstallation(scene, camera, cssScene) {
   const Z = -9.5;
 
   const screen = buildScreen();
-  screen.position.set(-1.75, 1.5, Z);
+  screen.position.set(-1.45, 1.5, Z);
   scene.add(screen);
 
   const pedestal = buildPedestal();
-  pedestal.position.set(1.75, 0, Z);
+  pedestal.position.set(1.53, 0, Z);
   pedestal.scale.setScalar(GLOBE_SCALE);
   scene.add(pedestal);
 
   const globe = buildGlobe(screen);
   // Base top is ~0.08 * GLOBE_SCALE; globe radius is 0.5 * GLOBE_SCALE — sit just above base
-  globe.position.set(1.75, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, Z);
+  globe.position.set(2.05, 0.08 * GLOBE_SCALE + 0.5 * GLOBE_SCALE + 0.05, Z);
   globe.scale.setScalar(GLOBE_SCALE);
   scene.add(globe);
 
