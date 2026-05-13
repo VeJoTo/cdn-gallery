@@ -380,7 +380,7 @@ export function createRoom(scene) {
     { x: -5.5, z: -2.75, hex: 0x0077b5 }, // Bookstand
     { x: -6.0, z:  2.75, hex: 0x7db455 }, // TV
     { x:  5.5, z:  8.0,  hex: 0x5087c5 }, // Arcade
-    { x:  0.0, z: -8.0,  hex: 0x009f95 }, // Fin du Monde
+    { x:  0.0, z: -7.0,  hex: 0x009f95 }, // Fin du Monde
     { x:  6.0, z:  3.0,  hex: 0x1ca2ba }, // Culture map
   ];
 
