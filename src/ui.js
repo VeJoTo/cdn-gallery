@@ -143,8 +143,7 @@ export function renderAchievementsTab(state) {
   const total = ACHIEVEMENTS.length;
   const atMax = state.unlockedIds.size === total;
   const nextThreshold = state.level * 100;
-  const xpInLevel = state.xp - (state.level - 1) * 100;
-  const fillPct = atMax ? 100 : Math.min(100, (xpInLevel / 100) * 100);
+  const filledSegments = Math.min(4, Math.floor(state.xp / 100));
 
   const subtitle = atMax
     ? '// ALL EXHIBITS LOGGED'
@@ -188,7 +187,7 @@ export function renderAchievementsTab(state) {
         <div class="achievement-rank">
           <div class="achievement-rank__level">[ LV.${String(state.level).padStart(2,'0')} ]</div>
           <div class="achievement-rank__bar">
-            <div class="achievement-rank__bar-fill" style="width:${fillPct}%"></div>
+            ${[0,1,2,3].map(i => `<div class="achievement-rank__bar-segment${i < filledSegments ? ' achievement-rank__bar-segment--filled' : ''}"></div>`).join('')}
             ${atMax ? '<div class="achievement-rank__max">MAX</div>' : ''}
           </div>
           <div class="achievement-rank__xp">${xpLabel}</div>

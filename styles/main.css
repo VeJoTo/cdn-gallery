@@ -2734,6 +2734,7 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
 }
 .achievement-rank__bar {
   position: relative;
+  display: flex;
   height: 12px;
   background: rgba(0, 212, 255, 0.06);
   border: 1px solid rgba(0, 212, 255, 0.4);
@@ -2754,11 +2755,13 @@ body:has(#crosshair:not(.hidden)) #wasd-hud {
   );
   pointer-events: none;
 }
-.achievement-rank__bar-fill {
+.achievement-rank__bar-segment {
+  flex: 1;
   height: 100%;
-  background: linear-gradient(90deg, #00d4ff, #6ef0ff);
+}
+.achievement-rank__bar-segment--filled {
+  background: #00d4ff;
   box-shadow: 0 0 12px rgba(0, 212, 255, 0.7);
-  transition: width 350ms cubic-bezier(.2,.8,.2,1);
 }
 .achievement-rank__max {
   position: absolute;
