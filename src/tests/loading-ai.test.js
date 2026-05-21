@@ -98,14 +98,15 @@ describe('playAiLoadingScreen', () => {
   it('honors a custom minDurationMs', async () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: false });
     const { playAiLoadingScreen } = await import('../loading-ai.js');
-    const promise = playAiLoadingScreen({ minDurationMs: 1000 });
+    // minDurationMs=1500 → minLockinStart=500, lock-in 500-1200, fade 1200-1500.
+    const promise = playAiLoadingScreen({ minDurationMs: 1500 });
     let resolved = false;
     promise.then(() => { resolved = true; });
 
-    await vi.advanceTimersByTimeAsync(900);
+    await vi.advanceTimersByTimeAsync(1400);
     expect(resolved).toBe(false);
 
-    await vi.advanceTimersByTimeAsync(200); // total 1100ms > 1000ms
+    await vi.advanceTimersByTimeAsync(200); // total 1600ms > 1500ms
     expect(resolved).toBe(true);
   });
 
@@ -113,11 +114,12 @@ describe('playAiLoadingScreen', () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: false });
     const { playAiLoadingScreen } = await import('../loading-ai.js');
     const readyPromise = Promise.resolve(); // already resolved
-    const promise = playAiLoadingScreen({ minDurationMs: 1000, readyPromise });
+    // minDurationMs=1500 → function still floors at 1500ms even though ready is immediate.
+    const promise = playAiLoadingScreen({ minDurationMs: 1500, readyPromise });
     let resolved = false;
     promise.then(() => { resolved = true; });
 
-    await vi.advanceTimersByTimeAsync(900);
+    await vi.advanceTimersByTimeAsync(1400);
     expect(resolved).toBe(false); // still under min duration
 
     await vi.advanceTimersByTimeAsync(200);
@@ -129,16 +131,18 @@ describe('playAiLoadingScreen', () => {
     const { playAiLoadingScreen } = await import('../loading-ai.js');
     let resolveReady;
     const readyPromise = new Promise((r) => { resolveReady = r; });
-    const promise = playAiLoadingScreen({ minDurationMs: 1000, readyPromise });
+    // minDurationMs=1500 → minLockinStart=500. With ready settled at t=2000ms,
+    // lock-in starts at 2000ms, fade at 2700ms, resolve at 3000ms.
+    const promise = playAiLoadingScreen({ minDurationMs: 1500, readyPromise });
     let resolved = false;
     promise.then(() => { resolved = true; });
 
-    await vi.advanceTimersByTimeAsync(1500);
-    expect(resolved).toBe(false); // min duration passed, but ready hasn't
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(resolved).toBe(false); // past minDurationMs floor, but ready hasn't resolved
 
     resolveReady();
-    await vi.advanceTimersByTimeAsync(50);   // microtasks flush, fade starts
-    await vi.advanceTimersByTimeAsync(350);  // fade (300ms) + buffer
+    await vi.advanceTimersByTimeAsync(50);    // microtasks flush, lock-in starts
+    await vi.advanceTimersByTimeAsync(1050);  // LOCKIN_MS (700) + FADE_MS (300) + buffer
     expect(resolved).toBe(true);
   });
 

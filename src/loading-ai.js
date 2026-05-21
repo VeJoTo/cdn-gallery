@@ -261,7 +261,7 @@ export function playAiLoadingScreen({
   // Initial frame
   _drawFace(_faceCanvas, 'open', 'smile');
 
-  // Slide in (0 → 500ms)
+  // Slide in (0 → SLIDE_IN_MS)
   requestAnimationFrame(() => {
     _stage.style.transform = 'translateY(0)';
   });
@@ -272,44 +272,50 @@ export function playAiLoadingScreen({
       d.style.animation = 'ai-loading-dial-spin 0.7s linear infinite';
     }
     _radioShake.style.animation = 'ai-loading-shake 0.18s steps(2) infinite';
-  }, 500);
+  }, SLIDE_IN_MS);
 
-  // Face beats during "tuning"
-  const beats = [
-    { at: 700,  eyes: 'wide',   mouth: 'smile', caption: 'TUNING IN…' },
-    { at: 900,  eyes: 'closed', mouth: 'smile', caption: 'TUNING IN. .' },
-    { at: 1100, eyes: 'wink',   mouth: 'smirk', caption: 'TUNING IN. . .' },
-    { at: 1800, eyes: 'open',   mouth: 'smile', caption: 'CHANNEL FOUND' },
-  ];
-  for (const b of beats) {
-    setTimeout(() => {
-      _drawFace(_faceCanvas, b.eyes, b.mouth);
-      _caption.textContent = b.caption;
-    }, b.at);
-  }
-
-  // "Found it" moment: dials snap, shake stops, static clears, caption flicker-in,
-  // radio glow pulses, face goes wide-eyed surprised.
+  // Tuning loop: face + caption cycle every 200ms until lock-in.
+  let tickIndex = 0;
+  const tuningTick = () => {
+    const i = tickIndex % FACE_CYCLE.length;
+    _drawFace(_faceCanvas, FACE_CYCLE[i].eyes, FACE_CYCLE[i].mouth);
+    _caption.textContent = CAPTION_CYCLE[i];
+    tickIndex++;
+  };
+  let tuningInterval = null;
   setTimeout(() => {
-    for (const d of _dials) {
-      d.style.animation = '';
-      d.style.transform = 'rotate(35deg)';
-      d.style.transition = 'transform 0.15s ease-out';
-    }
-    _radioShake.style.animation = '';
-    _staticLayer.style.opacity = '0';
-    _radio.style.animation = 'ai-loading-glow 0.6s ease-in-out';
-    _drawFace(_faceCanvas, 'wide', 'oh');
-    _caption.textContent = 'CHANNEL FOUND';
-    _caption.style.fontSize = '18px';
-    _caption.style.animation = 'ai-loading-found-flicker 0.5s steps(1) 1, ai-loading-caption-glow 1.2s ease-in-out 0.5s infinite';
-  }, 1300);
+    tuningTick();
+    tuningInterval = setInterval(tuningTick, 200);
+  }, SLIDE_IN_MS);
 
   return new Promise((resolve) => {
-    let faded = false;
-    const triggerFade = () => {
-      if (faded) return;
-      faded = true;
+    let lockedIn = false;
+
+    const startLockin = () => {
+      if (lockedIn) return;
+      lockedIn = true;
+      if (tuningInterval !== null) clearInterval(tuningInterval);
+
+      // Lock-in DOM mutations: dials snap, shake stops, static clears, caption
+      // flicker-in, radio glow pulses, face goes wide-eyed surprised.
+      for (const d of _dials) {
+        d.style.animation = '';
+        d.style.transform = 'rotate(35deg)';
+        d.style.transition = 'transform 0.15s ease-out';
+      }
+      _radioShake.style.animation = '';
+      _staticLayer.style.opacity = '0';
+      _radio.style.animation = 'ai-loading-glow 0.6s ease-in-out';
+      _drawFace(_faceCanvas, 'wide', 'oh');
+      _caption.textContent = 'CHANNEL FOUND';
+      _caption.style.fontSize = '18px';
+      _caption.style.animation = 'ai-loading-found-flicker 0.5s steps(1) 1, ai-loading-caption-glow 1.2s ease-in-out 0.5s infinite';
+
+      // After the lock-in beat plays, start the fade.
+      setTimeout(startFade, LOCKIN_MS);
+    };
+
+    const startFade = () => {
       overlay.style.opacity = '0';
       setTimeout(() => {
         _teardown();
@@ -317,21 +323,21 @@ export function playAiLoadingScreen({
       }, FADE_MS);
     };
 
-    // Trigger fade once both the min duration AND readyPromise are satisfied.
-    const minFadeStart = Math.max(0, minDurationMs - FADE_MS);
-    const minDelay = new Promise((r) => setTimeout(r, minFadeStart));
-    Promise.all([minDelay, ready]).then(triggerFade);
+    // Gate the lock-in: both min duration AND readyPromise must be satisfied.
+    const minLockinStart = Math.max(SLIDE_IN_MS, minDurationMs - LOCKIN_MS - FADE_MS);
+    const maxLockinStart = Math.max(minLockinStart, maxDurationMs - LOCKIN_MS - FADE_MS);
+    const minLockinDelay = new Promise((r) => setTimeout(r, minLockinStart));
+    Promise.all([minLockinDelay, ready]).then(startLockin);
 
-    // Hard cap: trigger fade at (maxDurationMs - FADE_MS) regardless of ready.
-    const maxFadeStart = Math.max(0, maxDurationMs - FADE_MS);
+    // Hard cap: trigger lock-in at maxLockinStart regardless of ready.
     setTimeout(() => {
-      if (!faded) {
+      if (!lockedIn) {
         console.warn(
           `[loading-ai] readyPromise did not settle within ${maxDurationMs}ms`
         );
-        triggerFade();
+        startLockin();
       }
-    }, maxFadeStart);
+    }, maxLockinStart);
   });
 }
 
