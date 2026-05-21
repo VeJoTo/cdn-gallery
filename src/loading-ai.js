@@ -311,6 +311,17 @@ export function playAiLoadingScreen({
     const minFadeStart = Math.max(0, minDurationMs - FADE_MS);
     const minDelay = new Promise((r) => setTimeout(r, minFadeStart));
     Promise.all([minDelay, ready]).then(triggerFade);
+
+    // Hard cap: trigger fade at (maxDurationMs - FADE_MS) regardless of ready.
+    const maxFadeStart = Math.max(0, maxDurationMs - FADE_MS);
+    setTimeout(() => {
+      if (!faded) {
+        console.warn(
+          `[loading-ai] readyPromise did not settle within ${maxDurationMs}ms`
+        );
+        triggerFade();
+      }
+    }, maxFadeStart);
   });
 }
 

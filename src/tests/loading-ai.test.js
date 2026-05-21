@@ -131,4 +131,28 @@ describe('playAiLoadingScreen', () => {
     const overlays = document.querySelectorAll('#ai-loading-overlay');
     expect(overlays.length).toBe(0);
   });
+
+  it('honors maxDurationMs cap when readyPromise never resolves', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { playAiLoadingScreen } = await import('../loading-ai.js');
+    const neverReady = new Promise(() => {}); // intentionally pending forever
+    const promise = playAiLoadingScreen({
+      minDurationMs: 1000,
+      maxDurationMs: 3000,
+      readyPromise: neverReady,
+    });
+    let resolved = false;
+    promise.then(() => { resolved = true; });
+
+    await vi.advanceTimersByTimeAsync(2900);
+    expect(resolved).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(200); // 3100ms total > 3000ms cap
+    expect(resolved).toBe(true);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('readyPromise did not settle within 3000ms')
+    );
+    warnSpy.mockRestore();
+  });
 });
