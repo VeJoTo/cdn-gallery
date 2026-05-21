@@ -1775,7 +1775,19 @@ function transitionToRoom(targetRoom) {
       (async () => {
         if (shouldPlayAiLoading(targetRoom, _hasPlayedAiLoading)) {
           _hasPlayedAiLoading = true;
-          await playAiLoadingScreen();
+          const readyPromise = (async () => {
+            // Yield one rAF so the loading overlay paints before we block
+            // the main thread on shader compile + texture upload.
+            await new Promise((r) => requestAnimationFrame(r));
+            try {
+              renderer.compile(scene, camera);
+              renderer.render(scene, camera);
+            } catch (err) {
+              console.warn('[loading-ai] renderer.compile failed', err);
+            }
+            await new Promise((r) => requestAnimationFrame(r));
+          })();
+          await playAiLoadingScreen({ readyPromise });
         }
         isTransitioning = false;
         requestAnimationFrame(() => {
