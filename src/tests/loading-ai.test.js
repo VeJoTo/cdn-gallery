@@ -141,8 +141,11 @@ describe('playAiLoadingScreen', () => {
     expect(resolved).toBe(false); // past minDurationMs floor, but ready hasn't resolved
 
     resolveReady();
-    await vi.advanceTimersByTimeAsync(50);    // microtasks flush, lock-in starts
-    await vi.advanceTimersByTimeAsync(1050);  // LOCKIN_MS (700) + FADE_MS (300) + buffer
+    await vi.advanceTimersByTimeAsync(50);   // microtasks flush, lock-in starts
+    await vi.advanceTimersByTimeAsync(350);  // t≈2400ms — old fade-only flow would have resolved by now
+    expect(resolved).toBe(false);            // new lock-in+fade still pending → discriminates old vs new
+
+    await vi.advanceTimersByTimeAsync(700);  // t≈3100ms — past fade end
     expect(resolved).toBe(true);
   });
 
