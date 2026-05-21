@@ -4,7 +4,6 @@
 import { drawRadioFace } from './scene/face-primitives.js';
 
 const OVERLAY_ID = 'ai-loading-overlay';
-const TOTAL_MS = 2500;
 const FADE_MS = 300;
 
 let _overlay = null;
@@ -296,16 +295,22 @@ export function playAiLoadingScreen({
     _caption.style.animation = 'ai-loading-found-flicker 0.5s steps(1) 1, ai-loading-caption-glow 1.2s ease-in-out 0.5s infinite';
   }, 1300);
 
-  // Fade out (2200 → 2500ms)
-  setTimeout(() => {
-    overlay.style.opacity = '0';
-  }, 2200);
-
   return new Promise((resolve) => {
-    setTimeout(() => {
-      _teardown();
-      resolve();
-    }, TOTAL_MS);
+    let faded = false;
+    const triggerFade = () => {
+      if (faded) return;
+      faded = true;
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        _teardown();
+        resolve();
+      }, FADE_MS);
+    };
+
+    // Trigger fade once both the min duration AND readyPromise are satisfied.
+    const minFadeStart = Math.max(0, minDurationMs - FADE_MS);
+    const minDelay = new Promise((r) => setTimeout(r, minFadeStart));
+    Promise.all([minDelay, ready]).then(triggerFade);
   });
 }
 

@@ -65,6 +65,20 @@ describe('playAiLoadingScreen', () => {
     expect(document.getElementById('ai-loading-overlay')).toBeNull();
   });
 
+  it('honors a custom minDurationMs', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+    const { playAiLoadingScreen } = await import('../loading-ai.js');
+    const promise = playAiLoadingScreen({ minDurationMs: 1000 });
+    let resolved = false;
+    promise.then(() => { resolved = true; });
+
+    await vi.advanceTimersByTimeAsync(900);
+    expect(resolved).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(200); // total 1100ms > 1000ms
+    expect(resolved).toBe(true);
+  });
+
   it('does not leak overlay elements across repeated calls', async () => {
     // Ensure matchMedia returns false so we get the real overlay path
     window.matchMedia = vi.fn().mockReturnValue({ matches: false });
