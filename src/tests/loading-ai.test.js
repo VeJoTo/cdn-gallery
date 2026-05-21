@@ -79,6 +79,39 @@ describe('playAiLoadingScreen', () => {
     expect(resolved).toBe(true);
   });
 
+  it('does not fade before minDurationMs even if readyPromise resolves earlier', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+    const { playAiLoadingScreen } = await import('../loading-ai.js');
+    const readyPromise = Promise.resolve(); // already resolved
+    const promise = playAiLoadingScreen({ minDurationMs: 1000, readyPromise });
+    let resolved = false;
+    promise.then(() => { resolved = true; });
+
+    await vi.advanceTimersByTimeAsync(900);
+    expect(resolved).toBe(false); // still under min duration
+
+    await vi.advanceTimersByTimeAsync(200);
+    expect(resolved).toBe(true);
+  });
+
+  it('waits for readyPromise past minDurationMs', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+    const { playAiLoadingScreen } = await import('../loading-ai.js');
+    let resolveReady;
+    const readyPromise = new Promise((r) => { resolveReady = r; });
+    const promise = playAiLoadingScreen({ minDurationMs: 1000, readyPromise });
+    let resolved = false;
+    promise.then(() => { resolved = true; });
+
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(resolved).toBe(false); // min duration passed, but ready hasn't
+
+    resolveReady();
+    await vi.advanceTimersByTimeAsync(50);   // microtasks flush, fade starts
+    await vi.advanceTimersByTimeAsync(350);  // fade (300ms) + buffer
+    expect(resolved).toBe(true);
+  });
+
   it('does not leak overlay elements across repeated calls', async () => {
     // Ensure matchMedia returns false so we get the real overlay path
     window.matchMedia = vi.fn().mockReturnValue({ matches: false });
