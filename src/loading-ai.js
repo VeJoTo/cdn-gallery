@@ -5,6 +5,7 @@ import { drawRadioFace } from './scene/face-primitives.js';
 
 const OVERLAY_ID = 'ai-loading-overlay';
 const TOTAL_MS = 2500;
+const FADE_MS = 300;
 
 let _overlay = null;
 
@@ -233,13 +234,18 @@ function _drawFace(canvas, eyes, mouth) {
   });
 }
 
-export function playAiLoadingScreen() {
+export function playAiLoadingScreen({
+  readyPromise,
+  minDurationMs = 2500,
+  maxDurationMs = 6000,
+} = {}) {
   const reduce = typeof window !== 'undefined'
     && window.matchMedia
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {
     return Promise.resolve();
   }
+  const ready = readyPromise ?? Promise.resolve();
   const overlay = _ensureOverlay();
   const { _stage, _faceCanvas, _caption, _dials, _radio, _radioShake, _staticLayer } = overlay;
 
