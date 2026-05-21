@@ -1543,6 +1543,29 @@ export function createUI(camera, renderer, controls, scene) {
   fdmClose.addEventListener('click', closeFinDuMonde);
   fdmOverlay.addEventListener('click', (e) => { if (e.target === fdmOverlay) closeFinDuMonde(); });
 
+  // ── Rick roll overlay ───────────────────────────
+  const rrOverlay = document.getElementById('rickroll-overlay');
+  const rrClose   = document.getElementById('rickroll-close');
+  const rrIframe  = rrOverlay.querySelector('iframe');
+
+  function openRickRoll() {
+    window.__dismissProximityHint?.();
+    rrIframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1';
+    rrOverlay.classList.remove('hidden');
+    unlockForOverlay();
+  }
+
+  function closeRickRoll() {
+    rrIframe.src = '';
+    rrOverlay.classList.add('hidden');
+    relockAfterOverlay();
+  }
+
+  rrClose.addEventListener('click', closeRickRoll);
+  rrOverlay.addEventListener('click', (e) => { if (e.target === rrOverlay) closeRickRoll(); });
+
+  window.__openRickRoll = openRickRoll;
+
   // ── Rabbit hole scrollytelling ──────────────────
   const rhOverlay     = document.getElementById('rabbit-hole-overlay');
   const rhClimbBack   = document.getElementById('rh-climb-back');

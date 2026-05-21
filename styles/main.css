@@ -64,7 +64,8 @@ body:has(
   #findumonde-overlay:not(.hidden),
   #kulturkartet-overlay:not(.hidden),
   #globe-videos-overlay:not(.hidden),
-  #country-video-overlay:not(.hidden)
+  #country-video-overlay:not(.hidden),
+  #rickroll-overlay:not(.hidden)
 ) #fp-overlay {
   display: none;
 }
@@ -1957,6 +1958,50 @@ body:has(
 #findumonde-link:hover { background: #00ff88; }
 
 #findumonde-desc {
+  font-size: 13px;
+  color: rgba(224,232,240,0.5);
+}
+
+/* ── Rick roll overlay ──────────────────────────── */
+#rickroll-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,15,26,0.95);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#rickroll-overlay.hidden { display: none; }
+
+#rickroll-content {
+  position: relative;
+  width: min(700px, 90vw);
+  background: #111828;
+  border: 1px solid #cc0000;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 0 30px rgba(204,0,0,0.3);
+  text-align: center;
+}
+
+#rickroll-title {
+  font-size: 22px;
+  color: #cc0000;
+  margin-bottom: 20px;
+}
+
+#rickroll-video {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#rickroll-video iframe {
+  display: block;
+}
+
+#rickroll-desc {
+  margin-top: 16px;
   font-size: 13px;
   color: rgba(224,232,240,0.5);
 }
