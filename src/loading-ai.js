@@ -241,10 +241,10 @@ export function playAiLoadingScreen({
   const reduce = typeof window !== 'undefined'
     && window.matchMedia
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce) {
-    return Promise.resolve();
-  }
   const ready = readyPromise ?? Promise.resolve();
+  if (reduce) {
+    return _runReducedMotion(ready, maxDurationMs);
+  }
   const overlay = _ensureOverlay();
   const { _stage, _faceCanvas, _caption, _dials, _radio, _radioShake, _staticLayer } = overlay;
 
@@ -313,6 +313,44 @@ export function playAiLoadingScreen({
     Promise.all([minDelay, ready]).then(triggerFade);
 
     // Hard cap: trigger fade at (maxDurationMs - FADE_MS) regardless of ready.
+    const maxFadeStart = Math.max(0, maxDurationMs - FADE_MS);
+    setTimeout(() => {
+      if (!faded) {
+        console.warn(
+          `[loading-ai] readyPromise did not settle within ${maxDurationMs}ms`
+        );
+        triggerFade();
+      }
+    }, maxFadeStart);
+  });
+}
+
+function _runReducedMotion(ready, maxDurationMs) {
+  const overlay = _ensureOverlay();
+  // Snap the stage to its final position; skip slide-in and all looping animations.
+  overlay._stage.style.transition = 'none';
+  overlay._stage.style.transform = 'translateY(0)';
+  overlay._staticLayer.style.display = 'none';
+  overlay._radioShake.style.animation = '';
+  for (const d of overlay._dials) {
+    d.style.animation = '';
+  }
+  _drawFace(overlay._faceCanvas, 'open', 'smile');
+  overlay._caption.textContent = 'TUNING IN…';
+
+  return new Promise((resolve) => {
+    let faded = false;
+    const triggerFade = () => {
+      if (faded) return;
+      faded = true;
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        _teardown();
+        resolve();
+      }, FADE_MS);
+    };
+    ready.then(triggerFade);
+
     const maxFadeStart = Math.max(0, maxDurationMs - FADE_MS);
     setTimeout(() => {
       if (!faded) {

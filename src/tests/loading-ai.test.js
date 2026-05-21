@@ -54,15 +54,45 @@ describe('playAiLoadingScreen', () => {
     await promise;
   });
 
-  it('resolves immediately under prefers-reduced-motion', async () => {
+  it('builds a static overlay and fades when ready under prefers-reduced-motion', async () => {
     window.matchMedia = vi.fn().mockReturnValue({ matches: true });
     const { playAiLoadingScreen } = await import('../loading-ai.js');
-    const promise = playAiLoadingScreen();
+    let resolveReady;
+    const readyPromise = new Promise((r) => { resolveReady = r; });
+    const promise = playAiLoadingScreen({ readyPromise });
+
+    // Overlay must exist while waiting for ready, even with reduced motion.
+    expect(document.getElementById('ai-loading-overlay')).not.toBeNull();
+
     let resolved = false;
     promise.then(() => { resolved = true; });
-    await vi.advanceTimersByTimeAsync(20);
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(resolved).toBe(false);
+
+    resolveReady();
+    await vi.advanceTimersByTimeAsync(50);   // microtask flush, fade starts
+    await vi.advanceTimersByTimeAsync(350);  // fade (300ms) + buffer
     expect(resolved).toBe(true);
     expect(document.getElementById('ai-loading-overlay')).toBeNull();
+  });
+
+  it('respects maxDurationMs cap under prefers-reduced-motion when readyPromise never resolves', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { playAiLoadingScreen } = await import('../loading-ai.js');
+    const neverReady = new Promise(() => {});
+    const promise = playAiLoadingScreen({ maxDurationMs: 2000, readyPromise: neverReady });
+    let resolved = false;
+    promise.then(() => { resolved = true; });
+
+    await vi.advanceTimersByTimeAsync(1900);
+    expect(resolved).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(200);
+    expect(resolved).toBe(true);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   it('honors a custom minDurationMs', async () => {
