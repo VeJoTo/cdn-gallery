@@ -198,6 +198,6 @@ export function setupClickHandler(renderer, camera, clickableObjects, nav, ui, n
     if (action === 'nextVideo')       window.__nextVideo?.();
     if (action === 'prevVideo')       window.__prevVideo?.();
     if (action === 'showInfo')        window.__showInfo?.();
-    if (action === 'rickRoll')        window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
+    if (action === 'rickRoll')        window.__openRickRoll?.();
   });
 }

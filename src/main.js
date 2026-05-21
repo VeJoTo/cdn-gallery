@@ -2011,6 +2011,7 @@ document.addEventListener("mousedown", () => {
     "openFinDuMonde",
     "openGlobeVideos",
     "openKulturKartet",
+    "rickRoll",
   ]);
   const opensOverlay = uiActions.has(action);
   if (opensOverlay) {
@@ -2030,7 +2031,7 @@ document.addEventListener("mousedown", () => {
     globeScreen.selectCountry(obj.userData.country);
   if (action === "resetGlobeScreen") globeScreen.reset();
   if (action === "openKulturKartet") openKulturKartet(obj.userData.btnMode ?? "explore");
-  if (action === "rickRoll") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
+  if (action === "rickRoll") window.__openRickRoll?.();
   if (action === "radioPower" || action === "radioPlayPause" || action === "radioNext")
     handleRadioAction(action);
   if (action === "enterNatureRoom") window.__transitionToRoom("nature");
