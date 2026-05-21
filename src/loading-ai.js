@@ -4,7 +4,17 @@
 import { drawRadioFace } from './scene/face-primitives.js';
 
 const OVERLAY_ID = 'ai-loading-overlay';
+const SLIDE_IN_MS = 500;
+const LOCKIN_MS = 700;
 const FADE_MS = 300;
+
+const FACE_CYCLE = [
+  { eyes: 'wide',   mouth: 'smile' },
+  { eyes: 'closed', mouth: 'smile' },
+  { eyes: 'wink',   mouth: 'smirk' },
+  { eyes: 'wide',   mouth: 'smirk' },
+];
+const CAPTION_CYCLE = ['TUNING IN…', 'TUNING IN. .', 'TUNING IN. . .', 'TUNING IN…'];
 
 let _overlay = null;
 
