@@ -13,7 +13,7 @@ export const HOTSPOTS = {
   globe:          { position: { x: 0.6,  y: 1.2, z: -1.5 }, target: { x: 0.2,  y: 0.85, z: -2.4 }, label: 'Globe' },
   pedestal:       { position: { x: -3.5, y: 1.8, z: -2.75 }, target: { x: -7.0, y: 2.0, z: -2.75 }, label: 'Magic Tome' },
   'rabbit-hole':  { position: { x: -0.2, y: 1.2, z: -1.5 }, target: { x: -0.8, y: 0.2, z: -2.4 }, label: 'Rabbit Hole' },
-  tv:                 { position: { x: -5.6, y: 2.05, z: 2.75 }, target: { x: -7.814,  y: 2.05, z: 2.75 }, label: 'TV', duration: 1.1 },
+  tv:                 { position: { x: -5.425, y: 2.05, z: 2.75 }, target: { x: -7.814,  y: 2.05, z: 2.75 }, label: 'TV', duration: 1.1 },
   'poster-0':         { position: { x: -2.5, y: 2.0, z: -1.5 }, target: { x: -2.5, y: 2.0,  z: -2.90 }, label: 'Galaga' },
   'poster-1':         { position: { x: -1.4, y: 2.0, z: -1.5 }, target: { x: -1.4, y: 2.0,  z: -2.90 }, label: 'Pac-Man' },
   'poster-2':         { position: { x: -0.3, y: 2.0, z: -1.5 }, target: { x: -0.3, y: 2.0,  z: -2.90 }, label: 'Space Invaders' },
