@@ -326,7 +326,7 @@ function roundedRectShape(w, h, r) {
 
 export function buildTV() {
   const group = new THREE.Group();
-  group.position.set(-7.95, 1.9, 2.75);
+  group.position.set(-7.95, 1.67, 2.75);
   group.rotation.y = Math.PI / 2;
 
   const R = 0.06;

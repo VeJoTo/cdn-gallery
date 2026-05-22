@@ -1254,6 +1254,10 @@ const nav = createNavigationSystem(camera, navState, ui, controls);
 const _navGoTo = nav.goTo.bind(nav);
 nav.goTo = (id) => {
   _navGoTo(id);
+  if (id === 'tv' || id === 'seat-sofa') {
+    window.__markProximityHintSeen?.('tv-sofa');
+    window.__dismissProximityHint?.();
+  }
   if (id === "pedestal") {
     const dur = 0.6 * 1000 + 200; // hotspot default duration + buffer
     setTimeout(() => {
@@ -1322,24 +1326,20 @@ let tvHovered = null;
 const tvBackBtn = document.createElement("button");
 tvBackBtn.innerHTML = "&times;";
 tvBackBtn.style.cssText = `
-  position:fixed; bottom:36px; right:36px;
-  width:54px; height:54px; border-radius:50%; border:1.5px solid rgba(0,212,255,0.75);
-  background:rgba(0,0,0,0.55); color:rgba(0,212,255,0.9); font-size:30px; line-height:1;
+  position:fixed; top:20px; right:20px;
+  width:44px; height:44px; border-radius:50%; border:2px solid #e0e8f0;
+  background:#0a0f1a; color:#e0e8f0; font-size:22px; line-height:1;
   cursor:pointer; display:none; align-items:center; justify-content:center;
-  box-shadow:0 0 14px rgba(0,212,255,0.35),inset 0 0 12px rgba(0,212,255,0.08);
-  text-shadow:0 0 8px rgba(0,212,255,0.7); z-index:100;
-  transition:background 0.15s, box-shadow 0.15s;
+  z-index:100; transition:background 0.15s, border-color 0.15s;
 `;
 document.body.appendChild(tvBackBtn);
 tvBackBtn.addEventListener("mouseenter", () => {
-  tvBackBtn.style.background = "rgba(0,212,255,0.12)";
-  tvBackBtn.style.boxShadow =
-    "0 0 22px rgba(0,212,255,0.6),inset 0 0 14px rgba(0,212,255,0.15)";
+  tvBackBtn.style.background = "#00d4ff";
+  tvBackBtn.style.borderColor = "#00d4ff";
 });
 tvBackBtn.addEventListener("mouseleave", () => {
-  tvBackBtn.style.background = "rgba(0,0,0,0.55)";
-  tvBackBtn.style.boxShadow =
-    "0 0 14px rgba(0,212,255,0.35),inset 0 0 12px rgba(0,212,255,0.08)";
+  tvBackBtn.style.background = "#0a0f1a";
+  tvBackBtn.style.borderColor = "#e0e8f0";
 });
 tvBackBtn.addEventListener("click", () => {
   stepBackFromTV();
@@ -2279,6 +2279,7 @@ document.addEventListener('mouseup', (e) => {
     if (hintEl) hintEl.classList.add('hidden');
   }
   window.__dismissProximityHint = dismiss;
+  window.__markProximityHintSeen = (id) => shown.add(id);
 
   function showPage(hint, idx) {
     if (!hintBody) return;
