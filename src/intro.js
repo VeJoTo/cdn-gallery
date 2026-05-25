@@ -34,6 +34,14 @@ function* visibleChars(str) {
 
 const DEFAULT_CHAR_DELAY_MS = 12;
 
+// Only one intro can be visible at a time (single shared DOM). Track its
+// finish() so callers like room transitions can dismiss a lingering intro.
+let _activeFinish = null;
+
+export function cancelActiveIntro() {
+  _activeFinish?.({ skipped: true });
+}
+
 /**
  * Play the intro dialogue sequence inside #gatekeeper-chat's #chat-messages.
  *
@@ -108,6 +116,7 @@ export function playIntro({ script, charDelayMs = DEFAULT_CHAR_DELAY_MS }) {
     }
 
     function finish(result) {
+      if (_activeFinish === finish) _activeFinish = null;
       if (timer) { clearTimeout(timer); timer = null; }
       document.removeEventListener('keydown', onKeydown);
       guideDialog.removeEventListener('click', onDialogClick);
@@ -132,6 +141,7 @@ export function playIntro({ script, charDelayMs = DEFAULT_CHAR_DELAY_MS }) {
 
     document.addEventListener('keydown', onKeydown);
     guideDialog.addEventListener('click', onDialogClick);
+    _activeFinish = finish;
 
     typeLine(script[lineIdx]);
   });

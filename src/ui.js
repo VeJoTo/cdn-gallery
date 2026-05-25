@@ -1,6 +1,6 @@
 // src/ui.js
 import { applySkyMode, getSkyMode, setSkyMode } from './sky.js';
-import { playIntro as runIntroDialogue } from './intro.js';
+import { playIntro as runIntroDialogue, cancelActiveIntro } from './intro.js';
 import { ACHIEVEMENTS } from './achievements.js';
 
 function escapeHtml(str) {
@@ -521,6 +521,7 @@ export function createUI(camera, renderer, controls, scene) {
   }
 
   window.__showGuideMessage = (text) => playIntro([{ text }]);
+  window.__cancelGuideMessage = cancelActiveIntro;
 
   chatSend.addEventListener('click', () => {
     if (isIntroPlaying) return;
