@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { typewriteTokens, playIntro } from '../intro.js';
+import { typewriteTokens, playIntro, cancelActiveIntro } from '../intro.js';
 
 function collect(iter) {
   return Array.from(iter);
@@ -133,6 +133,30 @@ describe('playIntro', () => {
     vi.advanceTimersByTime(10);
     press('Escape');
     await expect(promise).resolves.toEqual({ skipped: true });
+  });
+
+  it('cancelActiveIntro() resolves the in-flight intro with { skipped: true }', async () => {
+    const promise = playIntro({ script: TWO_LINE_SCRIPT, charDelayMs: 10 });
+    vi.advanceTimersByTime(10);
+    cancelActiveIntro();
+    await expect(promise).resolves.toEqual({ skipped: true });
+  });
+
+  it('cancelActiveIntro() removes listeners so later keypresses are inert', async () => {
+    const { chatMessages } = setupDom();
+    const promise = playIntro({ script: TWO_LINE_SCRIPT, charDelayMs: 10 });
+    vi.advanceTimersByTime(10);
+    cancelActiveIntro();
+    await promise;
+    const afterHtml = chatMessages.innerHTML;
+    press(' ');
+    press('Enter');
+    press('Escape');
+    expect(chatMessages.innerHTML).toBe(afterHtml);
+  });
+
+  it('cancelActiveIntro() is a no-op when no intro is active', () => {
+    expect(() => cancelActiveIntro()).not.toThrow();
   });
 
   it('renders HTML tags as HTML, not as text', () => {

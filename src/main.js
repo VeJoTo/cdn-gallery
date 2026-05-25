@@ -392,10 +392,42 @@ export function addUpdateCallback(fn) {
   updateCallbacks.push(fn);
 }
 
+// FPS overlay — tiny readout in top-right. Toggle with F1.
+const _fpsEl = document.createElement('div');
+_fpsEl.id = 'fps-overlay';
+_fpsEl.style.cssText = [
+  'position:fixed', 'top:6px', 'right:8px', 'z-index:9999',
+  'font:11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace',
+  'color:#9ce0ff', 'background:rgba(13,33,55,0.55)',
+  'padding:3px 6px', 'border-radius:4px', 'pointer-events:none',
+  'letter-spacing:0.5px',
+].join(';');
+_fpsEl.textContent = 'fps —';
+document.body.appendChild(_fpsEl);
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'F1') {
+    e.preventDefault();
+    _fpsEl.style.display = _fpsEl.style.display === 'none' ? '' : 'none';
+  }
+});
+let _fpsLastTime = performance.now();
+let _fpsFrames = 0;
+
 let _frameCounter = 0;
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
+
+  // Update FPS readout ~4x/sec
+  _fpsFrames++;
+  const _now = performance.now();
+  if (_now - _fpsLastTime >= 250) {
+    const fps = (_fpsFrames * 1000) / (_now - _fpsLastTime);
+    _fpsEl.textContent = `${fps.toFixed(0)} fps · ${currentRoom ?? '—'}`;
+    _fpsLastTime = _now;
+    _fpsFrames = 0;
+  }
+
   for (const fn of updateCallbacks) fn(delta);
   updateMovement(delta);
 
@@ -461,9 +493,11 @@ const holoMagBtn = tv.userData.magBtn;
 const holoInfoBtn = tv.userData.infoBtn;
 const holoSpeakerBtn = tv.userData.speakerBtn;
 const holoPlaylistBtn = tv.userData.playlistBtn;
-addUpdateCallback(sceneUpdate);
-addUpdateCallback(globeScreen.update);
-addUpdateCallback((delta) => tickKartet(delta));
+// Gate AI-room updates so they don't run while in nature/exterior.
+// currentRoom is declared further down but resolved at call-time.
+addUpdateCallback((delta) => { if (currentRoom === "ai") sceneUpdate(delta); });
+addUpdateCallback((delta) => { if (currentRoom === "ai") globeScreen.update(delta); });
+addUpdateCallback((delta) => { if (currentRoom === "ai") tickKartet(delta); });
 
 // ── Kulturkartet fullscreen overlay ──
 const kulturkartetOverlay  = document.getElementById('kulturkartet-overlay');
@@ -490,6 +524,7 @@ kulturkartetOverlay.addEventListener('click', (e) => { if (e.target === kulturka
   const btns = tv.userData.buttons ?? [];
   const baseZ = 0.13;
   addUpdateCallback(() => {
+    if (currentRoom !== "ai") return;
     const t = performance.now() * 0.001;
     btns.forEach((btn, i) => {
       btn.position.z = baseZ + Math.sin(t * 1.1 + i * 1.2) * 0.003;
@@ -977,6 +1012,7 @@ const _playlistHalfW = (680 * _panelScale) / 2;
 const _tvHalfW = 1.025 * 1.5;
 const _panelGap = 0.04;
 addUpdateCallback(() => {
+  if (currentRoom !== "ai") return;
   screenMesh.getWorldPosition(_cssPos);
   screenMesh.getWorldQuaternion(_cssQuat);
   tvCSS3D.position.copy(_cssPos);
@@ -1670,6 +1706,7 @@ addUpdateCallback(() => {
 
 // Nature room animations
 addUpdateCallback((delta) => {
+  if (currentRoom !== "nature") return;
   const elapsed = performance.now() * 0.001;
   if (natureRoom.returnGlow) natureRoom.returnGlow.rotation.z += delta * 0.3;
   if (natureRoom.returnGlow2) natureRoom.returnGlow2.rotation.z -= delta * 0.5;
@@ -1726,6 +1763,11 @@ function transitionToRoom(targetRoom) {
   isTransitioning = true;
   nav.clearSaved();
 
+  // Dismiss any guide message left open from a previous room (e.g. the
+  // garden-room blurb) so it doesn't bleed into the next room with the
+  // wrong portrait/text.
+  window.__cancelGuideMessage?.();
+
   // Stop all movement so the player doesn't keep walking during the cut.
   moveState.forward =
     moveState.backward =
@@ -1754,8 +1796,16 @@ function transitionToRoom(targetRoom) {
         currentRoom = "exterior";
         scene.fog = null;
       } else {
-        camera.position.set(0, EYE_HEIGHT, 10);
-        camera.lookAt(0, EYE_HEIGHT, 0);
+        if (currentRoom === "nature") {
+          // Returning from the garden — spawn just inside the right-wall
+          // garden portal (objects.js: ROOM_WIDTH/2 - 0.1, _, -2.75) facing
+          // into the room so the portal is behind the player.
+          camera.position.set(6.5, EYE_HEIGHT, -2.75);
+          camera.lookAt(0, EYE_HEIGHT, -2.75);
+        } else {
+          camera.position.set(0, EYE_HEIGHT, 10);
+          camera.lookAt(0, EYE_HEIGHT, 0);
+        }
         currentRoom = "ai";
         clearSkyObjects(scene);
         scene.background = new THREE.Color(0xf4f6f8);
